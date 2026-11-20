@@ -379,6 +379,15 @@
   .gp-clock button.on{ background:#3a3029; color:#f7efe4; border-color:#3a3029; }
   .gp-line{ margin-top:4px; font-size:9px; letter-spacing:.06em; color:rgba(54,43,35,.7); }
   .gp-line.dim{ color:rgba(54,43,35,.5); }
+  .gp-line.wx{
+    margin-top:5px; padding-top:4px; border-top:1px dashed rgba(60,48,40,.2);
+    display:flex; align-items:baseline; gap:4px; font-size:9px; color:rgba(54,43,35,.84);
+  }
+  .gp-line.wx i{ font-style:normal; font-size:12px; line-height:1; }
+  .gp-line.wx b{ font-weight:600; letter-spacing:.1em; }
+  .gp-line.wx em{ font-style:normal; opacity:.58; font-size:8.5px; }
+  .gp-line.wx s{ text-decoration:none; margin-left:auto; font-size:8px; color:rgba(156,74,74,.86);
+    border-bottom:1px solid rgba(156,74,74,.4); cursor:pointer; }
 
   .gdock{
     position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
@@ -465,6 +474,27 @@
   .gm-body .rt button[disabled]{ opacity:.4; cursor:not-allowed; }
   .gm-foot{ display:flex; gap:8px; justify-content:flex-end; padding:12px 16px 16px;
     position:sticky; bottom:0; background:rgba(32,26,22,.98); border-top:1px solid rgba(247,239,228,.08); }
+  /* —— 天候 —— */
+  .wx-tbl{ display:grid; grid-template-columns:1.35fr repeat(4,1fr); gap:4px 2px; margin:6px 0 2px;
+    font-size:9px; letter-spacing:.04em; text-align:center; }
+  .wx-tbl .hd{ opacity:.55; }
+  .wx-tbl .nm{ text-align:left; opacity:.8; }
+  .wx-tbl .cur{ color:#e8c08a; font-weight:700; }
+  .wx-tbl .zero{ opacity:.28; }
+  .wx-effect{ display:flex; flex-wrap:wrap; gap:5px; margin:8px 0 2px; }
+  .wx-effect span{ padding:3px 7px; border:1px solid rgba(247,239,228,.16); font-size:9px; letter-spacing:.06em; }
+  .wx-effect .good{ color:#a9d39a; border-color:rgba(169,211,154,.38); }
+  .wx-effect .bad{ color:#e39a9a; border-color:rgba(227,154,154,.38); }
+  .wx-fc{ display:flex; gap:6px; margin:6px 0 2px; }
+  .wx-fc div{ flex:1; padding:6px 4px; text-align:center; border:1px solid rgba(247,239,228,.14);
+    background:rgba(247,239,228,.045); font-size:9px; letter-spacing:.05em; }
+  .wx-fc div b{ display:block; font-size:13px; font-weight:400; margin-bottom:3px; }
+#wxFlash{ position:fixed; inset:0; z-index:23; pointer-events:none; opacity:0;
+    background:radial-gradient(circle at 50% 28%, rgba(240,247,255,.94), rgba(208,226,255,.38) 56%, rgba(255,255,255,0) 80%);
+    transition:opacity .18s linear; }
+  #wxMoonTint{ position:fixed; inset:0; z-index:21; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at 50% 24%, rgba(255,214,150,.52) 0%, rgba(255,196,116,.26) 38%, rgba(255,178,84,.09) 62%, rgba(255,168,64,0) 84%);
+    mix-blend-mode:screen; transition:opacity 2.6s linear; }
   /* —— 访客档案 —— */
   .gv-top{ display:flex; gap:13px; align-items:flex-start; padding-bottom:11px; border-bottom:1px solid rgba(247,239,228,.1); }
   .gv-avatar{ flex:0 0 92px; width:92px; height:112px; overflow:hidden; border:1px solid rgba(247,239,228,.18);
@@ -679,6 +709,7 @@
 </head>
 <body>
 <div id="scene" aria-label="日式樱花山谷三维庭园"></div>
+<div id="wxFlash"></div>
 <div id="vignette"></div>
 
 <header class="brand">
@@ -721,7 +752,7 @@
   <button class="ctrl" id="panBtn" type="button">平移视角</button>
   <button class="ctrl" id="tourBtn" type="button">巡园</button>
   <button class="ctrl" id="sfxBtn" type="button">音效 开</button>
-  <button class="ctrl" id="codexBtn" type="button">图鉴 0/49</button>
+  <button class="ctrl" id="codexBtn" type="button">图鉴 0/51</button>
   <button class="ctrl" id="settingsBtn" type="button">设置</button>
 </div>
 
@@ -731,7 +762,7 @@
 
 <div class="codex" id="codex" hidden>
   <div class="cx-head">
-    <div class="cx-title"><b>回 响 图 鉴</b><span id="cxProgress">0 / 49 类已发现</span></div>
+    <div class="cx-title"><b>回 响 图 鉴</b><span id="cxProgress">0 / 51 类已发现</span></div>
     <div class="cx-tools">
       <div class="cx-filters">
         <button type="button" data-cx-filter="all" class="on">全部</button>
@@ -741,7 +772,7 @@
       <button class="cx-close" id="codexClose" type="button">收起</button>
     </div>
   </div>
-  <div class="cx-sub"><span class="cx-note">全 49 类 · 每类首次发现都有奖励</span><span id="cxReward">下一发现 · +20 銭</span></div>
+  <div class="cx-sub"><span class="cx-note">全 51 类 · 每类首次发现都有奖励</span><span id="cxReward">下一发现 · +20 銭</span></div>
   <div class="cx-tip">灰阶剪影是尚未发现的景物；发现后点亮彩色插图。点击卡片可查看线索与详情。</div>
   <div class="cx-grid" id="codexGrid"></div>
 </div>
@@ -759,6 +790,7 @@
     <div class="gp-clock"><b id="gClock">07:00</b><button id="gPause" type="button">暂停</button><button id="gSpeed" type="button">1×</button></div>
     <div class="gp-line" id="gSun"></div>
     <div class="gp-line" id="gMoon"></div>
+    <div class="gp-line wx" id="gWx"><i>☀</i><b>晴</b><em>景 114% · 客 116%</em><s>天候</s></div>
     <div class="gp-line dim" id="gCrowd"></div>
   </div>
   <div class="gdock" id="gDock">
@@ -1701,149 +1733,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* ============================================================
-     6.5 全园建模标准 GM_ART
-     ------------------------------------------------------------
-     后续新增任何 3D 模型，统一使用本节的调色、材质、几何与细部层级：
-       主体（mass） + 收边（trim） + 接缝/五金（joint） + 接地（ground）
-     禁止再直接写随机 hex 色或另起一套低精度 primitive。
-     运行 window.__art.audit() 可检查全园网格、材质与未登记模型。
-     ============================================================ */
-  var GM_ART = (function () {
-    var coarse = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 760;
-    var detailLevel = coarse ? 1 : 2; // 1=标准，2=精细
-    var detailObjects = [];
-    var matCache = {};
-    var geoCache = {};
-    var palette = {
-      stone: ['#8a887d', '#969386', '#7b7d73', '#a09d8f'],
-      wetStone: ['#4d5a53', '#56635b', '#44514a'],
-      wood: ['#6b4a33', '#7a563b', '#5a3f2c', '#8a6544'],
-      darkWood: '#3d2e26',
-      lacquer: '#b43a2b',
-      lacquerDark: '#8f2c22',
-      plaster: ['#ddd2be', '#e2d8c6', '#d3c7b2'],
-      roof: ['#56534c', '#494741', '#625f57'],
-      thatch: ['#9a8757', '#8a7749', '#a99561'],
-      metal: '#4a443d',
-      bronze: '#66553f',
-      rope: '#d8c7a1',
-      paper: '#fbf7ee',
-      moss: ['#557a44', '#4a6d3b', '#63884e'],
-      flower: ['#f4d6df', '#efb9ce', '#f6e6b0', '#dfe9f2']
-    };
-    function mat(name, color, opts) {
-      var key = name + '|' + color + '|' + JSON.stringify(opts || {});
-      if (matCache[key]) return matCache[key];
-      var p = { color: color, roughness: 0.86, metalness: 0.03, flatShading: true };
-      if (opts) for (var k in opts) p[k] = opts[k];
-      matCache[key] = new THREE.MeshStandardMaterial(p);
-      return matCache[key];
-    }
-    function rockGeo(variant) {
-      var key = 'rock' + (variant % 4);
-      if (geoCache[key]) return geoCache[key];
-      var g = new THREE.IcosahedronGeometry(1, 1);
-      var a = g.attributes.position;
-      for (var i = 0; i < a.count; i++) {
-        var x = a.getX(i), y = a.getY(i), z = a.getZ(i);
-        var n = 0.87 + 0.10 * Math.sin(x * 7.7 + y * 4.3 + variant * 1.7)
-          + 0.055 * Math.sin(z * 12.1 - y * 6.2 + variant * 2.3)
-          + 0.035 * Math.sin(x * 17.0 + z * 9.0);
-        a.setXYZ(i, x * n * 1.04, y * n * 0.88, z * n);
-      }
-      g.computeVertexNormals();
-      g.userData.artRole = 'rock';
-      geoCache[key] = g;
-      return g;
-    }
-    function plaqueTex(main, sub) {
-      var key = 'plaque|' + main + '|' + sub;
-      if (geoCache[key]) return geoCache[key];
-      var c = document.createElement('canvas');
-      c.width = 256; c.height = 144;
-      var ctx = c.getContext('2d');
-      ctx.fillStyle = '#3a2b21'; ctx.fillRect(0, 0, 256, 144);
-      ctx.strokeStyle = '#b28a55'; ctx.lineWidth = 5; ctx.strokeRect(10, 10, 236, 124);
-      ctx.strokeStyle = '#8a673f'; ctx.lineWidth = 1; ctx.strokeRect(18, 18, 220, 108);
-      ctx.fillStyle = '#efe2c5'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      var fs = main.length <= 2 ? 82 : (main.length === 3 ? 62 : 48);
-      ctx.font = '700 ' + fs + 'px "Noto Serif SC", serif';
-      ctx.fillText(main, 128, 70);
-      ctx.font = '600 17px "Noto Serif SC", serif';
-      ctx.fillStyle = '#cbb58d';
-      ctx.fillText(sub, 128, 120);
-      var tex = new THREE.CanvasTexture(c);
-      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-      tex.userData = { main: main, sub: sub };
-      geoCache[key] = tex;
-      return tex;
-    }
-    function plaqueMesh(main, sub, w, h) {
-      var m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({
-        map: plaqueTex(main, sub), roughness: 0.8, metalness: 0.02
-      }));
-      m.userData.kind = 'torii';
-      tag(m, 'plaque', 2);
-      return m;
-    }
-    function tag(obj, role, tier) {
-      if (!obj) return obj;
-      obj.userData.artRole = role || 'furniture';
-      obj.userData.artTier = tier === undefined ? detailLevel : tier;
-      return obj;
-    }
-    function detail(obj, tier) {
-      tag(obj, obj.userData.artRole || 'detail', tier === undefined ? 2 : tier);
-      detailObjects.push(obj);
-      return obj;
-    }
-    function applyQuality(q) {
-      for (var i = 0; i < detailObjects.length; i++) {
-        var o = detailObjects[i];
-        o.visible = !(q === 'low' && o.userData.artTier >= 2);
-      }
-    }
-    function audit() {
-      var meshes = 0, tris = 0, mats = {}, roles = {}, untagged = 0, untaggedNames = [];
-      scene.traverse(function (o) {
-        if (!o.isMesh && !o.isInstancedMesh) return;
-        meshes++;
-        var g = o.geometry;
-        if (g) tris += (g.index ? g.index.count : (g.attributes.position ? g.attributes.position.count : 0)) / 3;
-        if (o.material) {
-          var mm = Array.isArray(o.material) ? o.material : [o.material];
-          for (var i = 0; i < mm.length; i++) {
-            var n = mm[i].name || mm[i].type;
-            mats[n] = (mats[n] || 0) + 1;
-          }
-        }
-        var role = o.userData.artRole || o.userData.kind;
-        if (role) roles[role] = (roles[role] || 0) + 1;
-        else { untagged++; if (untaggedNames.length < 16) untaggedNames.push(o.name || o.type); }
-      });
-      return { detailLevel: detailLevel, meshes: meshes, triangles: Math.round(tris), materials: mats, roles: roles, untagged: untagged, untaggedNames: untaggedNames };
-    }
-    return {
-      version: '1.0',
-      detailLevel: detailLevel,
-      palette: palette,
-      mat: mat,
-      rockGeo: rockGeo,
-      plaqueTex: plaqueTex,
-      plaqueMesh: plaqueMesh,
-      tag: tag,
-      detail: detail,
-      applyQuality: applyQuality,
-      audit: audit
-    };
-  })();
-  window.__art = GM_ART;
-
-  /* ============================================================
      7. 岩石、苔藓、瀑布崖壁
      ============================================================ */
   var rockParts = [];
-  var rockVariant = 0;
   var mossParts = [];
   var mossMat = null;
   var mossMesh = null;
@@ -1851,7 +1743,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   function addRock(x, z, sx, sy, sz, rotY, colorHex, mossy) {
     if (!placingCliff && x > -9.5 && x < 1.5 && z > -10.5 && z < 2.5) return;
-    var geo = GM_ART.rockGeo(rockVariant++);
+    var geo = new THREE.DodecahedronGeometry(1, 0);
     var pos = new THREE.Vector3(x, terrainH(x, z) + sy * 0.28 - 0.18, z);
     var rot = new THREE.Euler(rr(-0.2, 0.2), rotY, rr(-0.2, 0.2));
     rockParts.push({
@@ -2030,22 +1922,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     var initDir = new THREE.Vector3((rng() - 0.5) * 0.22, 1, (rng() - 0.5) * 0.22).normalize();
     grow(trunk, initDir, 3.0 * scale, 0.5 * scale, 0);
-
-    // 樱花树板根：把树干和地面真正连起来
-    for (var rr = 0; rr < 4; rr++) {
-      var ra = rr / 4 * Math.PI * 2 + rng() * 0.45;
-      var rl = (1.05 + rng() * 0.55) * scale;
-      var rs = new THREE.Vector3(x + Math.cos(ra) * 0.28 * scale, baseY + 0.42 * scale, z + Math.sin(ra) * 0.28 * scale);
-      var re = new THREE.Vector3(x + Math.cos(ra) * rl, baseY - 0.06, z + Math.sin(ra) * rl);
-      var rdir = re.clone().sub(rs).normalize();
-      var rmid = rs.clone().add(re).multiplyScalar(0.5);
-      var rq = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), rdir);
-      treeParts.push({
-        geo: new THREE.CylinderGeometry(0.06 * scale, (0.22 + rng() * 0.08) * scale, rs.distanceTo(re), 5, 1),
-        matrix: new THREE.Matrix4().compose(rmid, rq, new THREE.Vector3(1, 1, 1)),
-        color: new THREE.Color('#4a3428'), tint: 0.03
-      });
-    }
 
     var tipCount = Math.max(1, tips.length);
     canopyCenter.multiplyScalar(1 / (tipCount + 1));
@@ -2457,45 +2333,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       put(toriiRed, new THREE.BoxGeometry(0.24, 1.25, 0.24), new THREE.Vector3(side * 4.7, 6.1, 0),
         new THREE.Euler(0, 0, side * 0.7), new THREE.Color('#b63728'));
     });
-
-    // 柱脚石与青铜箍：把朱柱“落地”
-    [-4.15, 4.15].forEach(function (px) {
-      put(toriiDark, new THREE.CylinderGeometry(0.7, 0.78, 0.22, 10), new THREE.Vector3(px, 0.11, 0), null, new THREE.Color('#4d4a42'));
-      put(toriiDark, new THREE.CylinderGeometry(0.49, 0.49, 0.10, 12), new THREE.Vector3(px, 1.22, 0), null, new THREE.Color('#5b4b38'));
-      put(toriiDark, new THREE.CylinderGeometry(0.46, 0.46, 0.09, 12), new THREE.Vector3(px, 6.55, 0), null, new THREE.Color('#5b4b38'));
-    });
-
-    // 笠木上的瓦脊
-    for (var tr = 0; tr < 13; tr++) {
-      var tx = -5.5 + tr * (11.0 / 12);
-      var ty = 7.48 + Math.pow(Math.abs(tx) / 5.7, 2.1) * 0.9 + 0.16;
-      put(toriiDark, new THREE.BoxGeometry(0.34, 0.16, 1.24), new THREE.Vector3(tx, ty, 0), null, new THREE.Color('#292622'));
-    }
-
-    // 注连绳与纸垂
-    for (var rs = 0; rs < 7; rs++) {
-      var rx = -3.55 + rs * 1.18;
-      var ry = 5.92 - 0.30 * (1 - Math.pow(rx / 4.15, 2));
-      put(toriiRed, new THREE.CylinderGeometry(0.11, 0.11, 1.28, 7),
-        new THREE.Vector3(rx, ry, 0.12), new THREE.Euler(0, 0, Math.PI / 2), new THREE.Color('#d8c7a1'));
-    }
-    [-2.7, -0.9, 0.9, 2.7].forEach(function (sx2, si2) {
-      var sy2 = 5.80 - 0.26 * (1 - Math.pow(sx2 / 4.15, 2));
-      for (var sp = 0; sp < 3; sp++) {
-        put(toriiRed, new THREE.BoxGeometry(0.23, 0.26, 0.035),
-          new THREE.Vector3(sx2 + (sp % 2 ? 0.10 : -0.10), sy2 - 0.30 - sp * 0.27, 0.14),
-          new THREE.Euler(0, 0, sp % 2 ? 0.13 : -0.13), new THREE.Color('#fbf7ee'));
-      }
-    });
-
-    // 额束上的樱纹匾额
-    var plaque = GM_ART.plaqueMesh('櫻', 'SAKURA VALLEY', 1.22, 0.72);
-    var plaquePos = new THREE.Vector3(0, 6.55, 0.56).applyMatrix4(base);
-    plaque.position.copy(plaquePos);
-    plaque.rotation.y = rotY;
-    plaque.scale.setScalar(s);
-    GM_ART.detail(plaque, 2);
-    scene.add(plaque);
   }
 
   function addLantern(x, z, s, rotY) {
@@ -2529,30 +2366,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       matrix: base.clone().multiply(M4(new THREE.Vector3(0, 2.43, 0), null, 1)),
       color: new THREE.Color('#f4fafc')
     });
-
-    // 底座两级石阶
-    put(stoneParts, new THREE.CylinderGeometry(0.72, 0.78, 0.10, 10), 0.05, stoneCol, 0.04);
-    put(stoneParts, new THREE.CylinderGeometry(0.62, 0.68, 0.09, 10), 0.14, stoneCol, 0.03);
-    // 火窗棂：四角与上下横档
-    function putLocal(geo, x, y, z, color, tint) {
-      stoneParts.push({
-        geo: geo,
-        matrix: base.clone().multiply(M4(new THREE.Vector3(x, y, z), null, 1)),
-        color: color, tint: tint || 0
-      });
-    }
-    var mull = new THREE.Color('#5d5b52');
-    [[0.24, 1.73, 0], [-0.24, 1.73, 0], [0, 1.73, 0.24], [0, 1.73, -0.24]].forEach(function (mp) {
-      putLocal(new THREE.BoxGeometry(0.055, 0.42, 0.055), mp[0], mp[1], mp[2], mull);
-    });
-    [1.54, 1.92].forEach(function (hy) {
-      putLocal(new THREE.BoxGeometry(0.52, 0.05, 0.05), 0, hy, 0.24, mull);
-      putLocal(new THREE.BoxGeometry(0.52, 0.05, 0.05), 0, hy, -0.24, mull);
-      putLocal(new THREE.BoxGeometry(0.05, 0.05, 0.52), 0.24, hy, 0, mull);
-      putLocal(new THREE.BoxGeometry(0.05, 0.05, 0.52), -0.24, hy, 0, mull);
-    });
-    // 顶饰
-    put(stoneParts, new THREE.TorusGeometry(0.12, 0.03, 5, 10), 2.45, stoneCol, 0.02);
   }
   var glowParts = [];
 
@@ -2652,57 +2465,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     });
   }
 
-  // 参道收边石：沿主路两侧排小石，路径不再是一条贴图
-  (function buildPathEdging() {
-    var rng = mulberry32(4401);
-    for (var pi = 0; pi < pathPts.length - 1; pi++) {
-      var ax = pathPts[pi][0], az = pathPts[pi][1];
-      var bx = pathPts[pi + 1][0], bz = pathPts[pi + 1][1];
-      var dx = bx - ax, dz = bz - az;
-      var len = Math.hypot(dx, dz);
-      var ux = dx / len, uz = dz / len;
-      var nx = -uz, nz = ux;
-      var steps = Math.max(1, Math.round(len / 0.95));
-      for (var si = 0; si < steps; si++) {
-        var tt = (si + 0.5) / steps;
-        var px = ax + dx * tt, pz = az + dz * tt;
-        [-1, 1].forEach(function (side) {
-          var off = 1.62 + rng() * 0.18;
-          var ex = px + nx * off * side, ez = pz + nz * off * side;
-          if (pondP(ex, ez) < 1.2) return;
-          if (Math.hypot(ex - 15.6, ez - 37.5) < 4.6) return;
-          var ey = terrainH(ex, ez);
-          var sc = 0.18 + rng() * 0.20;
-          stoneParts.push({
-            geo: GM_ART.rockGeo(Math.floor(rng() * 4)),
-            matrix: M4(new THREE.Vector3(ex, ey + sc * 0.18 - 0.02, ez),
-              new THREE.Euler(rng() * 0.2, rng() * 6.28, rng() * 0.2),
-              new THREE.Vector3(sc * (0.9 + rng() * 0.5), sc * 0.65, sc * (0.9 + rng() * 0.45))),
-            color: new THREE.Color(['#9b998d', '#8d8d82', '#a6a294'][Math.floor(rng() * 3)]),
-            tint: 0.04
-          });
-        });
-      }
-    }
-    // 池岸细卵石，补在现有大石之间
-    for (var pe = 0; pe < 34; pe++) {
-      var pa = pe / 34 * Math.PI * 2 + 0.12;
-      var prr = pondShapeR(pa) * (0.99 + rng() * 0.07);
-      var pex = POND.cx + Math.cos(pa) * POND.rx * prr;
-      var pez = POND.cz + Math.sin(pa) * POND.rz * prr;
-      var pey = Math.max(terrainH(pex, pez), WATER_Y - 0.02);
-      var psc = 0.14 + rng() * 0.18;
-      stoneParts.push({
-        geo: GM_ART.rockGeo(Math.floor(rng() * 4)),
-        matrix: M4(new THREE.Vector3(pex, pey + psc * 0.16, pez),
-          new THREE.Euler(rng() * 0.15, rng() * 6.28, 0),
-          new THREE.Vector3(psc * 1.2, psc * 0.55, psc * 0.9)),
-        color: new THREE.Color(['#98968b', '#8a8c83', '#a3a093'][Math.floor(rng() * 3)]),
-        tint: 0.05
-      });
-    }
-  })();
-
   // 竹垣
   (function buildFence() {
     var startZ = 8, endZ = 32, x = 37.5;
@@ -2778,63 +2540,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         color: new THREE.Color('#f4fafc')
       });
       // 屋檐下红色小梁
-      var beam = new THREE.BoxGeometry(lv.w * 1.78, 0.12, lv.w * 1.78);
-      parts.push({ geo: beam, matrix: M4(new THREE.Vector3(px, base + (lv.y + lv.h) * s, pz), null, s), color: new THREE.Color('#6f4d39') });
-
-      // 每层栏杆：四角柱 + 四面横档
-      var railY = base + (lv.y + 0.24) * s;
-      [-1, 1].forEach(function (sx) {
-        [-1, 1].forEach(function (sz) {
-          parts.push({
-            geo: new THREE.BoxGeometry(0.07, 0.36, 0.07),
-            matrix: M4(new THREE.Vector3(px + sx * lv.w * 0.9, railY + 0.17 * s, pz + sz * lv.w * 0.9), null, s),
-            color: red
-          });
-        });
-      });
-      parts.push({ geo: new THREE.BoxGeometry(lv.w * 1.84, 0.05, 0.05), matrix: M4(new THREE.Vector3(px, railY + 0.31 * s, pz + lv.w * 0.9), null, s), color: red });
-      parts.push({ geo: new THREE.BoxGeometry(lv.w * 1.84, 0.05, 0.05), matrix: M4(new THREE.Vector3(px, railY + 0.31 * s, pz - lv.w * 0.9), null, s), color: red });
-      parts.push({ geo: new THREE.BoxGeometry(0.05, 0.05, lv.w * 1.84), matrix: M4(new THREE.Vector3(px + lv.w * 0.9, railY + 0.31 * s, pz), null, s), color: red });
-      parts.push({ geo: new THREE.BoxGeometry(0.05, 0.05, lv.w * 1.84), matrix: M4(new THREE.Vector3(px - lv.w * 0.9, railY + 0.31 * s, pz), null, s), color: red });
-
-      // 门窗
-      parts.push({
-        geo: new THREE.BoxGeometry(lv.w * 0.58, lv.h * 0.46, 0.06),
-        matrix: M4(new THREE.Vector3(px, base + (lv.y + lv.h * 0.52) * s, pz + lv.w + 0.02), null, s),
-        color: new THREE.Color('#3d332b')
-      });
-      parts.push({
-        geo: new THREE.BoxGeometry(0.06, lv.h * 0.46, lv.w * 0.58),
-        matrix: M4(new THREE.Vector3(px + lv.w + 0.02, base + (lv.y + lv.h * 0.52) * s, pz), null, s),
-        color: new THREE.Color('#3d332b')
-      });
-      // 窗棂：让门洞读成窗，而不是黑洞
-      var winY = base + (lv.y + lv.h * 0.52) * s;
-      [-0.18, 0.18].forEach(function (wx) {
-        parts.push({ geo: new THREE.BoxGeometry(0.045, lv.h * 0.42, 0.025), matrix: M4(new THREE.Vector3(px + wx * lv.w, winY, pz + lv.w + 0.055), null, s), color: new THREE.Color('#7d6248') });
-        parts.push({ geo: new THREE.BoxGeometry(0.025, lv.h * 0.42, 0.045), matrix: M4(new THREE.Vector3(px + lv.w + 0.055, winY, pz + wx * lv.w), null, s), color: new THREE.Color('#7d6248') });
-      });
-      parts.push({ geo: new THREE.BoxGeometry(lv.w * 0.56, 0.04, 0.025), matrix: M4(new THREE.Vector3(px, winY, pz + lv.w + 0.055), null, s), color: new THREE.Color('#7d6248') });
-      parts.push({ geo: new THREE.BoxGeometry(0.025, 0.04, lv.w * 0.56), matrix: M4(new THREE.Vector3(px + lv.w + 0.055, winY, pz), null, s), color: new THREE.Color('#7d6248') });
-
-      // 斗拱：檐下四角块
-      [-1, 1].forEach(function (sx) {
-        [-1, 1].forEach(function (sz) {
-          parts.push({
-            geo: new THREE.BoxGeometry(0.28, 0.18, 0.28),
-            matrix: M4(new THREE.Vector3(px + sx * lv.w * 0.92, base + (lv.y + lv.h + 0.05) * s, pz + sz * lv.w * 0.92), null, s),
-            color: new THREE.Color('#6e4b37')
-          });
-        });
-      });
-    }
-    // 塔前石阶
-    for (var stp = 0; stp < 4; stp++) {
-      parts.push({
-        geo: new THREE.BoxGeometry(2.4 - stp * 0.34, 0.18, 0.42),
-        matrix: M4(new THREE.Vector3(px, base + 0.09 + stp * 0.16, pz + 2.15 + stp * 0.38), null, 1),
-        color: new THREE.Color(stp % 2 ? '#b4b1a1' : '#918e80')
-      });
+      var beam = new THREE.BoxGeometry(lv.w * 2.15, 0.14, lv.w * 2.15);
+      parts.push({ geo: beam, matrix: M4(new THREE.Vector3(px, base + (lv.y + lv.h) * s, pz), null, s), color: red });
     }
     // 塔刹
     parts.push({ geo: new THREE.CylinderGeometry(0.09, 0.09, 2.2, 6, 1), matrix: M4(new THREE.Vector3(px, base + 6.0 * s, pz), null, s), color: new THREE.Color('#4c4741') });
@@ -3670,7 +3377,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   var lanternLights = [];
   var lanternGlows = [];
   var fireflies = null;
+  var fireflyHalo = null;
   var fireflySeeds = [];
+  var FIREFLY_MAX = 120;
+  var FIREFLY_SEASON_W = { spring: 0.38, summer: 1, autumn: 0, winter: 0 };
+  var fireflySeasonW = FIREFLY_SEASON_W.spring;
   var lotusGroup = new THREE.Group();
   var nightF = 0;
   var dayF = 1;
@@ -3913,24 +3624,37 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   })();
 
   (function buildFireflies() {
-    var N = 72;
+    // 前 46 只留在池畔（春夜主群）；其余向林缘、石径外扩，盛夏才成群飞满
+    var N = FIREFLY_MAX;
     var pos = new Float32Array(N * 3);
+    var col = new Float32Array(N * 3);
     for (var i = 0; i < N; i++) {
-      var x = rr(-13.5, 13.5);
-      var z = rr(2.5, 20.5);
-      var y = rr(1.0, 4.8);
+      var x, z, y;
+      if (i < 46) {
+        x = rr(-13.5, 13.5);
+        z = rr(2.5, 20.5);
+        y = rr(1.0, 4.8);
+      } else {
+        x = rr(-21.5, 21.5);
+        z = rr(-3.5, 23.0);
+        y = Math.max(terrainH(x, z), WATER_Y) + rr(0.45, 3.1);
+      }
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+      col[i * 3] = 0.98; col[i * 3 + 1] = 1.0; col[i * 3 + 2] = 0.46;
       fireflySeeds.push({
         x: x, y: y, z: z,
         phase: rr(0, Math.PI * 2),
         ampX: rr(0.8, 2.2), ampZ: rr(0.6, 1.8), ampY: rr(0.15, 0.55),
-        speed: rr(0.45, 1.15)
+        speed: rr(0.45, 1.15),
+        blink: rr(1.0, 2.4), glowPhase: rr(0, Math.PI * 2)
       });
     }
     var geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setDrawRange(0, 0);
     var mat = new THREE.PointsMaterial({
-      map: glowTex, color: 0xffe09a, size: 0.55, transparent: true,
+      map: glowTex, color: 0xffffff, vertexColors: true, size: 1.1, transparent: true,
       opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
       sizeAttenuation: true, fog: false
     });
@@ -3938,6 +3662,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     fireflies.visible = false;
     fireflies.frustumCulled = false;
     scene.add(fireflies);
+    // 外圈柔光：同一套顶点，放大成光晕，让萤火在远处也一眼能认出来
+    var haloMat = new THREE.PointsMaterial({
+      map: glowTex, color: 0x8cff58, size: 3.2, transparent: true,
+      opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+      sizeAttenuation: true, fog: false
+    });
+    fireflyHalo = new THREE.Points(geo, haloMat);
+    fireflyHalo.visible = false;
+    fireflyHalo.frustumCulled = false;
+    fireflyHalo.raycast = function () {};
+    scene.add(fireflyHalo);
   })();
 
   (function buildLotus() {
@@ -4298,7 +4033,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       forestColors: forestMesh.instanceColor.array.slice(),
       shrub: pinkShrubMat ? pinkShrubMat.color.clone() : new THREE.Color('#d98aa8'),
       greenShrub: greenShrubMat ? greenShrubMat.color.clone() : new THREE.Color('#ffffff'),
-      snow: snowAmount
+      snow: snowAmount,
+      firefly: fireflySeasonW,
+      petals: {
+        fc: fallingMesh.count, wc: floatingMesh.count, cc: carpetMesh.count,
+        fcol: fallingMesh.instanceColor ? fallingMesh.instanceColor.array.slice() : null,
+        wcol: floatingMesh.instanceColor ? floatingMesh.instanceColor.array.slice() : null,
+        ccol: carpetMesh.instanceColor ? carpetMesh.instanceColor.array.slice() : null,
+        emissive: fallingMat.emissive.clone()
+      }
     };
   }
 
@@ -4322,7 +4065,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       forestColors: forestColorSets[def.key],
       shrub: def.shrubC,
       greenShrub: def.greenShrubC,
-      snow: def.snow
+      snow: def.snow,
+      firefly: FIREFLY_SEASON_W[def.key] == null ? 0 : FIREFLY_SEASON_W[def.key],
+      petals: {
+        fc: Math.min(FALLING_COUNT, def.falling),
+        wc: Math.min(floating.length, def.floating),
+        cc: Math.floor(CARPET_TOTAL * def.carpet),
+        fcol: paletteArray(def.petalColors, FALLING_COUNT),
+        wcol: paletteArray(def.petalColors, floating.length),
+        ccol: paletteArray(def.carpetColors, CARPET_TOTAL),
+        emissive: def.petalEmissiveC.clone()
+      }
     };
   }
 
@@ -4333,6 +4086,34 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (greenShrubMat) greenShrubMat.color.copy(f.greenShrub).lerp(t.greenShrub, e);
 
     snowAmount = f.snow + (t.snow - f.snow) * e;
+    fireflySeasonW = f.firefly + (t.firefly - f.firefly) * e;
+
+    // 花瓣/落叶粒子随季节渐变：数量与颜色都插值，避免换季瞬间整片消失或换色
+    var pf = f.petals, pt = t.petals;
+    var fcNow = Math.round(pf.fc + (pt.fc - pf.fc) * e);
+    var wcNow = Math.round(pf.wc + (pt.wc - pf.wc) * e);
+    var ccNow = Math.round(pf.cc + (pt.cc - pf.cc) * e);
+    if (fcNow < 0) fcNow = 0; if (wcNow < 0) wcNow = 0; if (ccNow < 0) ccNow = 0;
+    fallingMesh.count = fcNow;
+    floatingMesh.count = wcNow;
+    carpetMesh.count = ccNow;
+    if (fcNow > 0 && pf.fcol && pt.fcol) {
+      var fca = fallingMesh.instanceColor.array;
+      for (var fi3 = 0; fi3 < fcNow * 3; fi3++) fca[fi3] = pf.fcol[fi3] + (pt.fcol[fi3] - pf.fcol[fi3]) * e;
+      fallingMesh.instanceColor.needsUpdate = true;
+    }
+    if (wcNow > 0 && pf.wcol && pt.wcol) {
+      var wca = floatingMesh.instanceColor.array;
+      for (var wi3 = 0; wi3 < wcNow * 3; wi3++) wca[wi3] = pf.wcol[wi3] + (pt.wcol[wi3] - pf.wcol[wi3]) * e;
+      floatingMesh.instanceColor.needsUpdate = true;
+    }
+    if (ccNow > 0 && pf.ccol && pt.ccol) {
+      var cca = carpetMesh.instanceColor.array;
+      for (var ci3 = 0; ci3 < ccNow * 3; ci3++) cca[ci3] = pf.ccol[ci3] + (pt.ccol[ci3] - pf.ccol[ci3]) * e;
+      carpetMesh.instanceColor.needsUpdate = true;
+    }
+    fallingMat.emissive.copy(pf.emissive).lerp(pt.emissive, e);
+    carpetMat.emissive.copy(pf.emissive).lerp(pt.emissive, e);
     karesanSnowDisc.material.opacity = snowAmount * 0.94;
     karesanSnowDisc.visible = karesanSnowDisc.material.opacity > 0.01;
     if (snowCapMat) {
@@ -4506,19 +4287,45 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     // 萤火与荷花
     lotusGroup.visible = seasonKey === 'summer';
     summerGroup.visible = seasonKey === 'summer';
-    var fireflyOn = seasonKey === 'summer' && nightF > 0.12;
-    fireflies.visible = fireflyOn;
-    if (fireflyOn) {
-      fireflies.material.opacity = nightF * 0.95;
+    // 萤火：春、夏之夜才出现，数量 = 季节基数 × 天气活跃度 × 夜色深度
+    // 春夜约为盛夏的四成，且只绕池畔；盛夏晴夜成群扩散到林缘
+    var ffWx = 1;
+    if (typeof WX !== 'undefined' && WX && WX.ready) {
+      var ffA = WX.prev || WX.def, ffB = WX.def, ffT = WX.tone;
+      var ffAf = ffA.firefly == null ? 1 : ffA.firefly;
+      var ffBf = ffB.firefly == null ? 1 : ffB.firefly;
+      ffWx = ffAf + (ffBf - ffAf) * ffT;
+    }
+    var ffNight = Math.max(0, Math.min(1, nightF));
+    var ffCount = Math.round(FIREFLY_MAX * fireflySeasonW * ffWx * ffNight);
+    fireflies.visible = ffCount > 0;
+    if (fireflyHalo) fireflyHalo.visible = ffCount > 0;
+    if (ffCount > 0) {
+      fireflies.geometry.setDrawRange(0, ffCount);
+      fireflies.material.size = 0.9 + 0.55 * fireflySeasonW;
+      fireflies.material.opacity = Math.min(1, nightF * 1.35) * (0.78 + 0.22 * ffWx);
+      fireflyHalo.visible = true;
+      fireflyHalo.material.size = 2.6 + 1.5 * fireflySeasonW;
+      fireflyHalo.material.opacity = Math.min(1, nightF * 1.35) * (0.14 + 0.14 * ffWx);
       var fa = fireflies.geometry.attributes.position.array;
-      for (var ffi = 0; ffi < fireflySeeds.length; ffi++) {
+      var fc = fireflies.geometry.attributes.color.array;
+      for (var ffi = 0; ffi < ffCount; ffi++) {
         var fsd = fireflySeeds[ffi];
         fa[ffi * 3] = fsd.x + Math.sin(el * 0.55 * fsd.speed + fsd.phase) * fsd.ampX;
         fa[ffi * 3 + 1] = fsd.y + Math.sin(el * 0.9 * fsd.speed + fsd.phase * 1.7) * fsd.ampY;
         fa[ffi * 3 + 2] = fsd.z + Math.cos(el * 0.5 * fsd.speed + fsd.phase) * fsd.ampZ;
+        var fbm = 0.5 + 0.5 * Math.sin(el * fsd.blink + fsd.glowPhase + Math.sin(el * 0.5 + fsd.phase) * 0.9);
+        fbm = 0.40 + 0.60 * Math.pow(fbm, 2.2);
+        fc[ffi * 3] = fbm * 0.98;
+        fc[ffi * 3 + 1] = fbm;
+        fc[ffi * 3 + 2] = fbm * 0.46;
       }
       fireflies.geometry.attributes.position.needsUpdate = true;
+      fireflies.geometry.attributes.color.needsUpdate = true;
     }
+
+    // 天候叠加（雨云、雾、雪天光）
+    wxTint();
   }
 
   function updateSnow(dt) {
@@ -4529,7 +4336,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return;
     }
     snowMesh.visible = true;
-    snowMat.opacity = Math.min(1, snowAmount) * 0.92;
+    snowMat.opacity = Math.min(1, snowAmount) * 0.92 * wxSnowFallMul();
     for (var i = 0; i < SNOW_COUNT; i++) {
       var f = snowFlakes[i];
       f.y -= f.speed * dt;
@@ -4553,6 +4360,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function paintMesh(mesh, palette, count) {
     for (var i = 0; i < count; i++) mesh.setColorAt(i, palette[i % palette.length]);
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }
+
+  function paletteArray(pal, count) {
+    var arr = new Float32Array(count * 3);
+    for (var i = 0; i < count; i++) {
+      var c = pal[i % pal.length];
+      arr[i * 3] = c.r; arr[i * 3 + 1] = c.g; arr[i * 3 + 2] = c.b;
+    }
+    return arr;
   }
 
   function setSeasonParticles(def) {
@@ -5393,17 +5209,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var sp2 = L(0, 3.60 + sr * 0.62, 0);
       snowAt(sg, sp2.x, sp2.y, sp2.z, rot, new THREE.Vector3(1.18, 1, 1.0));
     }
-    // 门前暖帘、石阶与缘侧柱
-    for (var nn = -1; nn <= 1; nn++) {
-      boxAt(parts, 0.42, 0.64, 0.035, L(nn * 0.47, 2.86, 2.52).x, L(nn * 0.47, 2.86, 2.52).y, L(nn * 0.47, 2.86, 2.52).z, '#3d4d63', rot, 0.02);
-    }
-    boxAt(parts, 1.9, 0.12, 0.62, L(0, 0.28, 3.58).x, L(0, 0.28, 3.58).y, L(0, 0.28, 3.58).z, '#8d897b', rot, 0.04);
-    boxAt(parts, 1.55, 0.10, 0.44, L(0, 0.17, 3.96).x, L(0, 0.17, 3.96).y, L(0, 0.17, 3.96).z, '#989487', rot, 0.03);
-    [-3.15, 3.15].forEach(function (vx) {
-      cylAt(parts, 0.09, 0.11, 0.9, L(vx, 0.45, 3.15).x, L(vx, 0.45, 3.15).y, L(vx, 0.45, 3.15).z, '#674a33', null, 6, 0.03);
-    });
-    boxAt(parts, 0.92, 0.16, 0.92, ridge.x, ridge.y + 0.18, ridge.z, '#5f4b2f', rot, 0.03);
-
     var tm = meshFromParts(parts, stdMat, true, true);
     if (tm) tm.userData.kind = 'teahouse';
 
@@ -6414,12 +6219,35 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
   // 外圈民居、田畑与动物：与主图鉴共用一套发现计数
   var EXTRA_LABELS = {
+    tsukimi: ['待月亭', '待月亭', '四柱支起一轮月，也接住一场雨'],
+    umbrellaShop: ['雨伞铺', '傘屋', '伞面撑开，雨就有了形状'],
     hut: ['小木屋', '木小屋', '柴门半掩，檐下风铃轻响'],
     field: ['田畑', '田畑', '稻穗翻浪，泥土气息扑面'],
     scarecrow: ['稻草人', '案山子', '草帽一晃，惊起几只麻雀'],
     rabbit: ['野兔', '兎', '耳朵一竖，蹦跳着钻进草里']
   };
   var CODEX_INFO = Object.assign({}, KIND_INFO, EXTRA_LABELS);
+  /* 可建造设施的图鉴条目：只有该设施在当前版本里真的存在时才入册。
+     设施增删后无需手工改数字，图鉴类目、编号与奖励档位会自动对齐。 */
+  var CX_ITEM_ENTRIES = { tsukimi: 1, umbrellaShop: 1 };
+  function cxSyncEntries() {
+    var changed = false;
+    for (var ck in CX_ITEM_ENTRIES) {
+      if (typeof GM_ITEMS === 'undefined' || !GM_ITEMS[ck]) {
+        if (CODEX_INFO[ck]) { delete CODEX_INFO[ck]; changed = true; }
+        if (discovered[ck]) { delete discovered[ck]; changed = true; }
+      }
+    }
+    var real = 0;
+    for (var dk in discovered) if (discovered[dk] && CODEX_INFO[dk]) real++;
+    if (real !== discoveredCount) { discoveredCount = real; changed = true; }
+    var tk = Object.keys(CODEX_INFO).length;
+    if (tk !== totalKinds) { totalKinds = tk; changed = true; }
+    if (changed) {
+      if (codexBtn) codexBtn.textContent = '图鉴 ' + discoveredCount + '/' + totalKinds;
+      if (typeof renderCodex === 'function') renderCodex();
+    }
+  }
   function cxArt(inner, sky, ground) {
     return '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice">' +
       '<rect width="120" height="80" fill="' + sky + '"/>' +
@@ -6428,6 +6256,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
   /* 图鉴插图：49 类，全部为程序化内联 SVG，无外部图片依赖 */
   var CODEX_ART = {
+    tsukimi: cxArt('<circle cx="82" cy="18" r="15" fill="#f3dfae" opacity=".55"/><circle cx="82" cy="18" r="12" fill="#f7e8c4"/><path d="M22 62 L60 34 L98 62Z" fill="#6b4a33"/><path d="M30 62 L60 40 L90 62Z" fill="#8a6446"/><rect x="37" y="47" width="4.5" height="16" fill="#5c402c"/><rect x="78" y="47" width="4.5" height="16" fill="#5c402c"/><rect x="46" y="56" width="28" height="4" fill="#c9a878"/><circle cx="60" cy="54" r="3" fill="#ffd68b"/><circle cx="60" cy="54" r="7" fill="#ffd68b" opacity=".18"/>', '#22384e', '#4c5f4a'),
+    umbrellaShop: cxArt('<path d="M24 44 L60 30 L96 44Z" fill="#8b4a44"/><path d="M30 44 L60 34 L90 44Z" fill="#f0e3c9"/><rect x="30" y="44" width="60" height="18" fill="#b78a5e"/><rect x="36" y="50" width="22" height="12" fill="#7a5539"/><path d="M79 58 L79 38 M70 40 Q79 30 88 40Z" stroke="#4a5870" stroke-width="2" fill="#5f6f8c"/><path d="M86 58 L86 42 M78 44 Q86 36 94 44Z" stroke="#7c3f3a" stroke-width="2" fill="#9a5148"/><path d="M18 18 L14 26 M28 14 L26 22 M100 18 L104 26" stroke="#cfe0e6" stroke-width="2" opacity=".7"/>', '#dfe9ea', '#6f8760'),
     sakura: cxArt('<path d="M58 62 C58 52 59 45 54 38 M59 50 L70 42 M58 47 L48 40" stroke="#7c513d" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="45" cy="33" r="13" fill="#f2b5c7"/><circle cx="61" cy="27" r="15" fill="#f8cbd8"/><circle cx="77" cy="34" r="12" fill="#eda7bd"/><circle cx="57" cy="39" r="10" fill="#f9d7e1"/><circle cx="44" cy="30" r="2" fill="#fff" opacity=".7"/>', '#e4f0f4', '#86a95d'),
     giant: cxArt('<path d="M54 64 L55 31 C55 21 66 17 70 22 L68 64Z" fill="#6e4936"/><path d="M60 38 L46 28 M63 34 L78 25" stroke="#6e4936" stroke-width="5" stroke-linecap="round"/><circle cx="43" cy="24" r="15" fill="#4d7547"/><circle cx="60" cy="19" r="17" fill="#5b834d"/><circle cx="79" cy="27" r="14" fill="#476d43"/><path d="M51 39 Q60 49 70 39" stroke="#d9c69d" stroke-width="2" fill="none"/>', '#dcecf0', '#6d8c55'),
     stump: cxArt('<ellipse cx="60" cy="59" rx="21" ry="8" fill="#8b6047"/><ellipse cx="60" cy="56" rx="16" ry="6" fill="#c79a70"/><ellipse cx="60" cy="56" rx="10" ry="3.6" fill="none" stroke="#9b6b4a" stroke-width="1.6"/><path d="M43 58 Q48 54 54 58" stroke="#8b6047" stroke-width="2" fill="none"/><path d="M73 57 A4 4 0 0 1 79 57" fill="#d5b08b"/><rect x="74" y="53" width="2" height="5" fill="#e4d4be"/>', '#e7eee1', '#8ba263'),
@@ -6703,7 +6533,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows;
     renderer.shadowMap.needsUpdate = true;
-    if (window.__art && __art.applyQuality) __art.applyQuality(GAME_SETTINGS.quality);
   }
   function gmAudioSync() {
     if (!audioCtx) { gmBgmSync(); return; }
@@ -6824,6 +6653,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       case 'clack': tone(300, 0.22, 'square', 0.055, 150); noiseHit(0.12, 0.07, 800, 1.4); break;
       case 'stone': noiseHit(0.16, 0.10, 420, 0.9); tone(150, 0.18, 'sine', 0.05, 90); break;
       case 'water': tone(720, 0.20, 'sine', 0.06, 300); noiseHit(0.22, 0.05, 2200, 0.8); break;
+      case 'thunder': noiseHit(1.7, 0.13, 110, 0.7); tone(66, 1.5, 'sine', 0.10, 44); break;
       case 'splash': noiseHit(0.34, 0.10, 1600, 0.6); tone(520, 0.22, 'sine', 0.05, 220); break;
       case 'leaf': noiseHit(0.26, 0.045, 3600, 0.7); break;
       case 'chime': tone(1568, 0.9, 'sine', 0.05); tone(2093, 0.7, 'sine', 0.028); break;
@@ -6849,7 +6679,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     amb.master = ac.createGain();
     amb.master.gain.value = 0.0001;
     amb.master.connect(masterGain || ac.destination);
-    ['cricket', 'bell', 'frog', 'wind', 'fall'].forEach(function (k) {
+    ['cricket', 'bell', 'frog', 'wind', 'fall', 'rain'].forEach(function (k) {
       var g = ac.createGain(); g.gain.value = 0.0001; g.connect(amb.master); amb.gains[k] = g;
     });
 
@@ -6867,6 +6697,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     amb.beds.fall = bed('bandpass', 1150, 0.45, 0.95, amb.gains.fall);
     amb.beds.fallLow = bed('lowpass', 320, 0.7, 0.55, amb.gains.fall);
     amb.beds.wind = bed('lowpass', 430, 0.8, 0.9, amb.gains.wind);
+    amb.beds.rain = bed('bandpass', 2800, 0.30, 0.85, amb.gains.rain);
+    amb.beds.rainLow = bed('lowpass', 620, 0.55, 0.45, amb.gains.rain);
     function lfo(rate, depth, target, base) {
       var o = ac.createOscillator(); o.frequency.value = rate;
       var g = ac.createGain(); g.gain.value = depth;
@@ -7014,6 +6846,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     ambRamp(amb.gains.frog.gain, (sp * 0.55 + sm * 0.85) * smoothstep(0.28, 0.85, n) * 0.55, 1.8);
     ambRamp(amb.gains.wind.gain, wi * smoothstep(0.20, 0.80, n) * 0.34, 2.2);
     ambRamp(amb.gains.fall.gain, 0.15 + n * 0.07, 1.2);
+    var wxRainAud = (WX && WX.ready) ? WX.rainI : 0;
+    ambRamp(amb.gains.rain.gain, Math.min(1, wxRainAud) * 0.62, 2.0);
   }
 
   function ambUnlock() {
@@ -7051,6 +6885,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (n <= 49) return 150;
     return 200;
   }
+  /* 奖励档位表随图鉴总类数自动生成：增删条目后文案不再和实际脱节 */
+  function gmCodexTierCuts() {
+    var out = [], last = -1;
+    for (var i = 1; i <= totalKinds; i++) {
+      var t = gmCodexTier(i);
+      if (t !== last) { out.push(t); last = t; }
+    }
+    return out;
+  }
+  function gmCodexTierText() { return gmCodexTierCuts().join(' / '); }
   function gmDiscoverReward(kind) {
     if (typeof GM === 'undefined' || !GM || GM.money === undefined) return;
     var reward = gmCodexTier(discoveredCount);
@@ -7096,12 +6940,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var got = !!discovered[kind];
     var shownName = got ? info[0] : '？？？';
     var no = ('0' + (idx + 1)).slice(-2);
+    var cuts = gmCodexTierCuts();
+    var loTier = cuts[0], hiTier = cuts[cuts.length - 1];
     var body = '<div class="cx-detail-art' + (got ? '' : ' missing') + '">' + (CODEX_ART[kind] || '') + '</div>' +
       '<span class="cx-detail-tag">No.' + no + ' · ' + (got ? '已解锁' : '未发现') + '</span>' +
       '<div class="rt"><b>' + shownName + ' <span style="font-weight:400;opacity:.5;font-size:9px">' + (got ? info[1] : '未発見') + '</span></b>' +
       '<span class="' + (got ? 'up' : 'num') + '">' + (got ? '已收录' : '待发现') + '</span></div>' +
       '<p>' + (got ? info[2] : '在庭园中寻找并点击对应景物，即可解锁这张图鉴。') + '</p>' +
-      '<p style="opacity:.62">首次发现奖励 <span class="num">+' + gmCodexTier(idx + 1) + ' 銭</span> · 图鉴第 ' + (idx + 1) + ' / ' + totalKinds + ' 类</p>';
+      '<p style="opacity:.62">图鉴第 ' + (idx + 1) + ' / ' + totalKinds + ' 类 · 首次发现奖励按收集顺序 +' + loTier + '～+' + hiTier + ' 銭</p>';
     gmShowModal('图鉴 · ' + shownName, body, [{ t: '返回图鉴' }]);
   }
   function renderCodex() {
@@ -7129,7 +6975,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var reward = document.getElementById('cxReward');
     if (reward) reward.textContent = discoveredCount >= totalKinds ? '图鉴全收集达成' : '下一发现 · +' + gmCodexTier(discoveredCount + 1) + ' 銭';
     var note = document.querySelector('.cx-note');
-    if (note) note.textContent = '全 ' + totalKinds + ' 类 · 首发现 20 / 30 / 50 / 100 / 150 銭';
+    if (note) note.textContent = '全 ' + totalKinds + ' 类 · 首发现 ' + gmCodexTierText() + ' 銭';
   }
   codexBtn.addEventListener('click', function () {
     codexEl.hidden = !codexEl.hidden;
@@ -7162,7 +7008,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   sfxBtn.classList.add('on');
   codexBtn.textContent = '图鉴 0/' + totalKinds;
   var cxNote = document.querySelector('.cx-note');
-  if (cxNote) cxNote.textContent = '全 ' + totalKinds + ' 类 · 首发现 20 / 30 / 50 / 100 / 150 銭';
+  if (cxNote) cxNote.textContent = '全 ' + totalKinds + ' 类 · 首发现 ' + gmCodexTierText() + ' 銭';
   renderCodex();
 
   window.__V3 = THREE.Vector3;
@@ -7333,7 +7179,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var bo = res.hit.object;
       while (bo && !builtKey) { builtKey = bo.userData && bo.userData.gmKey; bo = bo.parent; }
     }
-    showLabel(kind, pt);
+    var cxKind = (builtKey && CODEX_INFO[builtKey]) ? builtKey : kind;
+    showLabel(cxKind, pt);
     if (builtKey && GM_ITEMS[builtKey]) {
       var bi = GM_ITEMS[builtKey];
       tlName.textContent = bi.name;
@@ -8119,11 +7966,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     sakuraMochi: { name: '樱饼摊', jp: '桜餅', cost: 100, appeal: 12, income: 22, research: 1, weeks: 1, kind: 'wood', season: 'spring', desc: '盐渍樱叶裹红豆，春日限定' },
     kakigori: { name: '刨冰摊', jp: 'かき氷', cost: 110, appeal: 12, income: 24, research: 1, weeks: 1, kind: 'wood', season: 'summer', desc: '碎冰淋上蜜，一口消暑' },
     kuri:    { name: '栗子摊', jp: '栗', cost: 110, appeal: 13, income: 25, research: 1, weeks: 1, kind: 'wood', season: 'autumn', desc: '糖炒栗子，秋天的香气' },
-    oden:    { name: '关东煮', jp: 'おでん', cost: 120, appeal: 14, income: 28, research: 1, weeks: 1, kind: 'wood', season: 'winter', desc: '热汤里的萝卜与竹轮' }
+    oden:    { name: '关东煮', jp: 'おでん', cost: 120, appeal: 14, income: 28, research: 1, weeks: 1, kind: 'wood', season: 'winter', desc: '热汤里的萝卜与竹轮' },
+    tsukimi: { name: '待月亭', jp: '待月亭', cost: 320, appeal: 30, income: 8, research: 3, weeks: 2, kind: 'wood', desc: '四柱支起一轮月，也接住一场雨' },
+    umbrellaShop: { name: '雨伞铺', jp: '傘屋', cost: 150, appeal: 10, income: 16, research: 1, weeks: 1, kind: 'wood', desc: '借一把伞，把雨走成风景' }
   };
 
   /* 建造卡片插图：全部为内联 SVG，无外部图片依赖 */
   var GM_ITEM_ART = {
+    tsukimi: '<rect x="0" y="48" width="120" height="16" fill="#5f7450"/><ellipse cx="60" cy="57" rx="42" ry="5" fill="#82926a" opacity=".7"/><circle cx="82" cy="18" r="16" fill="#f3dfae" opacity=".65"/><circle cx="80" cy="17" r="12" fill="#f7e8c4"/><path d="M26 42 L60 22 L94 42Z" fill="#6f4e36"/><path d="M31 42 L60 26 L89 42Z" fill="#976b49"/><rect x="36" y="42" width="48" height="16" fill="#d8c39c"/><rect x="43" y="42" width="6" height="16" fill="#6f5137"/><rect x="71" y="42" width="6" height="16" fill="#6f5137"/><rect x="52" y="35" width="16" height="3" fill="#c9a878"/><circle cx="60" cy="49" r="4" fill="#ffd68b"/>',
+    umbrellaShop: '<rect x="0" y="48" width="120" height="16" fill="#60764f"/><ellipse cx="60" cy="57" rx="40" ry="4" fill="#83926b" opacity=".65"/><rect x="30" y="35" width="60" height="4" fill="#7a5237"/><path d="M30 35 L60 22 L90 35Z" fill="#8a4a43"/><path d="M36 35 L60 26 L84 35Z" fill="#f0e3c9" opacity=".9"/><rect x="34" y="35" width="52" height="16" fill="#b78a5e"/><path d="M46 30 L46 50 M46 30 Q38 26 38 36 M46 30 Q54 26 54 36" stroke="#4f5b78" stroke-width="2" fill="#5f6f8c"/><path d="M78 32 L78 52 M78 32 Q70 28 70 38 M78 32 Q86 28 86 38" stroke="#7c3f3a" stroke-width="2" fill="#9a5148"/><rect x="55" y="41" width="10" height="4" fill="#f4ead4"/><path d="M18 22 L14 30 M100 20 L104 28" stroke="#dfe8ea" stroke-width="2" opacity=".7"/>',
     lantern: '<rect x="0" y="47" width="120" height="17" fill="#5f7354"/><ellipse cx="60" cy="56" rx="32" ry="5" fill="#7f916d" opacity=".75"/><rect x="48" y="45" width="24" height="8" rx="2" fill="#9a978b"/><rect x="52" y="29" width="16" height="16" fill="#aaa69a"/><rect x="48" y="26" width="24" height="5" fill="#87847a"/><path d="M45 26 L60 16 L75 26 Z" fill="#6c6a61"/><rect x="58" y="18" width="4" height="8" fill="#7c7a70"/><circle cx="60" cy="37" r="4" fill="#ffd58a"/><circle cx="60" cy="37" r="8" fill="#ffd58a" opacity=".18"/><rect x="57" y="49" width="6" height="9" fill="#858277"/>',
     ema: '<rect x="0" y="49" width="120" height="15" fill="#5b704e"/><ellipse cx="60" cy="56" rx="34" ry="4" fill="#81916b" opacity=".7"/><rect x="28" y="39" width="64" height="5" fill="#725238"/><rect x="34" y="43" width="5" height="16" fill="#65482f"/><rect x="81" y="43" width="5" height="16" fill="#65482f"/><rect x="42" y="19" width="36" height="4" fill="#8c6a49"/><path d="M42 21 L38 36 L52 32 Z" fill="#d8bd92"/><path d="M53 21 L51 36 L66 33 Z" fill="#c8a779"/><path d="M68 21 L67 37 L81 33 Z" fill="#e0c9a4"/><circle cx="60" cy="29" r="2" fill="#a55b4f"/><path d="M60 31 L55 38 L64 38 Z" fill="#9f5c4c" opacity=".7"/>',
     dango: '<rect x="0" y="49" width="120" height="15" fill="#627650"/><ellipse cx="60" cy="56" rx="36" ry="4" fill="#83926b" opacity=".65"/><rect x="43" y="44" width="34" height="7" rx="2" fill="#7a5638"/><rect x="58" y="15" width="4" height="40" fill="#b68b5c"/><circle cx="60" cy="18" r="7" fill="#e5a8b6"/><circle cx="60" cy="29" r="7" fill="#f1e0c5"/><circle cx="60" cy="40" r="7" fill="#a9c78c"/><circle cx="57" cy="15" r="2" fill="#fff" opacity=".55"/><circle cx="57" cy="26" r="2" fill="#fff" opacity=".5"/>',
@@ -8150,7 +8001,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     { a: 'inn', b: 'tea', name: '一泊二食', appeal: 4, income: 0.25 },
     { a: 'sakura', b: 'sakura', name: '樱云', appeal: 10, income: 0 },
     { a: 'lantern', b: 'lantern', name: '灯径', appeal: 6, income: 0 },
-    { a: 'sakura', b: 'inn', name: '花宿', appeal: 8, income: 0.10 }
+    { a: 'sakura', b: 'inn', name: '花宿', appeal: 8, income: 0.10 },
+    { a: 'tsukimi', b: 'lantern', name: '月灯', appeal: 10, income: 0 },
+    { a: 'tsukimi', b: 'tea', name: '月见茶', appeal: 6, income: 0.12 },
+    { a: 'umbrellaShop', b: 'tsukimi', name: '雨月', appeal: 6, income: 0.08 }
   ];
   var GM_STAFF = [
     { key: 'gardener', name: '庭师', jp: '庭師', cost: 220, salary: 12, desc: '庭园景致 +12%' },
@@ -8227,6 +8081,518 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
 
   var gmLast = performance.now();
+
+  /* ============================================================
+     16.1 天候系统
+     季节只改变各天候的出现概率，不淘汰任何类型：
+     季节 × 天候 的列联相关强度 Cramér's V ≈ 0.34（中等）。
+     ============================================================ */
+  var WX_KEYS = ['clear', 'cloudy', 'overcast', 'rain', 'storm', 'snow', 'fog'];
+  var WX_SEASON_NAMES = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' };
+
+  /* 每个季节的天候出现概率（%），每列合计 100 */
+  var WX_CLIMATE = {
+    spring: [33, 21, 10, 27, 2, 0, 7],
+    summer: [52, 20, 8, 13, 7, 0, 0],
+    autumn: [47, 18, 11, 6, 3, 0, 15],
+    winter: [29, 24, 19, 2, 0, 22, 4]
+  };
+
+  /* firefly：萤火虫活跃度系数（0~1）。晴夜最盛，多云次之，阴天转少；
+     雨、暴雨、雪天几乎绝迹，雾夜湿度高但气温低，只余一半。 */
+  var WX_DEFS = {
+    clear: {
+      key: 'clear', name: '晴', jp: '晴れ', icon: '☀', tag: '天色明朗',
+      appeal: 1.14, comfort: 1.00, cap: 1.02, spawn: 0.86, spend: 1.08, sat: 7,
+      research: 1.00, build: 1.00, income: 1.05,
+      sun: 1.00, grey: 0.00, fogFar: 1.00, cloud: 0.95, rain: 0, snow: 0, snowFall: 0.45, firefly: 1.00,
+      note: '光足风轻，樱影最清。客人愿意多走一圈，店前也排得起队。'
+    },
+    cloudy: {
+      key: 'cloudy', name: '多云', jp: '薄曇り', icon: '☁', tag: '云影浮动',
+      appeal: 1.03, comfort: 0.87, cap: 0.97, spawn: 1.00, spend: 1.00, sat: 2,
+      research: 1.00, build: 1.00, income: 1.00,
+      sun: 0.88, grey: 0.14, fogFar: 0.95, cloud: 1.06, rain: 0, snow: 0, snowFall: 0.55, firefly: 0.92,
+      note: '光被云揉散，颜色反而温润。人不多不少，是个平稳的日子。'
+    },
+    overcast: {
+      key: 'overcast', name: '阴', jp: '曇り', icon: '☁', tag: '天光低沉',
+      appeal: 0.94, comfort: 0.74, cap: 0.93, spawn: 1.10, spend: 0.97, sat: -2,
+      research: 1.05, build: 0.95, income: 0.97,
+      sun: 0.58, grey: 0.32, fogFar: 0.90, cloud: 1.12, rain: 0, snow: 0, snowFall: 0.65, firefly: 0.72,
+      note: '山色发灰，远景收进雾里。客人来得慢，坐得久。'
+    },
+    rain: {
+      key: 'rain', name: '雨', jp: '雨', icon: '☂', tag: '细雨湿庭',
+      appeal: 0.86, comfort: 0.52, cap: 0.80, spawn: 1.50, spend: 0.86, sat: -7,
+      research: 1.22, build: 0.72, income: 0.94,
+      sun: 0.32, grey: 0.50, fogFar: 0.72, cloud: 1.18, rain: 1.0, snow: 0, snowFall: 0.25, firefly: 0.10,
+      note: '石径发亮，苔色变深。茶屋与宿坊成了避雨处，翻书的人比看花的人多。'
+    },
+    storm: {
+      key: 'storm', name: '暴雨', jp: '雷雨', icon: '⛈', tag: '雷雨过境',
+      appeal: 0.72, comfort: 0.24, cap: 0.52, spawn: 2.40, spend: 0.70, sat: -15,
+      research: 1.38, build: 0.45, income: 0.88,
+      sun: 0.18, grey: 0.68, fogFar: 0.60, cloud: 1.26, rain: 1.7, snow: 0, snowFall: 0.12, firefly: 0.02,
+      note: '檐水成线，庭中无人久留。工期受阻，只有灯下还亮着一盏茶。'
+    },
+    snow: {
+      key: 'snow', name: '雪', jp: '雪', icon: '❄', tag: '雪覆庭石',
+      appeal: 1.12, comfort: 0.48, cap: 0.64, spawn: 1.95, spend: 0.78, sat: -6,
+      research: 1.12, build: 0.55, income: 0.90,
+      sun: 0.52, grey: 0.34, fogFar: 0.80, cloud: 1.14, rain: 0, snow: 1.0, snowFall: 1.25, firefly: 0.00,
+      note: '雪把庭园压成一张白纸，石与树只剩轮廓。雪见客踏雪而来，关东煮最暖。'
+    },
+    fog: {
+      key: 'fog', name: '雾', jp: '霧', icon: '≋', tag: '雾锁山谷',
+      appeal: 1.07, comfort: 0.64, cap: 0.86, spawn: 1.30, spend: 0.95, sat: -3,
+      research: 1.10, build: 0.88, income: 0.98,
+      sun: 0.45, grey: 0.42, fogFar: 0.45, cloud: 1.10, rain: 0, snow: 0, snowFall: 0.6, firefly: 0.55,
+      note: '五步外的鸟居只剩影子。雾里的灯像浮着，反倒比晴天更入画。'
+    }
+  };
+  var WX_DUR = {
+    clear: [10, 18], cloudy: [6, 13], overcast: [5, 10], rain: [4, 9],
+    storm: [2, 5], snow: [6, 14], fog: [3, 7]
+  };
+
+  var WX = {
+    ready: false, key: 'clear', def: WX_DEFS.clear, prev: WX_DEFS.clear,
+    clock: 0, nextAt: 0, tone: 1, queue: [], seen: {},
+    rainI: 0, snowI: 0, flash: 0
+  };
+
+  function wxClock() { return GM.day * 24 + GM.hour; }
+  function wxSeasonKey() { return gmSeason(gmDate(GM.doy).m); }
+  function wxDur(k) {
+    var d = WX_DUR[k] || [5, 10];
+    return d[0] + Math.random() * (d[1] - d[0]);
+  }
+  function wxClimateText(sk) {
+    var tbl = WX_CLIMATE[sk] || WX_CLIMATE.spring;
+    var arr = [], i;
+    for (i = 0; i < WX_KEYS.length; i++) if (tbl[i] > 0) arr.push({ n: WX_DEFS[WX_KEYS[i]].name, p: tbl[i] });
+    arr.sort(function (a, b) { return b.p - a.p; });
+    var out = [];
+    for (i = 0; i < Math.min(3, arr.length); i++) out.push(arr[i].n + ' ' + arr[i].p + '%');
+    return out.join(' · ');
+  }
+  function wxPick(avoid) {
+    var tbl = WX_CLIMATE[wxSeasonKey()] || WX_CLIMATE.spring;
+    var total = 0, i;
+    for (i = 0; i < WX_KEYS.length; i++) total += tbl[i];
+    var r = Math.random() * total, acc = 0;
+    for (i = 0; i < WX_KEYS.length; i++) {
+      acc += tbl[i];
+      if (r <= acc && tbl[i] > 0) {
+        if (avoid && WX_KEYS[i] === avoid && tbl[i] < 20) continue;
+        return WX_KEYS[i];
+      }
+    }
+    return 'clear';
+  }
+  function wxPlan(n) {
+    for (var i = 0; i < n; i++) {
+      var last = WX.queue.length ? WX.queue[WX.queue.length - 1] : null;
+      var prevKey = last ? last.key : WX.key;
+      var at = last ? last.at + last.dur : (WX.nextAt || WX.clock + 4);
+      var key = wxPick(prevKey);
+      WX.queue.push({ key: key, at: at, dur: wxDur(key) });
+    }
+    if (WX.queue.length) WX.nextAt = WX.queue[0].at;
+  }
+  function wxApply(key, silent) {
+    if (!WX_DEFS[key]) key = 'clear';
+    WX.prev = WX.def;
+    WX.key = key;
+    WX.def = WX_DEFS[key];
+    WX.tone = 0;
+    if (!silent) {
+      var seenKey = wxSeasonKey() + ':' + key;
+      if (!WX.seen[seenKey]) {
+        WX.seen[seenKey] = true;
+        var msg = {
+          rain: '落雨 · 檐下开始有人躲雨',
+          storm: '雷雨过境 · 客流骤减，工期受阻',
+          snow: '落雪 · 雪见客踏雪而来',
+          fog: '起雾 · 山谷只剩轮廓',
+          clear: '放晴 · 庭园亮起来了',
+          cloudy: '云影 · 光线柔和',
+          overcast: '转阴 · 山色发灰'
+        };
+        if (msg[key] && (key === 'rain' || key === 'storm' || key === 'snow' || key === 'fog' || key === 'clear')) {
+          gmToast(msg[key]);
+        }
+      }
+    }
+  }
+  function wxAdvance(dh) {
+    if (!WX.ready || dh <= 0) return;
+    WX.clock += dh;
+    var d = WX.def;
+    GM.wxHours = (GM.wxHours || 0) + dh;
+    GM.wxIncomeAcc = (GM.wxIncomeAcc || 0) + d.income * dh;
+    GM.wxComfortAcc = (GM.wxComfortAcc || 0) + d.comfort * dh;
+    GM.wxResAcc = (GM.wxResAcc || 0) + Math.max(0, d.research - 1) * 0.55 * dh;
+    GM.wxRainHours = (GM.wxRainHours || 0) + (d.rain > 0 ? dh : 0);
+    GM.wxHist = GM.wxHist || {};
+    GM.wxHist[d.key] = (GM.wxHist[d.key] || 0) + dh;
+    for (var i = 0; i < GM.construction.length; i++) {
+      GM.construction[i].ready += (1 - d.build) * 0.30 * dh;
+    }
+    var guard = 0;
+    while (WX.queue.length && WX.clock >= WX.queue[0].at && guard++ < 8) {
+      var ev = WX.queue.shift();
+      wxApply(ev.key, false);
+      wxPlan(1);
+    }
+  }
+  function wxInit() {
+    WX.ready = true;
+    WX.clock = wxClock();
+    if (GM.wxKey && WX_DEFS[GM.wxKey]) {
+      WX.key = GM.wxKey;
+      WX.def = WX_DEFS[WX.key];
+      WX.prev = WX.def;
+      WX.tone = 1;
+      WX.nextAt = GM.wxNext || (WX.clock + 5 + Math.random() * 4);
+      if (WX.nextAt <= WX.clock - 2) WX.nextAt = WX.clock + 3 + Math.random() * 4;
+    } else {
+      WX.nextAt = WX.clock + 3 + Math.random() * 3;
+      wxApply(wxPick(), true);
+      WX.tone = 1;
+    }
+    WX.queue = [];
+    wxPlan(3);
+    if (gmEl.gWx) wxHudText();
+  }
+
+  /* ---------- 天候对经营的影响 ---------- */
+  function wxShelter() {
+    return gmCountBuilt('tea') > 0 || gmCountBuilt('inn') > 0 || gmCountBuilt('tsukimi') > 0 || gmCountBuilt('umbrellaShop') > 0;
+  }
+  function wxAppealMul() {
+    if (!WX.ready) return 1;
+    var d = WX.def, m = d.appeal;
+    if ((d.rain > 0 || d.key === 'fog') && GM.unlocked.night && (hour < 6 || hour >= 18)) m *= 1.06;
+    if (d.key === 'snow' && gmCountBuilt('lantern') > 0) m *= 1.04;
+    if (d.key === 'clear' && GM.moonIllum >= 0.86 && (hour < 6 || hour >= 18) && gmCountBuilt('tsukimi') > 0) m *= 1.10;
+    return m;
+  }
+  function wxCapMul() {
+    if (!WX.ready) return 1;
+    var m = WX.def.cap;
+    if (WX.def.rain > 0 && wxShelter()) m += 0.12;
+    if (WX.def.key === 'snow' && gmCountBuilt('inn') > 0) m += 0.10;
+    return Math.max(0.30, m);
+  }
+  function wxSpawnMul() { return WX.ready ? WX.def.spawn : 1; }
+  function wxSatAdd(v) {
+    if (!WX.ready) return 0;
+    var d = WX.def, s = d.sat;
+    if (d.rain > 0) {
+      if (wxShelter()) s += 8;
+      if (v && v.kind && v.kind.wx === 'rain') s += 3;
+    }
+    if (d.key === 'snow') {
+      if (gmCountBuilt('oden') > 0) s += 5;
+      if (v && v.kind && v.kind.wx === 'snow') s += 3;
+    }
+    if (d.key === 'fog' && gmCountBuilt('lantern') > 0) s += 2;
+    return s;
+  }
+  function wxSpendMul(key) {
+    if (!WX.ready) return 1;
+    var d = WX.def, m = d.spend;
+    if (d.rain > 0) {
+      if (key === 'tea' || key === 'inn') m *= 1.25;
+      else if (key === 'dango' || key === 'kakigori' || key === 'kuri') m *= 0.90;
+    }
+    if (d.key === 'snow' && key === 'oden') m *= 1.35;
+    if (d.key === 'snow' && key === 'kakigori') m *= 0.60;
+    if (d.key === 'clear' && key === 'kakigori') m *= 1.10;
+    return m;
+  }
+  function wxRatingAdj() {
+    if (!WX.ready) return 0;
+    return Math.max(-0.15, Math.min(0.15, (WX.def.comfort - 0.68) * 0.30));
+  }
+  function wxHudText() {
+    if (!WX.ready || !gmEl.gWx) return;
+    var d = WX.def, n = WX.queue && WX.queue[0];
+    var ap = Math.round(d.appeal * 100), sp = Math.round(100 / d.spawn);
+    var sTxt = '天候';
+    if (n) sTxt = Math.max(1, Math.round(n.at - WX.clock)) + 'h后' + WX_DEFS[n.key].name;
+    gmEl.gWx.innerHTML = '<i>' + d.icon + '</i><b>' + d.name + '</b><em>景 ' + ap + '% · 客 ' + sp + '%</em><s>' + sTxt + '</s>';
+    gmEl.gWx.title = '天候 · 点击查看预报与季节气候';
+  }
+
+  /* ---------- 天候视觉 ---------- */
+  var WX_MOON_EL = null;
+  var WX_MOON_BASE = new THREE.Color(0xa9c6ff);
+  var WX_MOON_WARM = new THREE.Color(0xffcf8e);
+  var WX_MOON_AMB = new THREE.Color(0xffe0b8);
+  var WX_MOON_HEMI = new THREE.Color(0xffd39a);
+  var WX_MOON_FOG = new THREE.Color(0xd9aa70);
+  function wxMoonFactor() {
+    if (!WX.ready || !GM.moonIllum) return 0;
+    if (WX.def.key !== 'clear') return 0;
+    if (!(hour < 6 || hour >= 18)) return 0;
+    // 月光随月相渐强：月牙只留一线冷光，满月才把暖黄铺满庭院
+    var t = Math.max(0, Math.min(1, (GM.moonIllum - 0.02) / 0.98));
+    var m = Math.pow(t, 1.30);
+    var nf = typeof nightF === 'number' ? nightF : 0;
+    var f = m * Math.min(1, Math.max(0, nf * 1.35));
+    if (gmCountBuilt('tsukimi') > 0) f = Math.min(1, f * 1.05);
+    return f;
+  }
+  function wxMoonTint() {
+    var f = wxMoonFactor();
+    if (f > 0.01) {
+      if (!WX_MOON_EL) {
+        WX_MOON_EL = document.createElement('div');
+        WX_MOON_EL.id = 'wxMoonTint';
+        document.body.appendChild(WX_MOON_EL);
+      }
+      WX_MOON_EL.style.opacity = (f * 0.40).toFixed(3);
+      moonLight.color.copy(WX_MOON_BASE).lerp(WX_MOON_WARM, f * 0.90);
+      moonLight.intensity *= (1 + f * 0.50);
+      ambient.color.lerp(WX_MOON_AMB, f * 0.40);
+      hemi.color.lerp(WX_MOON_HEMI, f * 0.26);
+      hemi.groundColor.lerp(WX_MOON_AMB, f * 0.18);
+      scene.fog.color.lerp(WX_MOON_FOG, f * 0.18);
+      skyUniforms.uBottom.value.lerp(WX_MOON_FOG, f * 0.14);
+      waterUniforms.uSun.value.lerp(WX_MOON_WARM, f * 0.62);
+      renderer.toneMappingExposure *= (1 + f * 0.04);
+    } else {
+      if (WX_MOON_EL) WX_MOON_EL.style.opacity = '0';
+      moonLight.color.copy(WX_MOON_BASE);
+    }
+  }
+
+  var WX_GREY_TOP = new THREE.Color('#8d99a4');
+  var WX_GREY_MID = new THREE.Color('#b4bcc2');
+  var WX_GREY_BOT = new THREE.Color('#cdd2d2');
+  var WX_GREY_FOG = new THREE.Color('#adb3b4');
+  function wxTint() {
+    if (!WX || !WX.ready) return;
+    var a = WX.prev || WX.def, b = WX.def, t = WX.tone;
+    var grey = a.grey + (b.grey - a.grey) * t;
+    var sun = a.sun + (b.sun - a.sun) * t;
+    var fogFar = a.fogFar + (b.fogFar - a.fogFar) * t;
+    var cloud = a.cloud + (b.cloud - a.cloud) * t;
+    if (grey > 0.002) {
+      skyUniforms.uTop.value.lerp(WX_GREY_TOP, grey * 0.72);
+      skyUniforms.uMid.value.lerp(WX_GREY_MID, grey * 0.80);
+      skyUniforms.uBottom.value.lerp(WX_GREY_BOT, grey * 0.84);
+      scene.fog.color.lerp(WX_GREY_FOG, grey * 0.55);
+      waterUniforms.uSky.value.lerp(WX_GREY_MID, grey * 0.45);
+    }
+    scene.fog.far *= fogFar;
+    scene.fog.near *= (0.80 + 0.20 * fogFar);
+    sunLight.intensity *= sun;
+    fillLight.intensity *= (0.82 + 0.18 * sun);
+    hemi.intensity *= (0.88 + 0.12 * sun);
+    sunSprite.material.opacity *= sun;
+    moonHalo.material.opacity *= (0.55 + 0.45 * sun);
+    moonGlow.material.opacity *= (0.55 + 0.45 * sun);
+    if (typeof moonLight !== 'undefined' && moonLight) moonLight.intensity *= (0.55 + 0.45 * sun);
+    cloudMat.opacity = Math.min(1, cloudMat.opacity * (1 + 0.55 * grey));
+    birdMat.opacity *= (1 - 0.80 * grey);
+    motes.mesh.material.opacity *= (1 - 0.60 * grey);
+    renderer.toneMappingExposure *= (1 - 0.12 * grey);
+    wxMoonTint();
+  }
+  function wxSnowFallMul() {
+    if (!WX || !WX.ready) return 1;
+    var a = WX.prev || WX.def, b = WX.def, t = WX.tone;
+    return a.snowFall + (b.snowFall - a.snowFall) * t;
+  }
+
+  /* ---------- 雨 / 雪 粒子 ---------- */
+  var wxRain = null, wxSnowPts = null, wxFlashEl = null;
+  var wxRainN = 520, wxSnowN = 380;
+  var wxRainDrops = [], wxSnowFlakes = [];
+  var wxRainGeo, wxRainPos, wxSnowGeo, wxSnowPos;
+  var wxSnowT0 = 0;
+  function wxSnowTexture() {
+    var c = document.createElement('canvas');
+    c.width = c.height = 48;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(24, 24, 1, 24, 24, 22);
+    grd.addColorStop(0, 'rgba(255,255,255,1)');
+    grd.addColorStop(0.45, 'rgba(255,255,255,.82)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 48, 48);
+    var tx = new THREE.CanvasTexture(c);
+    tx.needsUpdate = true;
+    return tx;
+  }
+  (function wxBuildParticles() {
+    wxFlashEl = document.getElementById('wxFlash');
+    wxRainGeo = new THREE.BufferGeometry();
+    wxRainPos = new Float32Array(wxRainN * 6);
+    for (var i = 0; i < wxRainN; i++) {
+      wxRainDrops.push({
+        x: (Math.random() - 0.5) * 66, y: (Math.random() - 0.5) * 34, z: (Math.random() - 0.5) * 66,
+        v: 15 + Math.random() * 11, l: 0.32 + Math.random() * 0.42
+      });
+    }
+    wxRainGeo.setAttribute('position', new THREE.BufferAttribute(wxRainPos, 3));
+    wxRain = new THREE.LineSegments(wxRainGeo, new THREE.LineBasicMaterial({
+      color: 0xcadbe6, transparent: true, opacity: 0.42, depthWrite: false, fog: false
+    }));
+    wxRain.frustumCulled = false;
+    wxRain.visible = false;
+    wxRain.renderOrder = 2;
+    scene.add(wxRain);
+
+    wxSnowGeo = new THREE.BufferGeometry();
+    wxSnowPos = new Float32Array(wxSnowN * 3);
+    for (var j = 0; j < wxSnowN; j++) {
+      wxSnowFlakes.push({
+        x: (Math.random() - 0.5) * 62, y: (Math.random() - 0.5) * 32, z: (Math.random() - 0.5) * 62,
+        v: 0.52 + Math.random() * 0.55, ph: Math.random() * 6.28, sw: 0.25 + Math.random() * 0.45
+      });
+    }
+    wxSnowGeo.setAttribute('position', new THREE.BufferAttribute(wxSnowPos, 3));
+    wxSnowPts = new THREE.Points(wxSnowGeo, new THREE.PointsMaterial({
+      size: 0.42, map: wxSnowTexture(), transparent: true, opacity: 0.86,
+      depthWrite: false, sizeAttenuation: true, fog: true
+    }));
+    wxSnowPts.frustumCulled = false;
+    wxSnowPts.visible = false;
+    wxSnowPts.renderOrder = 2;
+    scene.add(wxSnowPts);
+    wxRain.name = 'wx-rain';
+    wxSnowPts.name = 'wx-snow';
+  })();
+
+  function wxUpdateRain(dt) {
+    var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+    for (var i = 0; i < wxRainN; i++) {
+      var d = wxRainDrops[i];
+      d.y -= d.v * dt * (1 + WX.rainI * 0.35);
+      if (d.y < -17) {
+        d.y += 36;
+        d.x = (Math.random() - 0.5) * 66;
+        d.z = (Math.random() - 0.5) * 66;
+      }
+      var x = cx + d.x, y = cy + d.y, z = cz + d.z;
+      wxRainPos[i * 6] = x;
+      wxRainPos[i * 6 + 1] = y;
+      wxRainPos[i * 6 + 2] = z;
+      wxRainPos[i * 6 + 3] = x + 0.10 * d.l;
+      wxRainPos[i * 6 + 4] = y + d.l;
+      wxRainPos[i * 6 + 5] = z + 0.03 * d.l;
+    }
+    wxRainGeo.attributes.position.needsUpdate = true;
+  }
+  function wxUpdateSnow(dt) {
+    var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+    wxSnowT0 += dt;
+    for (var i = 0; i < wxSnowN; i++) {
+      var f = wxSnowFlakes[i];
+      f.y -= f.v * dt;
+      f.x += Math.sin(wxSnowT0 * 0.42 + f.ph) * f.sw * dt;
+      f.z += Math.cos(wxSnowT0 * 0.34 + f.ph) * f.sw * 0.8 * dt;
+      if (f.y < -16 || Math.abs(f.x) > 34 || Math.abs(f.z) > 34) {
+        f.x = (Math.random() - 0.5) * 62;
+        f.z = (Math.random() - 0.5) * 62;
+        f.y = 18 + Math.random() * 14;
+      }
+      wxSnowPos[i * 3] = cx + f.x;
+      wxSnowPos[i * 3 + 1] = cy + f.y;
+      wxSnowPos[i * 3 + 2] = cz + f.z;
+    }
+    wxSnowGeo.attributes.position.needsUpdate = true;
+  }
+  function wxUpdate(dt) {
+    if (!WX.ready) return;
+    WX.tone = Math.min(1, WX.tone + dt * 0.16);
+    var td = WX.def;
+    WX.rainI += (td.rain - WX.rainI) * Math.min(1, dt * 1.6);
+    WX.snowI += (td.snow - WX.snowI) * Math.min(1, dt * 1.4);
+    if (wxRain) {
+      wxRain.visible = WX.rainI > 0.05;
+      wxRain.material.opacity = Math.min(0.62, 0.24 + WX.rainI * 0.26);
+      var nf = typeof nightF === 'number' ? nightF : 0;
+      wxRain.material.color.setRGB(0.74 - 0.42 * nf, 0.82 - 0.44 * nf, 0.88 - 0.40 * nf);
+      if (wxRain.visible) wxUpdateRain(dt);
+    }
+    if (wxSnowPts) {
+      wxSnowPts.visible = WX.snowI > 0.05;
+      if (wxSnowPts.visible) wxUpdateSnow(dt);
+    }
+    if (td.rain >= 1.4 && Math.random() < dt * 0.055) {
+      WX.flash = 1;
+      if (Math.random() < 0.7) sfx('thunder');
+    }
+    if (WX.flash > 0.001) WX.flash = Math.max(0, WX.flash - dt * 4.2);
+    if (wxFlashEl) wxFlashEl.style.opacity = (WX.flash * 0.5).toFixed(3);
+    if (amb && amb.ready && performance.now() - (WX.audT || 0) > 2400) {
+      WX.audT = performance.now();
+      ambUpdate();
+    }
+  }
+
+  /* ---------- 天候面板 ---------- */
+  function wxChip(label, val, good, fmt) {
+    var cls = good ? ' good' : ' bad';
+    return '<span class="' + cls.trim() + '">' + label + ' ' + fmt + '</span>';
+  }
+  function wxEffectChips() {
+    var d = WX.def;
+    var out = [];
+    out.push(wxChip('景致', d.appeal, d.appeal >= 1, '×' + d.appeal.toFixed(2)));
+    out.push(wxChip('客流', 1 / d.spawn, d.spawn <= 1, '×' + (1 / d.spawn).toFixed(2)));
+    out.push(wxChip('承载', d.cap, d.cap >= 1, '×' + d.cap.toFixed(2)));
+    out.push(wxChip('消费', d.spend, d.spend >= 1, '×' + d.spend.toFixed(2)));
+    out.push(wxChip('满意', d.sat, d.sat >= 0, (d.sat >= 0 ? '+' : '') + d.sat));
+    out.push(wxChip('研究', d.research, d.research >= 1, '×' + d.research.toFixed(2)));
+    out.push(wxChip('工期', d.build, d.build >= 1, '×' + d.build.toFixed(2)));
+    out.push(wxChip('收入', d.income, d.income >= 1, '×' + d.income.toFixed(2)));
+    if (d.rain > 0 && wxShelter()) out.push('<span class="good">避雨处 满意 +8</span>');
+    if (d.key === 'snow' && gmCountBuilt('oden') > 0) out.push('<span class="good">关东煮 满意 +5</span>');
+    if ((d.rain > 0 || d.key === 'fog') && GM.unlocked.night) out.push('<span class="good">夜灯 景致 +6%</span>');
+    return '<div class="wx-effect">' + out.join('') + '</div>';
+  }
+  function gmWeatherPanel() {
+    if (!WX.ready) { gmToast('天候尚未生成'); return; }
+    var d = WX.def, sk = wxSeasonKey();
+    var hh = Math.max(1, Math.round(WX.nextAt - WX.clock));
+    var fc = '';
+    var list = WX.queue.slice(0, 3);
+    for (var i = 0; i < list.length; i++) {
+      var k = list[i].key, dd = WX_DEFS[k];
+      var when = Math.max(1, Math.round(list[i].at - WX.clock)) + 'h 后';
+      fc += '<div><b>' + dd.icon + ' ' + dd.name + '</b>' + when + '</div>';
+    }
+    var tbl = '<div class="wx-tbl"><span class="hd nm">天候</span>';
+    var seasonCols = ['spring', 'summer', 'autumn', 'winter'];
+    for (var s = 0; s < 4; s++) tbl += '<span class="hd' + (seasonCols[s] === sk ? ' cur' : '') + '">' + WX_SEASON_NAMES[seasonCols[s]] + '</span>';
+    for (var w = 0; w < WX_KEYS.length; w++) {
+      var kk = WX_KEYS[w], wd = WX_DEFS[kk];
+      tbl += '<span class="nm">' + wd.icon + ' ' + wd.name + '</span>';
+      for (var c = 0; c < 4; c++) {
+        var pc = WX_CLIMATE[seasonCols[c]][w];
+        tbl += '<span class="' + (pc === 0 ? 'zero' : '') + (seasonCols[c] === sk && pc > 0 ? ' cur' : '') + '">' + (pc ? pc + '%' : '—') + '</span>';
+      }
+    }
+    tbl += '</div>';
+    var nameTxt = d.name + (d.jp && d.jp !== d.name ? '（' + d.jp + '）' : '');
+    var html = '<div class="rt"><b>天候 · ' + nameTxt + '</b><span class="num">体感 ' + Math.round(d.comfort * 100) + '</span></div>' +
+      '<p style="margin:2px 0 0;opacity:.72">' + d.tag + ' · ' + d.note + '</p>' +
+      wxEffectChips() +
+      '<div class="rt" style="margin-top:8px"><b>接下来</b><span style="opacity:.5">' + hh + ' 小时后变化</span></div>' +
+      '<div class="wx-fc">' + fc + '</div>' +
+      '<div class="rt" style="margin-top:10px"><b>季节气候分布</b><span style="opacity:.5">每季合计 100%</span></div>' +
+      tbl +
+      '<p style="opacity:.55;margin-top:6px">季节与天候为中等强度相关（Cramér\'s V ≈ 0.34）：季节只改变各天候的出现概率。雨与雾四季皆可，雪限冬季，雷雨限夏秋——类型集合由气候常识约束，概率由季节调节。</p>' +
+      (WX.ready && WX.def.key === 'clear' && GM.moonIllum >= 0.86 && (hour < 6 || hour >= 18) ? '<p style="margin-top:6px;color:#f0c07a">今夜满月 · 暖黄月光漫过庭院' + (gmCountBuilt('tsukimi') > 0 ? '，待月亭里已备下坐席。' : '；若建一座待月亭，赏月更有去处。') + '</p>' : '');
+    gmShowModal('天候 · ' + d.name, html, [{ t: '合上' }]);
+  }
 
   function gmDate(doy) {
     var d = Math.floor(doy), m = 0;
@@ -8305,7 +8671,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* ---------- HUD ---------- */
   var gmEl = {};
   function gmDom() {
-    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn', 'gShopBtn'].forEach(function (id) {
+    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gWx', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn', 'gShopBtn'].forEach(function (id) {
       gmEl[id] = document.getElementById(id);
     });
   }
@@ -8337,6 +8703,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     gmEl.gMoon.textContent = '月相 ' + GM.moonName + ' ' + Math.round(GM.moonIllum * 100) + '% · 正午日高 ' + Math.round(SUN.maxElev * 180 / Math.PI) + '°';
     var cmb = gmComboInfo();
     gmEl.gCrowd.textContent = '在园 ' + GM.visitors + ' 人 · 容 ' + gmCap() + ' 人 · 景 ' + gmAppeal() + ' · ★ ' + GM.rating.toFixed(1) + (cmb.names.length ? ' · 相 ' + cmb.names.length : '');
+    wxHudText();
     gmCheckGoalReady();
   }
 
@@ -8380,6 +8747,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var polA = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
     a *= polA.appeal;
     a += gmItemBuff('appeal');
+    a *= wxAppealMul();
     return Math.round(a);
   }
   function gmSalary() {
@@ -8390,7 +8758,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function gmCap() {
     var c = 5 + Math.floor(GM.renown / 22) + (GM.unlocked.path ? 6 : 0) + (GM.unlocked.tour ? 4 : 0) + (GM.staff.miko ? 3 : 0);
     c += Math.round(gmItemBuff('traffic'));
-    return Math.min(32, c);
+    c = Math.max(1, Math.floor(Math.min(32, c) * wxCapMul()));
+    return c;
   }
 
   /* ---------- 空地 ---------- */
@@ -9197,6 +9566,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         P(new THREE.BoxGeometry(1.15, 0.08, 0.08), w / 2 - 1.0, 1.38, -d / 2 + 0.8, '#6f5438');
         P(new THREE.SphereGeometry(0.20, 6, 5), w / 2 - 1.0, 1.72, -d / 2 + 0.8, '#d8c18b');
         P(new THREE.ConeGeometry(0.32, 0.22, 6), w / 2 - 1.0, 1.94, -d / 2 + 0.8, '#8a754c');
+        // 稻草人独立拾取区：让「稻草人」图鉴条目真的点得到，不被整块田畑吞掉
+        var slx = w / 2 - 1.0, slz = -d / 2 + 0.8;
+        var sc = Math.cos(rotY || 0), sn = Math.sin(rotY || 0);
+        var swx = x + slx * sc + slz * sn;
+        var swz = z - slx * sn + slz * sc;
+        var swy = terrainH(x, z) + 1.16;
+        var sp = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.95, 0.5), pickMat);
+        sp.position.set(swx, swy, swz);
+        sp.rotation.y = rotY || 0;
+        sp.userData.kind = 'scarecrow';
+        group.add(sp);
+        zone(swx, swy, swz, 1.15, 'scarecrow', null, group);
       }
       zone(x, terrainH(x, z) + 1.0, z, Math.max(w, d) * 0.75, 'field', null, group);
       var fp = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, d), pickMat);
@@ -9440,39 +9821,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 8), mat);
     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m;
   }
-  // 所有设施的共用细部：接地阴影 + 石基 + 木牌
-  function gmFacilityDetail(g, key) {
-    var def = GM_ITEMS[key] || { jp: '施設', name: '设施' };
-    var plant = key === 'sakura' || key === 'pine';
-    var r = key === 'inn' ? 2.0 : (key === 'tea' ? 1.35 : 1.0);
-    if (!plant) {
-      var disc = new THREE.Mesh(new THREE.CircleGeometry(r, 24),
-        new THREE.MeshBasicMaterial({ color: 0x1d1810, transparent: true, opacity: 0.16, depthWrite: false }));
-      disc.rotation.x = -Math.PI / 2;
-      disc.position.y = 0.012;
-      disc.userData.noPick = true;
-      g.add(disc);
-      var plinth = gmCyl(r * 0.9, r, 0.08, gmMat(0x8d8a7f, 0.95), 0, 0.04, 0, 14);
-      plinth.userData.noPick = true;
-      g.add(plinth);
-    }
-    if (plant) return;
-    var hasSign = key === 'tea' || key === 'inn' || key === 'dango' || key === 'sakuraMochi'
-      || key === 'kakigori' || key === 'kuri' || key === 'oden';
-    if (!hasSign) return;
-    var signX = 0.62, signZ = (key === 'inn' ? 1.45 : 1.02), signY = (key === 'inn' ? 1.9 : 1.45);
-    g.add(gmCyl(0.035, 0.045, signY - 0.15, gmMat(0x5d432f, 0.94), signX, (signY - 0.15) / 2, signZ, 6));
-    g.add(gmBox(0.72, 0.40, 0.055, gmMat(0x3d2e26, 0.92), signX, signY, signZ));
-    var sign = new THREE.Mesh(new THREE.PlaneGeometry(0.64, 0.32),
-      new THREE.MeshStandardMaterial({ map: GM_ART.plaqueTex(def.jp, def.name), roughness: 0.82 }));
-    sign.position.set(signX, signY, signZ + 0.035);
-    sign.userData.kind = 'built';
-    sign.userData.gmKey = key;
-    sign.userData.artRole = 'facility-sign';
-    sign.userData.artTier = 2;
-    g.add(sign);
-  }
-
   function gmItemMesh(key) {
     var g = new THREE.Group();
     var wood = gmMat(0x6b4a33, 0.92), dark = gmMat(0x3d2e26, 0.9);
@@ -9598,6 +9946,50 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         g.add(cube);
       }
       g.add(gmBox(0.5, 0.2, 0.04, paper, 0.1, 1.45, 0.38));
+    } else if (key === 'tsukimi') {
+      g.add(gmCyl(1.42, 1.58, 0.14, stone, 0, 0.07, 0));
+      for (var tp = 0; tp < 4; tp++) {
+        var tx = tp < 2 ? -1.05 : 1.05, tz = (tp % 2) ? 1.0 : -1.0;
+        g.add(gmBox(0.12, 2.45, 0.12, wood, tx, 1.3, tz));
+        g.add(gmBox(0.30, 0.10, 0.30, dark, tx, 2.52, tz));
+      }
+      g.add(gmBox(2.5, 0.10, 0.12, dark, 0, 2.35, -1.0));
+      g.add(gmBox(2.5, 0.10, 0.12, dark, 0, 2.35, 1.0));
+      g.add(gmBox(0.12, 0.10, 2.5, dark, -1.05, 2.35, 0));
+      g.add(gmBox(0.12, 0.10, 2.5, dark, 1.05, 2.35, 0));
+      var troof = new THREE.Mesh(new THREE.ConeGeometry(2.15, 0.62, 4), dark);
+      troof.position.y = 2.92; troof.rotation.y = Math.PI / 4; troof.castShadow = true; g.add(troof);
+      g.add(gmCyl(0.24, 0.30, 0.18, stone, 0, 3.24, 0));
+      var tjewel = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), stone);
+      tjewel.position.y = 3.40; g.add(tjewel);
+      g.add(gmBox(1.95, 0.09, 0.40, wood, 0, 0.55, -0.95));
+      g.add(gmBox(1.95, 0.09, 0.40, wood, 0, 0.55, 0.95));
+      for (var tleg = 0; tleg < 2; tleg++) {
+        g.add(gmBox(0.08, 0.46, 0.08, dark, -0.75 + tleg * 1.5, 0.26, -0.95));
+        g.add(gmBox(0.08, 0.46, 0.08, dark, -0.75 + tleg * 1.5, 0.26, 0.95));
+      }
+      var tlampMat = new THREE.MeshStandardMaterial({ color: 0xffe6ba, emissive: 0xffb45e, emissiveIntensity: 0.75, roughness: 0.7, flatShading: true });
+      var tlamp = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 6), tlampMat);
+      tlamp.position.set(0, 2.06, 0); g.add(tlamp);
+      g.add(gmCyl(0.018, 0.018, 0.55, dark, 0, 2.48, 0));
+    } else if (key === 'umbrellaShop') {
+      g.add(gmBox(2.0, 0.88, 0.9, wood, 0, 0.44, 0));
+      g.add(gmBox(2.2, 0.08, 1.05, cream, 0, 0.90, 0));
+      g.add(gmBox(0.08, 2.15, 0.08, dark, -1.02, 1.08, -0.45));
+      g.add(gmBox(0.08, 2.15, 0.08, dark, 1.02, 1.08, -0.45));
+      for (var us = 0; us < 6; us++) {
+        var awn = gmBox(0.34, 0.05, 1.25, us % 2 ? red : paper, -0.85 + us * 0.34, 1.92, 0.05);
+        awn.rotation.x = 0.34; g.add(awn);
+      }
+      for (var uu = 0; uu < 3; uu++) {
+        var ux = -0.6 + uu * 0.6;
+        g.add(gmCyl(0.018, 0.018, 0.98, dark, ux, 1.36, 0.35));
+        var ucan = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.12, 8), gmMat([0x4f5b78, 0x8c4a45, 0x5d6b4a][uu], 0.85));
+        ucan.position.set(ux, 1.86, 0.35); g.add(ucan);
+        g.add(gmBox(0.02, 0.10, 0.02, stone, ux, 1.93, 0.35));
+      }
+      g.add(gmBox(0.72, 0.34, 0.05, paper, 0, 1.62, -0.49));
+      g.add(gmBox(0.62, 0.24, 0.06, gmMat(0x8a4a43, 0.9), 0, 1.62, -0.46));
     } else if (key === 'fence') {
       for (var f = 0; f < 7; f++) {
         g.add(gmCyl(0.07, 0.075, 1.45, gmMat(0x8a9a58, 0.9), -1.35 + f * 0.45, 0.72, 0));
@@ -9609,7 +10001,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     g.userData.kind = 'built'; g.userData.gmKey = key;
     g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.userData.kind = 'built'; o.userData.gmKey = key; } });
-    gmFacilityDetail(g, key);
     return g;
   }
 
@@ -9851,7 +10242,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       purpose: '休憩', prefs: ['ema', 'lantern', 'sakura'], hat: 'none', accessory: 'ema',
       cloth: [0xf0ece3, 0xe8e3d8], cloth2: [0xa94943, 0xb35a4f], obi: 0xa94943, accent: 0xf4eee2,
       budget: [24, 40], desc: '在神社帮忙，难得有空来庭园走走。',
-      quotes: ['风铃的声音，今天格外清。', '祈愿的人比去年多了。', '等会儿还要回去点灯。'] }
+      quotes: ['风铃的声音，今天格外清。', '祈愿的人比去年多了。', '等会儿还要回去点灯。'] },
+    { key: 'rainGuest', title: '雨宿客', jp: '雨宿り', gender: 'any', weight: 0.30, wx: 'rain',
+      purpose: '避雨', prefs: ['tea', 'inn', 'lantern'], hat: 'kasa', accessory: 'fan',
+      cloth: [0x4f5a63, 0x5c666d], cloth2: [0x3c464e, 0x47515a], obi: 0x9a8570, accent: 0xe6dcc8, hatColor: 0xb7a27a,
+      budget: [30, 52], desc: '被雨留住了脚步，索性在檐下坐一会儿。',
+      quotes: ['雨声比人声好听。', '檐下的茶，格外暖。', '等雨小了再走也不迟。'] },
+    { key: 'snowGuest', title: '雪见客', jp: '雪見客', gender: 'f', weight: 0.30, wx: 'snow',
+      purpose: '赏雪', prefs: ['lantern', 'oden', 'tea'], hat: 'kasa', accessory: 'parasol', party: 'partner',
+      cloth: [0x6a6f86, 0x7a7f96], cloth2: [0x4e5368, 0x5c6178], obi: 0xc2a887, accent: 0xf0e6d6, hatColor: 0x9aa3b8,
+      budget: [38, 62], desc: '听说雪后的庭园最好看，特意赶来。',
+      quotes: ['雪把声音都吸走了。', '灯下的雪是暖色的。', '这一趟，值了。'] }
   ];
 
   function gmVRand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -9864,6 +10265,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var k = GM_VISITOR_KINDS[i], w = k.weight || 1;
       if (k.key === 'foreign') w *= GM.rating >= 3.4 ? 1.1 : 0.3;
       if (k.key === 'couple' && GM.rating < 3.0) w *= 0.6;
+      if (k.wx) {
+        var hit = WX.ready && (k.wx === 'rain' ? WX.def.rain > 0 : WX.def.key === k.wx);
+        w *= hit ? 4.2 : 0.10;
+      }
       total += w; pool.push({ k: k, w: w });
     }
     var r = Math.random() * total;
@@ -9908,13 +10313,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); root.add(m); return m;
     }
     function box(w, h, d, mat, x, y, z) { return add(new THREE.BoxGeometry(w, h, d), mat, x, y, z); }
-
-    // 脚下接地阴影
-    var vshadow = add(new THREE.CircleGeometry(0.27, 16),
-      new THREE.MeshBasicMaterial({ color: 0x17120d, transparent: true, opacity: 0.18, depthWrite: false }), 0, 0.012, 0);
-    vshadow.rotation.x = -Math.PI / 2;
-    vshadow.userData.tempMat = true;
-    vshadow.userData.noPick = true;
 
     var torso = add(new THREE.CylinderGeometry(0.135 * bw, 0.19 * bw, 0.46, 6, 1), cloth, 0, 0.79, 0);
     var skirt = add(new THREE.CylinderGeometry(0.19 * bw, 0.245 * bw, 0.2, 6, 1), cloth2, 0, 0.56, 0);
@@ -10029,6 +10427,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (v.kind.key === 'poet' && (hour < 6 || hour >= 18)) base += 4;
     if (v.kind.key === 'foreign' && GM.renown > 40) base += 4;
     if (v.invited) base += 6;
+    if (v.off) {
+      if (v.off.kind === 'shelter' && v.off.state === 'stay') base += 4;
+      if (v.off.kind === 'moon') base += 8;
+    }
+    if (v.hasUmbrella && WX.ready && WX.def.rain > 0) base += 2;
+    base += wxSatAdd(v);
     base += gmItemBuff('sat');
     return Math.round(clamp(base, 20, 98));
   }
@@ -10045,14 +10449,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var shops = [];
     for (var i = 0; i < GM.built.length; i++) {
       var b = GM.built[i], it = GM_ITEMS[b.key];
-      if (it && it.income > 0 && b.key !== 'inn') shops.push(it);
+      if (it && it.income > 0 && b.key !== 'inn') shops.push({ it: it, key: b.key });
     }
     if (!shops.length || v.spent >= v.budget - 3) return;
     var pick = shops[Math.floor(Math.random() * shops.length)];
-    var price = Math.min(v.budget - v.spent, Math.round((4 + pick.income * 0.18 + v.sat * 0.07 + Math.random() * 3) * (1 + gmItemBuff('spend'))));
+    var price = Math.min(v.budget - v.spent, Math.round((4 + pick.it.income * 0.18 + v.sat * 0.07 + Math.random() * 3) * (1 + gmItemBuff('spend')) * wxSpendMul(pick.key)));
     if (price < 3) return;
     v.spent += price;
-    v.log.push({ name: pick.name, amount: price });
+    v.log.push({ name: pick.it.name, amount: price });
     if (v.log.length > 7) v.log.splice(1, v.log.length - 7);
     v.sat = Math.min(100, v.sat + 2.2);
   }
@@ -10092,10 +10496,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       budget: Math.round(gmVRand(kind.budget) * (invited ? 1.35 : 1)),
       spent: 0, log: [], sat: 0, satTarget: 0,
       nextSpendU: 0.18 + Math.random() * 0.1,
-      entryHour: Math.floor(GM.hour), gone: false, invited: !!invited
+      entryHour: Math.floor(GM.hour), gone: false, invited: !!invited,
+      hasUmbrella: Math.random() < 0.16, umb: null, off: null, rainDecided: false, rainRetryAt: 0, moonDone: false
     };
-    v.spent = Math.min(v.budget, Math.round(4 + GM.rating * 1.2 + Math.random() * 5));
+    v.spent = Math.min(v.budget, Math.round((4 + GM.rating * 1.2 + Math.random() * 5) * wxSpendMul('entry')));
     v.log.push({ name: '入园寄付', amount: v.spent });
+    v.umb = gmVisitorUmbrella(gmVRand([0x40506e, 0x8c4a45, 0x5d6b4a, 0xd8c9a8]));
+    v.umb.visible = false;
+    g.add(v.umb);
     g.userData.visitor = v;
     g.traverse(function (o) { o.userData.kind = 'visitor'; o.userData.visitor = v; });
     GM.visList.push(v);
@@ -10104,14 +10512,184 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     GM.visitors = GM.visList.length;
   }
 
+
+  function gmVisitorUmbrella(col) {
+    var g = new THREE.Group();
+    var umDark = gmMat(0x3d2e26, 0.9);
+    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.88, 5), umDark);
+    pole.position.y = 0.44; g.add(pole);
+    var canopy = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.14, 10), gmMat(col, 0.88));
+    canopy.position.y = 0.90; g.add(canopy);
+    var rim = new THREE.Mesh(new THREE.TorusGeometry(0.335, 0.012, 4, 10), umDark);
+    rim.rotation.x = Math.PI / 2; rim.position.y = 0.845; g.add(rim);
+    var tip = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 4), umDark);
+    tip.position.y = 0.985; g.add(tip);
+    g.position.set(0.30, 0.86, 0.10);
+    return g;
+  }
+  function gmNearestCurve(x, z) {
+    var best = { x: x, z: z, u: 0 }, bd = Infinity;
+    for (var i = 0; i <= 80; i++) {
+      var p = gmCurve.getPointAt(i / 80);
+      var d = (p.x - x) * (p.x - x) + (p.z - z) * (p.z - z);
+      if (d < bd) { bd = d; best = { x: p.x, z: p.z, u: i / 80 }; }
+    }
+    return best;
+  }
+  var gmShelterCache = { n: -1, spots: [] };
+  function gmShelterSpots() {
+    if (gmShelterCache.n === GM.built.length) return gmShelterCache.spots;
+    var spots = [];
+    for (var i = 0; i < GM.built.length; i++) {
+      var b = GM.built[i];
+      if (b.key !== 'tea' && b.key !== 'inn' && b.key !== 'tsukimi' && b.key !== 'umbrellaShop') continue;
+      var p = GM.plots[b.plot];
+      if (!p) continue;
+      var cp = gmNearestCurve(p.x, p.z);
+      var dx = cp.x - p.x, dz = cp.z - p.z, dl = Math.sqrt(dx * dx + dz * dz) || 1;
+      var off = b.key === 'tsukimi' ? 0.55 : 1.55;
+      spots.push({
+        x: p.x + dx / dl * off, z: p.z + dz / dl * off,
+        key: b.key, plot: b.plot, cap: b.key === 'tsukimi' ? 6 : 4
+      });
+    }
+    gmShelterCache = { n: GM.built.length, spots: spots };
+    return spots;
+  }
+  function gmSpotBusy(key, plot) {
+    var n = 0;
+    for (var i = 0; i < GM.visList.length; i++) {
+      var v = GM.visList[i];
+      if (v.off && v.off.state !== 'back' && v.off.key === key && v.off.plot === plot) n++;
+    }
+    return n;
+  }
+  function gmFindShelter(v) {
+    var spots = gmShelterSpots(), best = null, bd = 16;
+    for (var i = 0; i < spots.length; i++) {
+      var sp = spots[i];
+      if (gmSpotBusy(sp.key, sp.plot) >= sp.cap) continue;
+      var dx = sp.x - v.g.position.x, dz = sp.z - v.g.position.z;
+      var d = Math.sqrt(dx * dx + dz * dz);
+      if (d < bd) { bd = d; best = sp; }
+    }
+    return best;
+  }
+  function gmPavilionSpot() {
+    var spots = gmShelterSpots();
+    for (var i = 0; i < spots.length; i++) if (spots[i].key === 'tsukimi') return spots[i];
+    return null;
+  }
+  function gmSendOff(v, kind, spot) {
+    v.off = {
+      kind: kind, state: 'go',
+      tx: spot.x + (Math.random() - 0.5) * 0.6,
+      tz: spot.z + (Math.random() - 0.5) * 0.6,
+      key: spot.key, plot: spot.plot, until: 0
+    };
+  }
+  function gmVisitorOff(v, rdt, raining, moonNight) {
+    var o = v.off;
+    if (o.state !== 'back') {
+      if (o.kind === 'shelter' && !raining) o.state = 'back';
+      else if (o.kind === 'moon') {
+        if (raining) { o.kind = 'shelter'; o.state = 'stay'; }
+        else if (!moonNight || (o.until && wxClock() >= o.until)) o.state = 'back';
+      }
+    }
+    var tx, tz;
+    if (o.state === 'back') {
+      var pb = gmCurve.getPointAt(v.u);
+      tx = pb.x; tz = pb.z;
+    } else { tx = o.tx; tz = o.tz; }
+    var dx = tx - v.g.position.x, dz = tz - v.g.position.z;
+    var dl = Math.sqrt(dx * dx + dz * dz);
+    if (dl > 0.16) {
+      var step = Math.min(dl, rdt * 2.4);
+      v.g.position.x += dx / dl * step;
+      v.g.position.z += dz / dl * step;
+      v.walkPhase += rdt * 7.2;
+      var sw = Math.sin(v.walkPhase);
+      v.anim.armL.rotation.x = sw * 0.32;
+      v.anim.armR.rotation.x = -sw * 0.36;
+      v.anim.legL.rotation.x = -sw * 0.44;
+      v.anim.legR.rotation.x = sw * 0.46;
+      if (v.hasUmbrella && raining) v.anim.armR.rotation.x = -2.30;
+      if (v.compAnim) {
+        var cs = Math.sin(v.walkPhase + 0.4);
+        v.compAnim.armL.rotation.x = -cs * 0.30;
+        v.compAnim.armR.rotation.x = cs * 0.34;
+        v.compAnim.legL.rotation.x = cs * 0.46;
+        v.compAnim.legR.rotation.x = -cs * 0.44;
+      }
+      v.g.position.y = terrainH(v.g.position.x, v.g.position.z) + 0.02 + Math.abs(Math.sin(v.walkPhase)) * 0.018;
+      v.g.rotation.y = Math.atan2(dx, dz);
+    } else {
+      if (o.state === 'go') {
+        o.state = 'stay';
+        if (o.kind === 'moon') o.until = wxClock() + 2.0 + Math.random() * 2.6;
+        v.sat = Math.min(100, v.sat + (o.kind === 'moon' ? 5 : 2));
+      } else if (o.state === 'back') {
+        v.off = null;
+      } else {
+        v.anim.armL.rotation.x *= 0.92;
+        v.anim.armR.rotation.x *= 0.92;
+        v.anim.legL.rotation.x *= 0.92;
+        v.anim.legR.rotation.x *= 0.92;
+        if (v.hasUmbrella && raining) v.anim.armR.rotation.x = -2.30;
+        v.anim.head.rotation.x = o.kind === 'moon' ? -0.22 : 0;
+        v.anim.head.rotation.y = Math.sin(performance.now() * 0.0008 + v.ph) * 0.08;
+      }
+    }
+  }
+
   function gmVisitors(rdt) {
     var cap = gmCap();
     if (GM.visList.length < cap && performance.now() > GM.nextSpawn) {
       gmSpawnVisitor();
-      GM.nextSpawn = performance.now() + Math.max(2400, 5000 + Math.random() * 6000 - (GM.rating - 3) * 900);
+      var gap = Math.max(2400, 5000 + Math.random() * 6000 - (GM.rating - 3) * 900);
+      GM.nextSpawn = performance.now() + gap * wxSpawnMul();
     }
+    var raining = !!(WX.ready && WX.def.rain > 0);
+    var moonNight = !!(WX.ready && WX.def.key === 'clear' && GM.moonIllum >= 0.86 && (hour < 6 || hour >= 18) && gmCountBuilt('tsukimi') > 0);
     for (var i = GM.visList.length - 1; i >= 0; i--) {
       var v = GM.visList[i];
+      if (v.umb) v.umb.visible = !!(v.hasUmbrella && raining);
+      if (!raining) v.rainDecided = false;
+
+      if (!v.off && raining && !v.hasUmbrella && !v.rainDecided && performance.now() >= (v.rainRetryAt || 0)) {
+        v.rainDecided = true;
+        var shopN = gmCountBuilt('umbrellaShop');
+        var canBuy = shopN > 0 && (v.budget - v.spent) >= 10 && Math.random() < Math.min(0.90, 0.55 + 0.15 * shopN);
+        if (canBuy) {
+          var up = 8 + Math.floor(Math.random() * 4);
+          if (up <= v.budget - v.spent) {
+            v.spent += up;
+            v.hasUmbrella = true;
+            v.umb.visible = true;
+            v.log.push({ name: '雨伞', amount: up });
+            if (v.log.length > 7) v.log.splice(1, v.log.length - 7);
+            v.sat = Math.min(100, v.sat + 5);
+          }
+        } else {
+          var sh = gmFindShelter(v);
+          if (sh) gmSendOff(v, 'shelter', sh);
+          else { v.rainDecided = false; v.rainRetryAt = performance.now() + 3000; }
+        }
+      }
+
+      if (!v.off && !raining && moonNight && !v.moonDone) {
+        v.moonDone = true;
+        var pv = gmPavilionSpot();
+        if (pv && gmSpotBusy('tsukimi', pv.plot) < 6 && Math.random() < 0.30) gmSendOff(v, 'moon', pv);
+      }
+
+      if (v.off) {
+        gmVisitorOff(v, rdt, raining, moonNight);
+        v.sat += (gmVisitorSatTarget(v) - v.sat) * Math.min(1, rdt * 0.30);
+        continue;
+      }
+
       v.u += (rdt / 42) * v.sp;
       if (v.u >= 1) {
         v.gone = true;
@@ -10143,6 +10721,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       v.anim.armR.rotation.x = -swing * 0.42;
       v.anim.legL.rotation.x = -swing * 0.48;
       v.anim.legR.rotation.x = swing * 0.52;
+      if (v.hasUmbrella && raining) v.anim.armR.rotation.x = -2.30;
+      v.anim.head.rotation.x = 0;
       if (v.compAnim) {
         v.compPhase += rdt * Math.max(0.5, v.sp) * 8.5;
         var cs = Math.sin(v.compPhase);
@@ -10239,6 +10819,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       '<div class="gv-fact"><span>本次消费</span><b>' + Math.round(v.spent) + ' 銭</b></div>' +
       '<div class="gv-fact"><span>消费预算</span><b>' + v.budget + ' 銭</b></div>' +
       '<div class="gv-fact"><span>游园进度</span><b>' + Math.min(99, Math.round(v.u * 100)) + '%</b></div>' +
+      '<div class="gv-fact"><span>雨伞</span><b>' + (v.hasUmbrella ? (WX.ready && WX.def.rain > 0 ? '撑伞中' : '带在手上') : '未带') + '</b></div>' +
       '<div class="gv-fact"><span>入园时间</span><b>' + hh + ':00</b></div>' +
       '</div>' +
       '<div class="gv-sec"><b>偏好与满足</b><div class="gv-prefs">' + prefHtml + '</div></div>' +
@@ -10639,33 +11220,48 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     var combo = gmComboInfo();
     var polW = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
+    var wxAvgInc = GM.wxHours > 0 ? (GM.wxIncomeAcc || 0) / GM.wxHours : 1;
+    var wxAvgComfort = GM.wxHours > 0 ? (GM.wxComfortAcc || 0) / GM.wxHours : 0.72;
+    var wxRes = Math.round(GM.wxResAcc || 0);
     income = income * (1 + combo.income) * (0.6 + Math.min(1.2, GM.weekVisitors / 10)) *
-      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income * (1 + gmItemBuff('income'));
+      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income * (1 + gmItemBuff('income')) * wxAvgInc;
     var maint = built * 2 + gmSalary();
     var net = Math.round(income + GM.spent - maint);
     GM.money += net;
     GM.stats.incomeTotal = (GM.stats.incomeTotal || 0) + Math.round(income + GM.spent);
     var rGain = Math.round((4 + research + GM.weekVisitors * 1.2 + (GM.staff.steward ? 3 : 0) +
-      (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0)) * polW.research);
+      (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0)) * polW.research) + wxRes;
     GM.research += rGain;
     var gain = 1.5 + gmAppeal() / 18 + GM.weekVisitors / 2 - 0.5 + (GM.staff.miko ? 1 : 0) + gmItemBuff('renown');
     GM.renown = Math.max(0, GM.renown + gain);
     var openedZones = gmCheckZones(true);
-    GM.rating = Math.round((GM.rating * 0.7 + gmRatingCalc() * 0.3) * 10) / 10;
+    var ratingBase = gmRatingCalc() - wxRatingAdj();
+    GM.rating = Math.round((GM.rating * 0.7 + (ratingBase + (wxAvgComfort - 0.68) * 0.30) * 0.3) * 10) / 10;
     GM.review = gmMakeReview(GM.rating);
+    var wxKeyTop = 'clear', wxTopH = -1;
+    for (var wk in (GM.wxHist || {})) {
+      if ((GM.wxHist[wk] || 0) > wxTopH) { wxTopH = GM.wxHist[wk]; wxKeyTop = wk; }
+    }
     var gross = Math.round(income + GM.spent);
     GM.weekLog = {
       week: GM.week, income: Math.round(income), spend: Math.round(GM.spent), maint: maint, gross: gross,
       net: net, visitors: GM.weekVisitors, research: rGain,
       combo: combo.names, salary: gmSalary(), stars: GM.rating, review: GM.review, cash: Math.round(GM.money),
-      renown: gain, money: GM.money
+      renown: gain, money: GM.money,
+      wx: {
+        key: wxKeyTop, name: WX_DEFS[wxKeyTop] ? WX_DEFS[wxKeyTop].name : '晴',
+        rainy: Math.round(GM.wxRainHours || 0), research: wxRes,
+        comfort: Math.round(wxAvgComfort * 100), income: Math.round(wxAvgInc * 100)
+      }
     };
-    GM.history.push({ week: GM.week, net: net, gross: gross, visitors: GM.weekVisitors, stars: GM.rating, cash: Math.round(GM.money) });
+    GM.history.push({ week: GM.week, net: net, gross: gross, visitors: GM.weekVisitors, stars: GM.rating, cash: Math.round(GM.money), wx: wxKeyTop });
     while (GM.history.length > 12) GM.history.shift();
     gmToast('第 ' + GM.week + ' 周结算 ' + (net >= 0 ? '+' : '') + net + ' 銭 · 客 ' + GM.weekVisitors + ' · 誉 ' + (gain >= 0 ? '+' : '') + gain.toFixed(1) + ' · ★ ' + GM.rating.toFixed(1)
+      + ' · 天候 ' + (WX_DEFS[wxKeyTop] ? WX_DEFS[wxKeyTop].name : '晴')
       + (openedZones.length ? ' · 新域 ' + openedZones.map(function (d) { return d.name; }).join('/') : ''));
     if (openedZones.length) sfx('chime');
     GM.weekVisitors = 0; GM.spent = 0; GM.weekBuilt = 0; GM.weekDiscover = 0;
+    GM.wxHours = 0; GM.wxIncomeAcc = 0; GM.wxComfortAcc = 0; GM.wxResAcc = 0; GM.wxRainHours = 0; GM.wxHist = {};
     gmNewWeekly();
     gmSave();
   }
@@ -10780,7 +11376,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var score = 2.0 + Math.min(2.0, gmAppeal() / 95) + Math.min(0.8, GM.built.length / 22) +
       Math.min(0.25, gmComboInfo().names.length * 0.05) +
       (GM.staff.gardener ? 0.1 : 0) + (GM.zones.pine ? 0.08 : 0) +
-      (GM.zones.river ? 0.08 : 0) + (GM.zones.foothill ? 0.12 : 0);
+      (GM.zones.river ? 0.08 : 0) + (GM.zones.foothill ? 0.12 : 0) +
+      wxRatingAdj();
     return Math.max(1, Math.min(5, Math.round(score * 10) / 10));
   }
   function gmMakeReview(stars) {
@@ -10856,7 +11453,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       '<div class="rt"><b>季评 · ' + GM_SEASON_NAME[key] + '</b><span class="num">' + g + ' 级</span></div>' +
       '<p>庭园景致 <span class="num">' + gmAppeal() + '</span> · 誉 <span class="num">' + Math.round(GM.renown) + '</span></p>' +
       '<p>季末扶持 <span class="up">+' + bonus + ' 銭</span> · 研究 <span class="up">+8</span></p>' +
-      '<p style="opacity:.6">下一季的庭园会换上新装，季货也会更替。</p>';
+      '<p>本季天候 <span class="num">' + wxClimateText(key) + '</span></p>' +
+      '<p style="opacity:.6">下一季的庭园会换上新装，季货与天候概率也会更替。</p>';
     GM.money += bonus; GM.research += 8;
     gmShowModal('季评 · ' + GM_SEASON_JP[key], body, [{ t: '进入下一季' }]);
     gmSave();
@@ -10918,6 +11516,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var done = 0;
     if (GM.weekly && GM.weekly.tasks) for (var t = 0; t < GM.weekly.tasks.length; t++) if (GM.weekly.tasks[t].claimed) done++;
     body += '<p style="opacity:.55;margin-top:8px">本周委托已完成 ' + done + '/' + (GM.weekly ? GM.weekly.tasks.length : 0) + ' · 每周一 0:00 自动结算，一周 = 24 游戏小时。</p>';
+    if (WX.ready) {
+      body += '<div class="rt" style="margin-top:8px"><b>此刻天候</b><span class="num">' + WX.def.icon + ' ' + WX.def.name + '</span></div>' +
+        '<p>' + WX.def.tag + ' · 景致 ×' + WX.def.appeal.toFixed(2) + ' · 客流 ×' + (1 / WX.def.spawn).toFixed(2) +
+        ' · 满意 ' + (WX.def.sat >= 0 ? '+' : '') + WX.def.sat + ' · 工期 ×' + WX.def.build.toFixed(2) + '</p>' +
+        '<p style="opacity:.55">点主面板的天候一行可查看预报与季节气候分布。</p>';
+    }
     gmShowModal('周报', body, [{ t: '关闭' }]);
   }
 
@@ -10941,7 +11545,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       html += '</div></div>';
     }
     html += '</div><div class="gcal-foot">今日 ' + today.m + '月' + today.d + '日（' + GM_WEEK_JP[gmWeekdayIndex(GM.day)] + '）· 第 ' + GM.week + ' 周 · ' + GM_SEASON_JP[seasonKey] +
-      ' · 昼 ' + Math.floor(SUN.daylight) + 'h' + Math.round((SUN.daylight % 1) * 60) + 'm · 月相 ' + GM.moonName + '</div>';
+      ' · 昼 ' + Math.floor(SUN.daylight) + 'h' + Math.round((SUN.daylight % 1) * 60) + 'm · 月相 ' + GM.moonName +
+      (WX.ready ? ' · 天候 ' + WX.def.name + ' ' + Math.max(1, Math.round(WX.nextAt - WX.clock)) + 'h后转' + (WX.queue[0] ? WX_DEFS[WX.queue[0].key].name : '晴') : '') + '</div>';
     gmShowModal('岁历 · 365 日', html, [{ t: '合上' }]);
   }
 
@@ -11233,7 +11838,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         codex: Object.keys(discovered).filter(function (k) { return discovered[k]; }),
         items: GM.items, itemBuffs: GM.itemBuffs,
         built: GM.built.map(function (b) { return [b.plot, b.key, b.level || 1]; }),
-        construction: GM.construction.map(function (c) { return [c.plot, c.key, c.ready]; })
+        construction: GM.construction.map(function (c) { return [c.plot, c.key, c.ready]; }),
+        wxKey: (WX && WX.ready) ? WX.key : 'clear', wxNext: (WX && WX.ready) ? WX.nextAt : 0
       }));
     } catch (e) {}
   }
@@ -11284,6 +11890,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         }
       }
       gmItemPrune();
+      GM.wxKey = d.wxKey || null;
+      GM.wxNext = d.wxNext || 0;
       GM.loaded = true;
       GM.week = Math.min(52, Math.floor((GM.day - 1) / 7) + 1);
       for (var i = 0; i < (d.built || []).length; i++) {
@@ -11369,11 +11977,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       GM.lastAutoSave = now;
       gmSave();
     }
+    var wxDh = 0;
     if (GM.running && !GM.ended) {
-      GM.hour += rdt * 0.2 * GM.speed;
+      wxDh = rdt * 0.2 * GM.speed;
+      GM.hour += wxDh;
       GM.day += rdt * (7 / 120) * GM.speed;
-      while (GM.hour >= 24) GM.hour -= 24;
+      while (GM.hour >= 24) { GM.hour -= 24; }
+      while (GM.hour < 0) { GM.hour += 24; }
     }
+    if (wxDh > 0) wxAdvance(wxDh);
     GM.doy = ((59 + Math.floor(GM.day - 1)) % 365) + 1;
     hour = GM.hour;
     gmSun();
@@ -11410,6 +12022,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     gmDom();
     gmMakePlots();
     gmLoad();
+    cxSyncEntries();
     gmInitForestPositions();
     gmBuildOuterGardens();
     gmVillageDetails();
@@ -11426,6 +12039,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     gmSun();
     gmMoon();
+    wxInit();
     hour = GM.hour;
     applyDaylight(0);
     gmHud(performance.now());
@@ -11449,6 +12063,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       gmSetBuildMode(!GM.buildMode);
     };
     document.getElementById('gCalBtn').onclick = function () { gmCalendarPanel(); };
+    if (gmEl.gWx) gmEl.gWx.onclick = function () { gmWeatherPanel(); };
     document.getElementById('gGoalsBtn').onclick = function () { gmGoalsPanel(); };
     document.getElementById('settingsBtn').onclick = function () { gmSettingsPanel(); };
     document.getElementById('gStaffBtn').onclick = function () { gmStaffPanel(); };
@@ -11468,14 +12083,27 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     setTimeout(function () { var h = document.getElementById('hint'); if (h) h.style.opacity = '0'; }, 6500);
 
     window.__game = GM;
+    window.__wx = WX;
+    window.__wxApi = {
+      force: function (k) { WX.queue = []; wxApply(k, false); WX.nextAt = WX.clock + 4; wxPlan(3); },
+      spots: gmShelterSpots,
+      moonFactor: wxMoonFactor,
+      vis: function () {
+        return GM.visList.map(function (v) {
+          return { name: v.name, kind: v.kind.key, u: +v.u.toFixed(2), umb: !!v.hasUmbrella,
+            off: v.off ? { kind: v.off.kind, state: v.off.state, key: v.off.key } : null };
+        });
+      }
+    };
     window.__gameSettings = GAME_SETTINGS;
     window.gmShopPanel = gmShopPanel; window.gmShopBuy = gmShopBuy; window.gmUseItem = gmUseItem; window.gmShopInvite = gmShopInvite;
     window.__itemApi = { panel: gmShopPanel, buy: gmShopBuy, use: gmUseItemNow, invite: gmShopInvite, stock: gmShopStock, find: gmMaybeFind, gift: gmVisitorGift, buff: gmItemBuff, bag: function(){return GM.items;}, buffs: function(){return GM.itemBuffs;} };
     window.__gameApi = {
       build: gmBuild, week: gmWeek, report: gmReport, research: gmResearchPanel,
+      spawn: function (k, i) { gmSpawnVisitor(k ? gmVisitorKindByKey(k) : null, !!i); },
       addMoney: function (n) { GM.money += n; gmHud(performance.now()); gmSave(); },
       skipDays: function (n) { GM.day += n; GM.hour = 7; gmHud(performance.now()); gmSave(); },
-      state: function () { return { day: GM.day, hour: GM.hour, money: GM.money, research: GM.research, renown: GM.renown, built: GM.built.length, visitors: GM.visitors, season: seasonKey }; },
+      state: function () { return { day: GM.day, hour: GM.hour, money: GM.money, research: GM.research, renown: GM.renown, built: GM.built.length, visitors: GM.visitors, season: seasonKey, weather: WX.ready ? WX.key : null }; },
       appeal: gmAppeal, cap: gmCap, buff: gmItemBuff, terrain: terrainH, combo: gmComboInfo, upgrade: gmUpgrade, staffPanel: gmStaffPanel,
       closeModal: gmCloseModal, reset: gmReset, goals: gmGoalsPanel, settings: gmSettingsPanel,
       settingsState: function () { return JSON.parse(JSON.stringify(GAME_SETTINGS)); }
@@ -11543,6 +12171,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     updateCamera(dt);
     updateProps(dt);
     updateFX(dt);
+    wxUpdate(dt);
     if (summerGroup.visible) {
       for (var di2 = 0; di2 < dragonflies.length; di2++) {
         var df = dragonflies[di2], tt = elapsed * df.sp + df.ph;
