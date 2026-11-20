@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>樱花山谷庭园 · Sakura Valley</title>
-<link rel="preconnect" href="https://miaoda.feishu.cn">
+
 <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap">
 <style>
   :root{
@@ -184,41 +184,83 @@
   /* —— 触控回响：图鉴 —— */
   .codex{
     position:fixed; z-index:44; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:min(92vw,560px); max-height:min(76vh,620px);
+    width:min(94vw,980px); max-height:min(88vh,760px);
     display:flex; flex-direction:column;
-    background:linear-gradient(180deg, rgba(40,32,26,.94), rgba(26,21,17,.95));
-    border:1px solid rgba(255,240,228,.24); border-radius:18px;
-    backdrop-filter:blur(14px); box-shadow:0 26px 70px rgba(14,10,7,.55);
+    background:linear-gradient(180deg, rgba(42,33,27,.97), rgba(24,19,16,.98));
+    border:1px solid rgba(255,240,228,.26); border-radius:20px;
+    backdrop-filter:blur(16px); box-shadow:0 30px 90px rgba(14,10,7,.68);
     overflow:hidden;
   }
   .codex[hidden]{ display:none; }
   .cx-head{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 18px; border-bottom:1px solid rgba(255,240,228,.14);
-    font-size:13px; letter-spacing:.28em; color:#f6e5d5; font-weight:700;
+    display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    padding:14px 18px 10px; border-bottom:1px solid rgba(255,240,228,.14);
+    color:#f6e5d5;
   }
-  .cx-head button{
+  .cx-title{ display:flex; flex-direction:column; gap:3px; }
+  .cx-title b{ font-size:16px; letter-spacing:.30em; color:#f7e8da; }
+  .cx-title span{ font-size:9px; letter-spacing:.16em; color:rgba(244,207,220,.72); }
+  .cx-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .cx-filters{ display:flex; gap:2px; padding:2px; border:1px solid rgba(247,239,228,.14); border-radius:999px; }
+  .cx-filters button{
+    appearance:none; cursor:pointer; font-family:inherit; border:0; border-radius:999px;
+    background:transparent; color:rgba(244,233,218,.58); font-size:9px; letter-spacing:.12em; padding:5px 10px;
+  }
+  .cx-filters button.on{ background:rgba(244,207,220,.18); color:#f7e8da; }
+  .cx-head > .cx-close{
     appearance:none; cursor:pointer; font-family:inherit;
     background:rgba(255,244,234,.10); color:#f4e6d8;
     border:1px solid rgba(255,240,228,.26); border-radius:999px;
-    font-size:11px; letter-spacing:.16em; padding:5px 13px;
+    font-size:10px; letter-spacing:.14em; padding:5px 13px;
   }
-  .cx-head button:hover{ background:rgba(247,238,228,.88); color:#3a3029; }
+  .cx-head > .cx-close:hover{ background:rgba(247,238,228,.88); color:#3a3029; }
+  .cx-sub{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 18px 9px; font-size:9px; color:rgba(244,233,218,.52); letter-spacing:.08em; }
+  .cx-sub b{ color:#e8c08a; font-weight:500; }
+  .cx-tip{ padding:0 18px 10px; font-size:10px; line-height:1.65; letter-spacing:.03em; color:rgba(232,224,208,.4); }
   .cx-grid{
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr));
-    gap:8px; padding:14px 16px 18px; overflow-y:auto;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:9px; padding:2px 16px 18px; overflow-y:auto;
   }
   .cx-item{
-    display:flex; flex-direction:column; gap:2px;
-    padding:9px 11px; border-radius:11px;
-    background:rgba(255,246,236,.045); border:1px solid rgba(255,240,228,.10);
-    opacity:.5;
+    appearance:none; cursor:pointer; font-family:inherit; text-align:left; min-width:0;
+    display:flex; flex-direction:column; gap:5px;
+    padding:7px; border-radius:13px;
+    background:rgba(255,246,236,.055); border:1px solid rgba(255,240,228,.12);
+    color:#f7e8da; transition:background .2s ease, border-color .2s ease, transform .15s ease;
   }
-  .cx-item.got{ opacity:1; background:rgba(244,207,220,.10); border-color:rgba(244,207,220,.30); }
-  .cx-item b{ font-size:12px; color:#f7e8da; letter-spacing:.10em; font-weight:700; }
-  .cx-item i{ font-size:8.5px; font-style:normal; letter-spacing:.24em; color:rgba(244,207,220,.72); }
-  .cx-item s{ font-size:9.5px; text-decoration:none; line-height:1.55; color:rgba(244,234,224,.62); margin-top:2px; }
-  .cx-note{ font-size:9.5px; color:rgba(244,207,220,.7); letter-spacing:.10em; font-weight:400; }
+  .cx-item:hover{ background:rgba(255,246,236,.10); border-color:rgba(244,207,220,.32); transform:translateY(-1px); }
+  .cx-item.got{ background:rgba(244,207,220,.10); border-color:rgba(244,207,220,.32); }
+  .cx-art{ display:block; height:96px; border-radius:9px; overflow:hidden;
+    background:linear-gradient(180deg,rgba(247,239,228,.10),rgba(247,239,228,.02));
+    border:1px solid rgba(255,240,228,.10); }
+  .cx-art svg{ display:block; width:100%; height:100%; }
+  .cx-art.missing svg{ filter:grayscale(.72) brightness(.48); opacity:.72; }
+  .cx-meta{ display:flex; align-items:baseline; gap:5px; min-width:0; }
+  .cx-meta b{ font-size:12px; color:#f7e8da; letter-spacing:.08em; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cx-meta i{ font-size:8px; font-style:normal; letter-spacing:.14em; color:rgba(244,207,220,.72); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cx-meta em{ margin-left:auto; font-size:8px; font-style:normal; color:rgba(244,233,218,.38); }
+  .cx-item s{ display:block; text-decoration:none; font-size:9px; line-height:1.45; color:rgba(244,234,224,.58);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cx-item .cx-state{ display:block; font-size:8px; letter-spacing:.12em; color:rgba(244,207,220,.64); }
+  .cx-item.missing .cx-state{ color:rgba(244,233,218,.38); }
+  .cx-empty{ grid-column:1/-1; padding:28px 10px; text-align:center; color:rgba(244,233,218,.5); font-size:11px; }
+  .cx-detail-art{ margin:0 0 10px; border-radius:12px; overflow:hidden; border:1px solid rgba(244,207,220,.24); }
+  .cx-detail-art.missing svg{ filter:grayscale(.72) brightness(.48); opacity:.72; }
+  .cx-detail-art svg{ display:block; width:100%; height:auto; }
+  .cx-detail-tag{ display:inline-block; margin:0 0 8px; padding:3px 8px; border-radius:999px;
+    background:rgba(244,207,220,.14); border:1px solid rgba(244,207,220,.3); color:#e8c08a; font-size:9px; letter-spacing:.12em; }
+  @media (max-width:760px){
+    .codex{ width:94vw; max-height:90vh; border-radius:16px; }
+    .cx-head{ padding:11px 12px 9px; gap:8px; }
+    .cx-title b{ font-size:14px; letter-spacing:.22em; }
+    .cx-title span{ font-size:8px; }
+    .cx-head > .cx-close{ padding:5px 10px; }
+    .cx-sub{ padding:7px 12px; }
+    .cx-grid{ grid-template-columns:repeat(2,1fr); gap:7px; padding:2px 10px 14px; }
+    .cx-art{ height:84px; }
+    .cx-meta b{ font-size:11px; }
+  }
   /* —— 巡园地图 —— */
   .gz-wrap{ display:flex; flex-direction:column; gap:8px; }
   .gz-row{
@@ -354,7 +396,8 @@
 
   .gsheet{
     position:fixed; left:50%; bottom:96px; transform:translateX(-50%);
-    width:min(94vw,620px); max-height:min(64vh,560px); overflow:auto; overscroll-behavior:contain;
+    width:min(94vw,640px); max-height:min(72vh,640px); overflow:hidden; overscroll-behavior:contain;
+    display:flex; flex-direction:column;
     background:rgba(34,28,24,.94); border:1px solid rgba(247,239,228,.18);
     backdrop-filter:blur(12px); color:#f4e9da;
     box-shadow:0 18px 60px rgba(0,0,0,.4);
@@ -364,12 +407,16 @@
     font-size:11px; letter-spacing:.18em; }
   .gs-head button{ appearance:none; background:none; border:1px solid rgba(247,239,228,.26);
     color:rgba(247,239,228,.8); font-family:inherit; font-size:9px; padding:3px 9px; cursor:pointer; }
-  .gs-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:10px 12px 14px; }
-  .gsheet::-webkit-scrollbar{ width:6px; }
-  .gsheet::-webkit-scrollbar-thumb{ background:rgba(232,192,138,.35); border-radius:3px; }
-  .gsheet::-webkit-scrollbar-track{ background:rgba(247,239,228,.06); }
+  .gs-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:10px 12px 14px;
+    overflow:auto; flex:1; min-height:0; }
+  .gs-grid.locked{ pointer-events:none; }
+  .gs-tip{ grid-column:1/-1; margin:0 0 2px; padding:7px 9px; font-size:9px; line-height:1.6;
+    color:rgba(244,233,218,.68); background:rgba(247,239,228,.055); border:1px dashed rgba(247,239,228,.15); }
+  .gs-grid::-webkit-scrollbar{ width:6px; }
+  .gs-grid::-webkit-scrollbar-thumb{ background:rgba(232,192,138,.35); border-radius:3px; }
+  .gs-grid::-webkit-scrollbar-track{ background:rgba(247,239,228,.06); }
   .gs-card{
-    text-align:left; appearance:none; cursor:pointer; padding:9px 10px 8px;
+    text-align:left; appearance:none; cursor:pointer; padding:7px 9px 6px;
     background:rgba(247,239,228,.07); border:1px solid rgba(247,239,228,.14);
     color:#f4e9da; font-family:inherit;
     transition:background .2s ease,border-color .2s ease;
@@ -378,10 +425,23 @@
   .gs-card[disabled]{ opacity:.42; cursor:not-allowed; }
   .gs-card b{ display:block; font-size:12px; letter-spacing:.1em; font-weight:600; }
   .gs-card i{ display:block; font-style:normal; font-size:8.5px; letter-spacing:.16em; color:rgba(244,233,218,.5); margin-top:2px; }
-  .gs-card s{ display:block; text-decoration:none; font-size:9px; color:rgba(244,233,218,.62); margin-top:5px; line-height:1.5; }
-  .gs-card em{ display:block; font-style:normal; font-size:10px; color:#e8c08a; margin-top:5px; letter-spacing:.06em; }
+  .gs-card s{ display:block; text-decoration:none; font-size:8.5px; color:rgba(244,233,218,.62); margin-top:3px; line-height:1.4; }
+  .gs-card em{ display:block; font-style:normal; font-size:9.5px; color:#e8c08a; margin-top:4px; letter-spacing:.04em; }
   .gs-card .lock{ color:#e39a9a; }
+  .gs-card.sel{ outline:2px solid #e8c08a; outline-offset:-2px; background:rgba(232,192,138,.16); }
+  .gs-act{ position:static; z-index:3; display:flex; align-items:center; gap:8px; padding:8px 10px 10px;
+    border-top:1px solid rgba(247,239,228,.14); background:rgba(34,28,24,.98); flex:0 0 auto; }
+  .gs-pick{ flex:1; font-size:10px; color:rgba(244,233,218,.65); }
+  .gs-go{ padding:7px 14px; border:1px solid rgba(232,192,138,.45); background:rgba(201,138,106,.28);
+    color:#f4e9da; font:11px/1 inherit; letter-spacing:.1em; cursor:pointer; }
+  .gs-go[disabled]{ opacity:.35; cursor:not-allowed; }
+  .gs-ill{ display:block; height:48px; margin:0 0 4px; overflow:hidden;
+    background:linear-gradient(180deg,rgba(247,239,228,.13),rgba(247,239,228,.03));
+    border:1px solid rgba(247,239,228,.08); }
+  .gs-ill svg{ display:block; width:100%; height:100%; }
+  .gs-card[disabled] .gs-ill{ opacity:.46; filter:saturate(.55); }
 
+  .gmask[hidden]{ display:none !important; }
   .gmask{ position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
     background:rgba(16,12,10,.58); backdrop-filter:blur(3px); }
   .gmodal{ width:min(92vw,520px); max-height:min(82vh,640px); overflow:auto;
@@ -408,17 +468,20 @@
   .gm-foot button{ appearance:none; cursor:pointer; padding:8px 20px; font-family:inherit;
     font-size:10px; letter-spacing:.18em; color:#f7efe4; background:#9c4a4a; border:1px solid #9c4a4a; }
 
-  .gcal{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-top:10px; }
-  .gcal-m{ border:1px solid rgba(247,239,228,.12); padding:5px 4px 6px; }
+  .gcal{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:10px; }
+  .gcal-m{ border:1px solid rgba(247,239,228,.12); padding:4px 4px 5px; }
   .gcal-m b{ display:block; font-size:8.5px; font-weight:600; letter-spacing:.08em; color:rgba(244,233,218,.78); margin-bottom:3px; }
+  .gcal-week{ display:grid; grid-template-columns:repeat(7,1fr); gap:1px; margin:1px 0 2px; }
+  .gcal-week i{ font-style:normal; font-size:7.5px; line-height:1.35; text-align:center; color:rgba(232,192,138,.62); }
   .gcal-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:1px; }
-  .gcal-days span{ font-size:7px; line-height:1.5; text-align:center; color:rgba(244,233,218,.4); }
+  .gcal-days span.blank{ visibility:hidden; }
+  .gcal-days span{ font-size:8px; line-height:1.35; text-align:center; color:rgba(244,233,218,.45); }
   .gcal-days span.sp{ color:rgba(169,211,154,.75); }
   .gcal-days span.su{ color:rgba(232,192,138,.8); }
   .gcal-days span.au{ color:rgba(224,150,110,.85); }
   .gcal-days span.wi{ color:rgba(180,200,210,.8); }
   .gcal-days span.today{ background:rgba(156,74,74,.55); color:#fff; }
-  .gcal-foot{ margin-top:8px; font-size:8.5px; letter-spacing:.08em; color:rgba(244,233,218,.55); }
+  .gcal-foot{ margin-top:8px; font-size:9px; letter-spacing:.08em; color:rgba(244,233,218,.55); }
 
   .gtoast{
     position:fixed; left:50%; bottom:72px; transform:translateX(-50%) translateY(8px);
@@ -459,6 +522,32 @@
   .gm-body .gquest:first-child{ border-top:none; }
   .gm-body .gfin{ padding:4px 0; font-size:9px; letter-spacing:.04em; color:rgba(244,233,218,.58); }
   .gm-body .gfin b{ color:#e8c08a; font-weight:600; }
+  .gm-body .gpol{ margin:0 0 10px; padding:8px 9px; border:1px solid rgba(232,192,138,.16); background:rgba(232,192,138,.04); }
+  .gm-body .gpol-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+  .gm-body .gpol-b{ display:block; text-align:left; padding:6px 7px; border:1px solid rgba(247,239,228,.14);
+    background:rgba(255,255,255,.04); color:rgba(244,233,218,.72); cursor:pointer; font-family:inherit; }
+  .gm-body .gpol-b.on{ border-color:#c98a6a; background:rgba(201,138,106,.17); color:#f4e9da; }
+  .gm-body .gpol-b b{ display:block; font-size:12px; color:#e8c08a; }
+  .gm-body .gpol-b i{ display:block; font-style:normal; font-size:8px; letter-spacing:.18em; opacity:.5; margin:1px 0 3px; }
+  .gm-body .gpol-b em{ display:block; font-style:normal; font-size:9px; line-height:1.4; opacity:.65; }
+  .gm-body .gpop{ display:flex; align-items:center; gap:6px; padding:4px 0; font-size:10px; }
+  .gm-body .gpop>b{ flex:0 0 14px; font-size:9px; color:#e8c08a; opacity:.75; font-weight:600; }
+  .gm-body .gpop>span{ flex:0 0 56px; color:rgba(244,233,218,.88); }
+  .gm-body .gpop>i{ flex:1; height:5px; background:linear-gradient(90deg,#b98a68,#e8c08a); opacity:.65; transform-origin:left; }
+  .gm-body .gpop>em{ flex:0 0 66px; text-align:right; font-style:normal; font-size:9px; color:rgba(244,233,218,.5); }
+  .gm-body .bgm-slot{ margin:4px 0 6px; padding:6px 8px; border:1px solid rgba(247,239,228,.12);
+    background:rgba(255,255,255,.045); }
+  .gm-body .bgm-slot .bh{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .gm-body .bgm-slot .bh b{ font-size:11px; color:#e8c08a; }
+  .gm-body .bgm-slot .bh span{ font-size:9px; color:rgba(244,233,218,.48); }
+  .gm-body .bgm-url{ width:100%; box-sizing:border-box; margin:2px 0 5px; padding:5px 7px; border:1px solid rgba(247,239,228,.16);
+    background:rgba(28,31,30,.55); color:#f4e9da; font:10px/1.3 inherit; outline:none; }
+  .gm-body .bgm-url::placeholder{ color:rgba(244,233,218,.3); }
+  .gm-body .bgm-btns{ display:flex; gap:5px; flex-wrap:wrap; }
+  .gm-body .bgm-btns button{ font-size:9px; padding:4px 8px; cursor:pointer; font-family:inherit;
+    color:#f4e9da; background:rgba(255,255,255,.07); border:1px solid rgba(247,239,228,.22); }
+  .gm-body .bgm-btns button:hover{ background:rgba(255,255,255,.13); }
+  .gm-body .bgm-tip{ margin:2px 0 0; font-size:8px; color:rgba(244,233,218,.42); }
   .gm-body .gquote{ margin:8px 0 0; padding:8px 10px; border-left:2px solid rgba(232,192,138,.5);
     background:rgba(247,239,228,.05); font-size:10px; line-height:1.8; color:rgba(244,233,218,.78); }
 
@@ -469,6 +558,7 @@
     .gdock{ left:12px; right:118px; bottom:12px; transform:none; justify-content:space-between; }
     .gdock button{ flex:1; padding:9px 4px; font-size:10px; letter-spacing:.1em; }
     .gsheet{ bottom:62px; max-height:66vh; }
+    .gcal{ grid-template-columns:repeat(2,1fr); }
     .gs-grid{ grid-template-columns:1fr 1fr; gap:6px; }
     .gtoast{ bottom:64px; max-width:88vw; white-space:normal; text-align:center; }
     #hint{ display:none !important; }
@@ -520,7 +610,7 @@
   <button class="ctrl" id="panBtn" type="button">平移视角</button>
   <button class="ctrl" id="tourBtn" type="button">巡园</button>
   <button class="ctrl" id="sfxBtn" type="button">音效 开</button>
-  <button class="ctrl" id="codexBtn" type="button">图鉴 0/45</button>
+  <button class="ctrl" id="codexBtn" type="button">图鉴 0/49</button>
   <button class="ctrl" id="settingsBtn" type="button">设置</button>
 </div>
 
@@ -529,7 +619,19 @@
 </div>
 
 <div class="codex" id="codex" hidden>
-  <div class="cx-head"><span>回 响 图 鉴</span><span class="cx-note">首发现 20 / 30 / 50 / 100 銭</span><button id="codexClose" type="button">收起</button></div>
+  <div class="cx-head">
+    <div class="cx-title"><b>回 响 图 鉴</b><span id="cxProgress">0 / 49 类已发现</span></div>
+    <div class="cx-tools">
+      <div class="cx-filters">
+        <button type="button" data-cx-filter="all" class="on">全部</button>
+        <button type="button" data-cx-filter="got">已解锁</button>
+        <button type="button" data-cx-filter="missing">未发现</button>
+      </div>
+      <button class="cx-close" id="codexClose" type="button">收起</button>
+    </div>
+  </div>
+  <div class="cx-sub"><span class="cx-note">全 49 类 · 每类首次发现都有奖励</span><span id="cxReward">下一发现 · +20 銭</span></div>
+  <div class="cx-tip">灰阶剪影是尚未发现的景物；发现后点亮彩色插图。点击卡片可查看线索与详情。</div>
   <div class="cx-grid" id="codexGrid"></div>
 </div>
 
@@ -558,7 +660,11 @@
   <div class="gsheet" id="gSheet" hidden>
     <div class="gs-head"><span id="gSheetTitle">空地</span><button id="gSheetClose" type="button">关闭</button></div>
     <div class="gs-grid" id="gSheetGrid"></div>
+    <div class="gs-act"><span class="gs-pick">尚未选择设施</span><button class="gs-go" type="button" disabled>建造</button></div>
   </div>
+  <div class="gtoast" id="gToast"></div>
+</div>
+
   <div class="gmask" id="gMask" hidden>
     <div class="gmodal">
       <div class="gm-head"><span id="gModalTitle">周报</span><button id="gModalX" type="button">×</button></div>
@@ -566,8 +672,6 @@
       <div class="gm-foot" id="gModalFoot"></div>
     </div>
   </div>
-  <div class="gtoast" id="gToast"></div>
-</div>
 
 <div id="loader">
   <div class="mark">桜</div>
@@ -5371,6 +5475,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   var pointers = {};
   var pinchDist = 0;
   var pinchMid = { x: 0, y: 0 };
+  // 触屏手势单独走 TouchEvent，避免 PointerEvent 残留导致单指拖动被误判为捏合缩放
+  var touchMode = '';
+  var touchLast = { x: 0, y: 0 };
+  var touchPinchDist = 0;
+  var touchPinchMid = { x: 0, y: 0 };
+  var touchPinchStartedAt = 0;
+  var touchPinchArmed = false;
+  var touchPinchStartPts = null;
+  var lastTouchAt = 0;
 
   function updateCamera(dt) {
     if (!dragging && autoRotate) {
@@ -5392,6 +5505,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   updateCamera(0.0001);
 
   function onPointerDown(e) {
+    if (e.pointerType === 'touch') return;
+    if (performance.now() - lastTouchAt < 450) return;
     dragging = true;
     panning = panMode || e.button === 1 || e.button === 2 || e.shiftKey;
     lastPointer.x = e.clientX; lastPointer.y = e.clientY;
@@ -5399,6 +5514,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     renderer.domElement.setPointerCapture && renderer.domElement.setPointerCapture(e.pointerId);
   }
   function onPointerMove(e) {
+    if (e.pointerType === 'touch') return;
     if (pointers[e.pointerId]) {
       pointers[e.pointerId].x = e.clientX; pointers[e.pointerId].y = e.clientY;
     }
@@ -5448,12 +5564,137 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     idleTime = 0;
   }
   function onPointerUp(e) {
+    if (e.pointerType === 'touch') return;
     dragging = false;
     panning = false;
     delete pointers[e.pointerId];
     pinchDist = 0;
     idleTime = 0;
   }
+  function touchRadiusScale(prev, now) {
+    if (prev > 0 && now > 0) orbit.tRadius = clamp(orbit.tRadius * (prev / now), 42, 230);
+  }
+  function onTouchStart(e) {
+    if (!e.touches || !e.touches.length) return;
+    lastTouchAt = performance.now();
+    if (e.touches.length === 1) {
+      dragging = true;
+      panning = !!panMode;
+      touchMode = 'single';
+      touchLast.x = e.touches[0].clientX; touchLast.y = e.touches[0].clientY;
+      touchPinchDist = 0;
+      touchPinchStartedAt = 0;
+      touchPinchArmed = false;
+      touchPinchStartPts = null;
+    } else {
+      dragging = true;
+      panning = false;
+      touchMode = 'pinch';
+      var p1 = e.touches[0], p2 = e.touches[1];
+      touchPinchDist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+      touchPinchMid.x = (p1.clientX + p2.clientX) / 2;
+      touchPinchMid.y = (p1.clientY + p2.clientY) / 2;
+      touchPinchStartedAt = performance.now();
+      touchPinchArmed = false;
+      touchPinchStartPts = [{ x: p1.clientX, y: p1.clientY }, { x: p2.clientX, y: p2.clientY }];
+    }
+    idleTime = 0;
+  }
+  function onTouchMove(e) {
+    lastTouchAt = performance.now();
+    if (!e.touches || !e.touches.length || !dragging) return;
+    if (e.touches.length >= 2) {
+      var p1 = e.touches[0], p2 = e.touches[1];
+      var d = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+      var mid = { x: (p1.clientX + p2.clientX) / 2, y: (p1.clientY + p2.clientY) / 2 };
+      if (touchMode !== 'pinch' || touchPinchDist <= 0) {
+        touchMode = 'pinch'; touchPinchDist = d; touchPinchMid = mid;
+        touchPinchStartedAt = performance.now(); touchPinchArmed = false;
+        touchPinchStartPts = [{ x: p1.clientX, y: p1.clientY }, { x: p2.clientX, y: p2.clientY }];
+        return;
+      }
+      // 双指手势需要稳定 220ms 才允许缩放，避免单指拖动时误触第二点造成突兀缩放
+      if (!touchPinchArmed) {
+        // 两个触点都要真的移动过，才认定为双指捏合；单指拖动 + 另一根手指搭在屏幕上不会误缩放
+        if (touchPinchStartPts) {
+          var movedA = Math.hypot(p1.clientX - touchPinchStartPts[0].x, p1.clientY - touchPinchStartPts[0].y);
+          var movedB = Math.hypot(p2.clientX - touchPinchStartPts[1].x, p2.clientY - touchPinchStartPts[1].y);
+          touchPinchDist = d; touchPinchMid = mid;
+          if (performance.now() - touchPinchStartedAt < 220 || movedA < 6 || movedB < 6) return;
+        } else {
+          touchPinchDist = d; touchPinchMid = mid;
+          if (performance.now() - touchPinchStartedAt < 220) return;
+        }
+        touchPinchArmed = true;
+        return;
+      }
+      touchRadiusScale(touchPinchDist, d);
+      var mdx = mid.x - touchPinchMid.x, mdy = mid.y - touchPinchMid.y;
+      if (Math.abs(mdx) + Math.abs(mdy) > 1.5) {
+        var fwd2 = new THREE.Vector3();
+        camera.getWorldDirection(fwd2); fwd2.y = 0; fwd2.normalize();
+        var right2 = new THREE.Vector3().crossVectors(fwd2, new THREE.Vector3(0, 1, 0)).normalize();
+        var sc2 = Math.max(0.16, orbit.radius * 0.00125);
+        orbit.target.addScaledVector(right2, -mdx * sc2);
+        orbit.target.addScaledVector(fwd2, mdy * sc2);
+        orbit.target.x = clamp(orbit.target.x, -205, 205);
+        orbit.target.z = clamp(orbit.target.z, -200, 200);
+        orbit.target.y = terrainH(orbit.target.x, orbit.target.z) + 4.6;
+      }
+      touchPinchDist = d; touchPinchMid = mid;
+      idleTime = 0;
+      return;
+    }
+    if (e.touches.length === 1) {
+      if (touchMode === 'pinch') {
+        touchMode = 'single'; panning = !!panMode;
+        touchLast.x = e.touches[0].clientX; touchLast.y = e.touches[0].clientY;
+        touchPinchDist = 0;
+        return;
+      }
+      var dx = e.touches[0].clientX - touchLast.x;
+      var dy = e.touches[0].clientY - touchLast.y;
+      touchLast.x = e.touches[0].clientX; touchLast.y = e.touches[0].clientY;
+      if (panning) {
+        var fwd = new THREE.Vector3();
+        camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
+        var right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+        var sc = Math.max(0.16, orbit.radius * 0.00125);
+        orbit.target.addScaledVector(right, -dx * sc);
+        orbit.target.addScaledVector(fwd, dy * sc);
+        orbit.target.x = clamp(orbit.target.x, -205, 205);
+        orbit.target.z = clamp(orbit.target.z, -200, 200);
+        orbit.target.y = terrainH(orbit.target.x, orbit.target.z) + 4.6;
+      } else {
+        orbit.tTheta -= dx * 0.0045;
+        orbit.tPhi = clamp(orbit.tPhi - dy * 0.0038, 0.58, 1.36);
+      }
+      idleTime = 0;
+    }
+  }
+  function onTouchEnd(e) {
+    lastTouchAt = performance.now();
+    if (e.touches && e.touches.length === 1) {
+      touchMode = 'single'; panning = !!panMode;
+      touchLast.x = e.touches[0].clientX; touchLast.y = e.touches[0].clientY;
+      touchPinchDist = 0;
+      touchPinchStartedAt = 0;
+      touchPinchArmed = false;
+      touchPinchStartPts = null;
+      dragging = true;
+      return;
+    }
+    if (!e.touches || e.touches.length === 0) {
+      dragging = false; panning = false;
+      touchMode = ''; touchPinchDist = 0;
+      touchPinchStartedAt = 0; touchPinchArmed = false;
+    }
+    idleTime = 0;
+  }
+  renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: true });
+  renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: true });
+  renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: true });
+  renderer.domElement.addEventListener('touchcancel', onTouchEnd, { passive: true });
   renderer.domElement.addEventListener('pointerdown', onPointerDown);
   renderer.domElement.addEventListener('pointermove', onPointerMove);
   renderer.domElement.addEventListener('pointerup', onPointerUp);
@@ -5461,6 +5702,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   renderer.domElement.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   renderer.domElement.addEventListener('wheel', function (e) {
     e.preventDefault();
+    // 触屏手势结束后浏览器偶尔会补发 wheel，短时间内忽略，避免单指拖动被误判为缩放
+    if (performance.now() - lastTouchAt < 900) return;
     orbit.tRadius = clamp(orbit.tRadius * (1 + e.deltaY * 0.0012), 42, 230);
   }, { passive: false });
   renderer.domElement.addEventListener('dblclick', resetView);
@@ -5573,17 +5816,76 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     lotus: ['莲叶', '蓮', '叶上水珠滚落，圈纹散开'],
     reed: ['芦苇', '葦', '苇梢摇曳，风声细细']
   };
-  // 外圈民居与田畑：只做点击标签，不占用 45 类图鉴名额
+  // 外圈民居、田畑与动物：与主图鉴共用一套发现计数
   var EXTRA_LABELS = {
     hut: ['小木屋', '木小屋', '柴门半掩，檐下风铃轻响'],
     field: ['田畑', '田畑', '稻穗翻浪，泥土气息扑面'],
     scarecrow: ['稻草人', '案山子', '草帽一晃，惊起几只麻雀'],
     rabbit: ['野兔', '兎', '耳朵一竖，蹦跳着钻进草里']
   };
+  var CODEX_INFO = Object.assign({}, KIND_INFO, EXTRA_LABELS);
+  function cxArt(inner, sky, ground) {
+    return '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice">' +
+      '<rect width="120" height="80" fill="' + sky + '"/>' +
+      '<path d="M0 57 L16 51 L34 55 L52 48 L72 54 L92 50 L120 56 L120 80 L0 80 Z" fill="' + ground + '"/>' +
+      inner + '</svg>';
+  }
+  /* 图鉴插图：49 类，全部为程序化内联 SVG，无外部图片依赖 */
+  var CODEX_ART = {
+    sakura: cxArt('<path d="M58 62 C58 52 59 45 54 38 M59 50 L70 42 M58 47 L48 40" stroke="#7c513d" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="45" cy="33" r="13" fill="#f2b5c7"/><circle cx="61" cy="27" r="15" fill="#f8cbd8"/><circle cx="77" cy="34" r="12" fill="#eda7bd"/><circle cx="57" cy="39" r="10" fill="#f9d7e1"/><circle cx="44" cy="30" r="2" fill="#fff" opacity=".7"/>', '#e4f0f4', '#86a95d'),
+    giant: cxArt('<path d="M54 64 L55 31 C55 21 66 17 70 22 L68 64Z" fill="#6e4936"/><path d="M60 38 L46 28 M63 34 L78 25" stroke="#6e4936" stroke-width="5" stroke-linecap="round"/><circle cx="43" cy="24" r="15" fill="#4d7547"/><circle cx="60" cy="19" r="17" fill="#5b834d"/><circle cx="79" cy="27" r="14" fill="#476d43"/><path d="M51 39 Q60 49 70 39" stroke="#d9c69d" stroke-width="2" fill="none"/>', '#dcecf0', '#6d8c55'),
+    stump: cxArt('<ellipse cx="60" cy="59" rx="21" ry="8" fill="#8b6047"/><ellipse cx="60" cy="56" rx="16" ry="6" fill="#c79a70"/><ellipse cx="60" cy="56" rx="10" ry="3.6" fill="none" stroke="#9b6b4a" stroke-width="1.6"/><path d="M43 58 Q48 54 54 58" stroke="#8b6047" stroke-width="2" fill="none"/><path d="M73 57 A4 4 0 0 1 79 57" fill="#d5b08b"/><rect x="74" y="53" width="2" height="5" fill="#e4d4be"/>', '#e7eee1', '#8ba263'),
+    mushroom: cxArt('<path d="M46 64 C46 55 43 50 41 48 C51 44 59 50 57 58 L55 64Z" fill="#d9c2a0"/><path d="M35 48 C39 34 55 34 61 47 C52 52 42 52 35 48Z" fill="#b85d4f"/><circle cx="44" cy="41" r="2" fill="#f4e0c8"/><circle cx="52" cy="45" r="1.6" fill="#f4e0c8"/><path d="M69 64 C69 57 67 53 65 51 C74 48 80 53 78 60 L77 64Z" fill="#e6d4b7"/><path d="M62 51 C66 40 79 40 84 50 C76 54 68 54 62 51Z" fill="#9a5b45"/>', '#dfe9d9', '#718958'),
+    ruin: cxArt('<path d="M24 61 L24 38 L30 35 L38 39 L44 34 L54 38 L58 35 L64 39 L70 34 L78 38 L82 34 L90 40 L90 61Z" fill="#9a9582"/><path d="M28 55 L28 43 L34 40 L40 44 L46 40 L52 44 L58 40 L64 44 L70 40 L76 44 L82 40 L86 45 L86 55Z" fill="#b8b19b"/><path d="M31 47 L37 44 L43 48 M52 44 L58 48 L64 44 M70 48 L76 44" stroke="#7d7968" stroke-width="2" fill="none"/><circle cx="36" cy="54" r="3" fill="#7f9364"/><circle cx="76" cy="55" r="4" fill="#829663"/>', '#e3ecee', '#87965c'),
+    fuji: cxArt('<path d="M4 62 L34 25 L46 40 L60 16 L75 31 L96 22 L116 62Z" fill="#738aa0"/><path d="M60 16 L51 30 L56 32 L60 27 L65 33 L70 30Z" fill="#f6f4ee"/><path d="M75 31 L68 43 L72 44 L76 39 L81 45 L86 42Z" fill="#f3f3ed"/><path d="M0 63 L120 63" stroke="#d7e4e6" stroke-width="2"/>', '#d9e8ef', '#7e9b65'),
+    ridge: cxArt('<path d="M0 63 L22 35 L38 51 L58 26 L76 47 L94 30 L120 60Z" fill="#6d8767"/><path d="M0 64 L32 45 L52 55 L75 40 L98 52 L120 62Z" fill="#879b72"/><path d="M0 66 L40 56 L65 62 L95 55 L120 64Z" fill="#a8b48d"/>', '#dbe8ed', '#7f9661'),
+    torii: cxArt('<path d="M33 22 Q60 12 87 22 L87 27 Q60 17 33 27Z" fill="#a8483e"/><path d="M25 31 L95 31 L92 38 L28 38Z" fill="#b55246"/><rect x="38" y="36" width="7" height="30" fill="#a8483e"/><rect x="75" y="36" width="7" height="30" fill="#a8483e"/><path d="M36 39 L82 39" stroke="#d5a06f" stroke-width="2"/><path d="M38 45 L82 45" stroke="#d5a06f" stroke-width="2"/>', '#e2eef1', '#88a15e'),
+    lantern: cxArt('<ellipse cx="60" cy="66" rx="18" ry="5" fill="#7e8e62"/><rect x="53" y="57" width="14" height="8" rx="2" fill="#9c9787"/><rect x="55" y="43" width="10" height="14" fill="#b0aa97"/><rect x="51" y="40" width="18" height="4" fill="#888476"/><path d="M47 40 L60 30 L73 40Z" fill="#716f64"/><circle cx="60" cy="48" r="3.6" fill="#ffd68b"/><circle cx="60" cy="48" r="8" fill="#ffd68b" opacity=".2"/>', '#d8e5ea', '#84945f'),
+    pagoda: cxArt('<path d="M38 24 L60 13 L82 24 L74 27 L60 20 L46 27Z" fill="#8e3f39"/><rect x="48" y="26" width="24" height="9" fill="#d6c7a8"/><path d="M37 36 L83 36 L74 40 L46 40Z" fill="#9e4840"/><rect x="50" y="40" width="20" height="8" fill="#d6c7a8"/><path d="M42 49 L78 49 L70 53 L50 53Z" fill="#9e4840"/><rect x="52" y="53" width="16" height="10" fill="#d6c7a8"/><rect x="55" y="58" width="10" height="5" fill="#6b4a34"/>', '#e1edf0', '#809a64'),
+    koi: cxArt('<ellipse cx="52" cy="49" rx="18" ry="9" fill="#e78343"/><path d="M68 49 L82 40 L78 49 L82 58Z" fill="#f2b06b"/><circle cx="43" cy="46" r="2" fill="#3e423d"/><path d="M35 54 Q43 59 54 56" stroke="#f7d7a8" stroke-width="2" fill="none"/><ellipse cx="60" cy="69" rx="34" ry="6" fill="none" stroke="#a5ded5" stroke-width="2" opacity=".8"/><ellipse cx="60" cy="70" rx="20" ry="3" fill="none" stroke="#c9eee8" stroke-width="1.5" opacity=".7"/>', '#c7e5e0', '#46918e'),
+    water: cxArt('<ellipse cx="60" cy="56" rx="43" ry="15" fill="#5aa49d"/><ellipse cx="60" cy="55" rx="32" ry="9" fill="none" stroke="#b9e4de" stroke-width="2" opacity=".8"/><ellipse cx="60" cy="55" rx="18" ry="5" fill="none" stroke="#d6f2ed" stroke-width="2" opacity=".8"/><path d="M36 48 Q48 42 60 48 Q72 54 84 48" stroke="#e6f8f2" stroke-width="2" fill="none"/>', '#d9eaed', '#4f9892'),
+    waterfall: cxArt('<path d="M20 68 L24 22 L44 18 L58 28 L64 20 L82 24 L88 68Z" fill="#73826c"/><path d="M54 27 C52 41 50 55 52 68 L68 68 C66 54 64 40 66 27Z" fill="#c8e8e7"/><path d="M58 29 C56 43 55 56 58 66" stroke="#f7ffff" stroke-width="3" fill="none"/><ellipse cx="60" cy="70" rx="26" ry="6" fill="#8fc9c5"/><circle cx="42" cy="74" r="2" fill="#fff" opacity=".8"/>', '#d5e8eb', '#5c8a62'),
+    island: cxArt('<ellipse cx="60" cy="67" rx="34" ry="9" fill="#669c96"/><ellipse cx="60" cy="63" rx="25" ry="7" fill="#b7c49a"/><path d="M60 62 L60 42" stroke="#6d4a36" stroke-width="4"/><path d="M60 44 L47 36 L54 42 L60 38 L68 33 L73 42Z" fill="#577b4b"/><ellipse cx="45" cy="67" rx="5" ry="3" fill="#8b8d7e"/>', '#d4e7e9', '#5a958d'),
+    bridge: cxArt('<path d="M18 57 Q60 34 102 57" stroke="#b84c42" stroke-width="6" fill="none"/><path d="M22 59 Q60 38 98 59" stroke="#d9a26f" stroke-width="4" fill="none"/><rect x="26" y="56" width="4" height="12" fill="#9e3f39"/><rect x="90" y="56" width="4" height="12" fill="#9e3f39"/><ellipse cx="60" cy="70" rx="42" ry="6" fill="#6aa59f"/>', '#dbe9ec', '#5d9280'),
+    karesan: cxArt('<rect x="20" y="47" width="80" height="20" rx="5" fill="#ded7bd"/><path d="M28 52 Q60 46 92 52 M28 58 Q60 52 92 58 M28 64 Q60 58 92 64" stroke="#b3ab8c" stroke-width="1.5" fill="none"/><ellipse cx="38" cy="58" rx="10" ry="5" fill="#7f8275"/><ellipse cx="76" cy="55" rx="8" ry="4" fill="#8c8b7c"/><circle cx="72" cy="64" r="3" fill="#6f7568"/>', '#e4ece5', '#7f9b63'),
+    bamboo: cxArt('<rect x="24" y="31" width="5" height="36" fill="#9a8b58"/><rect x="43" y="27" width="5" height="40" fill="#b2a66b"/><rect x="62" y="31" width="5" height="36" fill="#9a8b58"/><rect x="81" y="27" width="5" height="40" fill="#b2a66b"/><path d="M22 39 L88 39 M22 52 L88 52" stroke="#c2b77c" stroke-width="4"/><path d="M24 39 L24 52 M43 39 L43 52 M62 39 L62 52 M81 39 L81 52" stroke="#72653e" stroke-width="1"/>', '#e3ede9', '#80985f'),
+    grass: cxArt('<path d="M42 67 Q38 53 32 44 M46 67 Q48 54 54 46 M51 67 Q58 55 66 49 M59 67 Q56 55 48 52 M68 67 Q74 55 82 44" stroke="#6f9a54" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="33" cy="43" r="3" fill="#8fbd68"/><circle cx="84" cy="43" r="3" fill="#8fbd68"/>', '#e2eee4', '#7b9c5b'),
+    shrub: cxArt('<ellipse cx="60" cy="57" rx="29" ry="16" fill="#6f9652"/><ellipse cx="45" cy="52" rx="14" ry="11" fill="#7ca75c"/><ellipse cx="76" cy="54" rx="13" ry="10" fill="#63884c"/><circle cx="43" cy="46" r="3" fill="#e9a2b4"/><circle cx="54" cy="51" r="2.5" fill="#f0b5c4"/><circle cx="72" cy="48" r="3" fill="#e9a2b4"/><circle cx="80" cy="56" r="2" fill="#f0b5c4"/>', '#e6eeee', '#7c9c5f'),
+    foliage: cxArt('<rect x="57" y="47" width="7" height="20" fill="#765039"/><path d="M60 12 L78 37 L42 37Z" fill="#3e6a48"/><path d="M60 24 L84 48 L36 48Z" fill="#4c7955"/><path d="M60 36 L92 59 L28 59Z" fill="#5b8a61"/><path d="M44 43 Q50 47 44 51 M76 43 Q70 47 76 51" stroke="#8cb079" stroke-width="2" fill="none"/>', '#deecec', '#7b9660'),
+    pine: cxArt('<path d="M18 63 L24 43 L34 63Z M48 63 L55 34 L64 63Z M82 63 L88 45 L98 63Z" fill="#426c46"/><rect x="22" y="61" width="4" height="10" fill="#704b34"/><rect x="53" y="60" width="4" height="11" fill="#704b34"/><rect x="86" y="61" width="4" height="10" fill="#704b34"/><path d="M0 70 L120 70" stroke="#9aae7c" stroke-width="2"/>', '#dcebea', '#6d8e5d'),
+    rock: cxArt('<path d="M30 68 L25 53 L36 43 L57 45 L67 56 L63 68Z" fill="#8d938b"/><path d="M53 64 L58 49 L72 41 L88 47 L94 61 L87 68Z" fill="#737b73"/><path d="M36 51 L47 48 L54 54 M69 50 L81 53" stroke="#b1b6a9" stroke-width="2" fill="none"/>', '#e1e9e5', '#809367'),
+    stone: cxArt('<rect x="38" y="54" width="44" height="9" rx="3" fill="#96988b"/><rect x="44" y="42" width="32" height="8" rx="3" fill="#aaa99a"/><rect x="52" y="31" width="18" height="8" rx="3" fill="#bcbbac"/><path d="M48 57 L76 57" stroke="#777b70" stroke-width="2"/><circle cx="52" cy="66" r="3" fill="#7d9162"/>', '#e4ebe6', '#819569'),
+    ground: cxArt('<path d="M0 60 Q25 46 48 55 Q72 42 96 52 Q110 57 120 54" stroke="#b39a6d" stroke-width="10" fill="none"/><path d="M0 63 Q25 50 48 58 Q72 46 96 55 Q110 60 120 57" stroke="#d7c49a" stroke-width="4" fill="none"/><circle cx="30" cy="68" r="2" fill="#8fa467"/><circle cx="84" cy="64" r="2" fill="#8fa467"/>', '#e2ece6', '#85a064'),
+    sky: cxArt('<circle cx="80" cy="22" r="12" fill="#f5d48b" opacity=".9"/><path d="M25 51 Q34 39 46 48 Q53 40 65 50Z" fill="#fff7e8" opacity=".7"/><path d="M64 35 Q73 26 84 35 Q95 28 104 37Z" fill="#fff7e8" opacity=".55"/><path d="M0 64 Q30 53 60 62 Q90 50 120 61" stroke="#b9d7dc" stroke-width="2" fill="none"/>', '#cfe6ef', '#90a86f'),
+    moon: cxArt('<rect width="120" height="80" fill="#26394f"/><circle cx="73" cy="30" r="21" fill="#f3e8c8" opacity=".18"/><circle cx="73" cy="30" r="17" fill="#f1e4c3"/><circle cx="66" cy="26" r="17" fill="#26394f"/><circle cx="30" cy="20" r="1.4" fill="#fff"/><circle cx="92" cy="17" r="1" fill="#fff"/><circle cx="48" cy="46" r="1.2" fill="#fff"/>', '#26394f', '#334b4a'),
+    cloud: cxArt('<ellipse cx="45" cy="43" rx="24" ry="10" fill="#f7f2e6" opacity=".9"/><ellipse cx="62" cy="38" rx="18" ry="12" fill="#fffaf0" opacity=".9"/><ellipse cx="78" cy="45" rx="20" ry="8" fill="#f0eadf" opacity=".85"/><ellipse cx="35" cy="51" rx="15" ry="6" fill="#fffaf0" opacity=".7"/>', '#d5e6ec', '#8ca466'),
+    bird: cxArt('<path d="M24 44 Q42 32 61 43 Q78 32 98 45" stroke="#40525b" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M32 44 Q48 46 60 42 Q74 46 92 46" stroke="#5e7176" stroke-width="2" fill="none"/><circle cx="99" cy="44" r="2.4" fill="#40525b"/><path d="M0 68 L120 68" stroke="#acc48e" stroke-width="2"/>', '#dceaf0', '#7d9b67'),
+    teahouse: cxArt('<rect x="32" y="39" width="56" height="26" fill="#d7c6a5"/><path d="M24 39 L60 23 L96 39Z" fill="#68503b"/><path d="M31 39 L60 27 L89 39Z" fill="#8d6c4d"/><rect x="42" y="45" width="16" height="13" fill="#7e6b55"/><rect x="65" y="45" width="15" height="13" fill="#7e6b55"/><path d="M47 50 L53 50 M70 50 L76 50" stroke="#e8d9b8" stroke-width="2"/><rect x="57" y="58" width="8" height="7" fill="#6c523b"/>', '#e4eee9', '#7d9a63'),
+    shishi: cxArt('<path d="M54 27 L54 64" stroke="#7d5d3e" stroke-width="3"/><path d="M66 27 L66 64" stroke="#7d5d3e" stroke-width="3"/><rect x="51" y="58" width="18" height="4" rx="2" fill="#9b8057"/><path d="M38 38 L54 34 L54 43Z" fill="#9cae72"/><path d="M54 43 C66 43 72 50 64 60 L54 60Z" fill="#7a8d5d"/><circle cx="72" cy="67" r="5" fill="#e4eee5" opacity=".8"/>', '#deece7', '#7f9c62'),
+    fox: cxArt('<path d="M44 67 L48 43 L58 36 L66 43 L70 67Z" fill="#c8c3b3"/><path d="M52 36 L44 26 L60 30 L67 24 L65 36Z" fill="#d9d3c2"/><circle cx="57" cy="38" r="2" fill="#5d645b"/><circle cx="64" cy="38" r="2" fill="#5d645b"/><path d="M58 42 L61 40 L64 42" stroke="#8d5947" stroke-width="1.5" fill="none"/><path d="M48 45 L54 45 L53 52Z" fill="#a7a99a"/>', '#dce7e7', '#82976b'),
+    ema: cxArt('<rect x="26" y="35" width="68" height="4" fill="#805c3e"/><rect x="32" y="39" width="4" height="23" fill="#6f4d34"/><rect x="84" y="39" width="4" height="23" fill="#6f4d34"/><path d="M40 22 L48 26 L44 32Z" fill="#e2c9a2"/><path d="M53 18 L61 22 L57 30Z" fill="#d4b78d"/><path d="M68 21 L76 25 L72 33Z" fill="#ead3b0"/><circle cx="58" cy="23" r="1.5" fill="#9c5145"/><path d="M57 25 L56 28 L60 27Z" fill="#9c5145"/>', '#e4ede8', '#7f9a63'),
+    chochin: cxArt('<path d="M54 23 L66 23 L66 29 L54 29Z" fill="#6e563c"/><ellipse cx="60" cy="47" rx="17" ry="20" fill="#e7b56e"/><path d="M43 47 L77 47 M45 41 L75 41 M46 53 L74 53" stroke="#b8844a" stroke-width="1.4"/><rect x="54" y="65" width="12" height="4" fill="#6e563c"/><circle cx="60" cy="47" r="4" fill="#fff2c8" opacity=".9"/>', '#d8e4e9', '#7e9664'),
+    deer: cxArt('<path d="M42 63 L46 46 L54 38 L63 42 L68 56 L72 63" stroke="#9a6c47" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M56 38 L50 29 L48 23 M56 38 L60 26 L65 21 M60 26 L55 20" stroke="#9a6c47" stroke-width="2" fill="none"/><ellipse cx="55" cy="42" rx="9" ry="5" fill="#ad8057"/><circle cx="49" cy="41" r="2" fill="#3f4139"/><path d="M45 48 L45 63 M54 50 L54 63 M62 50 L62 63" stroke="#8d6040" stroke-width="3"/>', '#e1ebea', '#7b9764'),
+    crane: cxArt('<ellipse cx="58" cy="50" rx="17" ry="10" fill="#f5f2e8"/><path d="M42 47 Q29 37 22 31 Q37 38 46 52Z" fill="#e4e2d8"/><path d="M52 40 Q52 25 60 21 Q66 26 65 40Z" fill="#fffaf0"/><circle cx="61" cy="24" r="2" fill="#3e423c"/><path d="M64 25 L72 27" stroke="#b54b3c" stroke-width="3"/><path d="M52 58 L50 68 M63 58 L65 68" stroke="#8b6b45" stroke-width="2"/>', '#d9e8e8', '#6f956b'),
+    frog: cxArt('<ellipse cx="60" cy="57" rx="20" ry="13" fill="#6f9650"/><circle cx="49" cy="45" r="7" fill="#7fa95a"/><circle cx="70" cy="45" r="7" fill="#7fa95a"/><circle cx="47" cy="44" r="2.2" fill="#29382b"/><circle cx="72" cy="44" r="2.2" fill="#29382b"/><path d="M50 63 Q60 68 70 63" stroke="#4f733e" stroke-width="2" fill="none"/><ellipse cx="60" cy="72" rx="22" ry="4" fill="#9bc1a5" opacity=".7"/>', '#d8e9e5', '#5f8c67'),
+    snowman: cxArt('<circle cx="60" cy="58" r="15" fill="#f0f4f3"/><circle cx="60" cy="43" r="11" fill="#f7fbfa"/><circle cx="60" cy="34" r="8" fill="#f7fbfa"/><circle cx="56" cy="33" r="1.2" fill="#4f5a5b"/><circle cx="64" cy="33" r="1.2" fill="#4f5a5b"/><path d="M56 37 Q60 40 64 37" stroke="#b26a54" stroke-width="1.5" fill="none"/><path d="M50 28 L70 28 L66 23 L54 23Z" fill="#6a4b3d"/><path d="M44 48 L76 48" stroke="#7d9a68" stroke-width="2"/>', '#dcebf1', '#e0e8d7'),
+    shrine: cxArt('<path d="M36 37 L60 24 L84 37Z" fill="#6d513c"/><path d="M42 45 L78 45 L75 65 L45 65Z" fill="#a9a08c"/><path d="M46 49 L57 49 L57 65 L46 65Z" fill="#6b5b47"/><path d="M64 49 L74 49 L74 65 L64 65Z" fill="#6b5b47"/><circle cx="60" cy="38" r="2" fill="#d7b070"/><path d="M30 67 L90 67" stroke="#7e9465" stroke-width="3"/>', '#dfebe8', '#7d9862'),
+    stele: cxArt('<rect x="52" y="18" width="18" height="44" rx="2" fill="#9fa397"/><rect x="48" y="61" width="26" height="6" rx="2" fill="#838579"/><path d="M57 27 L63 27 M57 33 L63 33 M57 39 L61 39" stroke="#6e756b" stroke-width="1.5"/><path d="M54 47 Q60 52 67 47" stroke="#6e756b" stroke-width="1.5" fill="none"/><circle cx="76" cy="65" r="3" fill="#7e9461"/>', '#e0eae4', '#7e9760'),
+    steps: cxArt('<rect x="28" y="42" width="64" height="7" fill="#b9b6a7"/><rect x="34" y="49" width="58" height="7" fill="#a7a596"/><rect x="40" y="56" width="52" height="7" fill="#969687"/><rect x="46" y="63" width="46" height="5" fill="#86877a"/><path d="M28 42 L92 42" stroke="#d4d2c2" stroke-width="2"/><circle cx="35" cy="39" r="3" fill="#79955d"/>', '#e4ece5', '#809766'),
+    tsukubai: cxArt('<ellipse cx="60" cy="60" rx="24" ry="9" fill="#96968a"/><ellipse cx="60" cy="56" rx="19" ry="7" fill="#6d7f7d"/><ellipse cx="60" cy="55" rx="14" ry="4" fill="#a8dbd5" opacity=".8"/><path d="M78 54 L88 45 L92 40" stroke="#b7a66c" stroke-width="5" fill="none"/><path d="M86 44 L92 38" stroke="#d7c99e" stroke-width="3"/><path d="M30 68 L90 68" stroke="#8b9a6d" stroke-width="2"/>', '#dfeae6', '#7a9362'),
+    dock: cxArt('<path d="M18 58 L74 48 L85 54 L27 64Z" fill="#9d714a"/><path d="M26 64 L82 54 L82 57 L26 67Z" fill="#795436"/><path d="M38 55 L38 66 M56 52 L56 63 M70 50 L70 61" stroke="#6e4b32" stroke-width="2"/><ellipse cx="80" cy="66" rx="28" ry="7" fill="#5b9992"/>', '#d8e9ea', '#5c938d'),
+    wood: cxArt('<ellipse cx="42" cy="58" rx="9" ry="6" fill="#b58a5d"/><ellipse cx="60" cy="55" rx="9" ry="6" fill="#c69b6c"/><ellipse cx="78" cy="59" rx="9" ry="6" fill="#a97b51"/><ellipse cx="42" cy="58" rx="5" ry="3" fill="#8a603f"/><ellipse cx="60" cy="55" rx="5" ry="3" fill="#9e7049"/><ellipse cx="78" cy="59" rx="5" ry="3" fill="#824f34"/><path d="M30 64 L90 64" stroke="#7a8d5f" stroke-width="2"/>', '#e0eae3', '#819566'),
+    lotus: cxArt('<ellipse cx="45" cy="62" rx="22" ry="7" fill="#5f9b69"/><ellipse cx="80" cy="64" rx="16" ry="5" fill="#6eaa75"/><path d="M45 60 Q44 50 49 47 Q54 51 52 60Z" fill="#f2b8c7"/><path d="M47 58 Q51 52 55 58" stroke="#f8d5df" stroke-width="2" fill="none"/><circle cx="37" cy="65" r="2" fill="#e9f3e4" opacity=".8"/><path d="M24 68 Q60 74 96 68" stroke="#8ccbcf" stroke-width="2" fill="none"/>', '#d8e9e5', '#5f9680'),
+    reed: cxArt('<path d="M32 67 Q29 46 25 32 M43 67 Q42 49 38 36 M55 67 Q57 44 60 30 M68 67 Q73 50 79 36 M82 67 Q88 54 94 44" stroke="#9a8f58" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="25" cy="31" rx="3" ry="7" fill="#b7a86b"/><ellipse cx="60" cy="29" rx="3" ry="8" fill="#b7a86b"/><ellipse cx="79" cy="35" rx="2.6" ry="6" fill="#b7a86b"/>', '#dfeae6', '#7e9564'),
+    hut: cxArt('<rect x="30" y="43" width="60" height="23" fill="#d0b58b"/><path d="M20 45 L60 26 L100 45Z" fill="#8a6a48"/><path d="M27 45 L60 30 L93 45Z" fill="#a98355"/><path d="M45 45 L45 28 M55 45 L55 31 M65 45 L65 31 M75 45 L75 29" stroke="#c7a676" stroke-width="2"/><rect x="55" y="54" width="12" height="12" fill="#6a4b35"/><rect x="38" y="51" width="10" height="7" fill="#7c6044"/>', '#e3ede7', '#829c64'),
+    field: cxArt('<rect x="18" y="48" width="84" height="22" rx="4" fill="#9fae6f"/><path d="M24 54 L92 54 M24 60 L92 60 M24 66 L92 66" stroke="#7d9250" stroke-width="3"/><path d="M30 52 L30 46 M42 52 L42 45 M54 52 L54 47 M66 52 L66 45 M78 52 L78 47 M88 52 L88 45" stroke="#d6c47b" stroke-width="2"/><circle cx="30" cy="45" r="2" fill="#e4c95e"/><circle cx="54" cy="46" r="2" fill="#e4c95e"/>', '#dfeae4', '#819a63'),
+    scarecrow: cxArt('<path d="M60 24 L60 68 M38 44 L82 44" stroke="#8a6544" stroke-width="4"/><circle cx="60" cy="31" r="12" fill="#c8aa70"/><path d="M49 23 L71 23 L66 17 L54 17Z" fill="#7f6143"/><circle cx="55" cy="30" r="1.2" fill="#4b4c3c"/><circle cx="65" cy="30" r="1.2" fill="#4b4c3c"/><path d="M53 35 Q60 39 67 35" stroke="#9b5d45" stroke-width="1.5" fill="none"/><path d="M38 44 L34 55 M82 44 L86 55" stroke="#b39a64" stroke-width="3"/><path d="M46 50 L46 64 M74 50 L74 64" stroke="#c3a96f" stroke-width="2"/>', '#e1ebdf', '#84a061'),
+    rabbit: cxArt('<ellipse cx="62" cy="56" rx="20" ry="14" fill="#eee3d0"/><circle cx="58" cy="42" r="10" fill="#f3e9d8"/><ellipse cx="53" cy="31" rx="3.5" ry="9" fill="#eee3d0" transform="rotate(-12 53 31)"/><ellipse cx="64" cy="30" rx="3.5" ry="10" fill="#eee3d0" transform="rotate(9 64 30)"/><circle cx="55" cy="41" r="1.6" fill="#4b4a40"/><circle cx="63" cy="41" r="1.6" fill="#4b4a40"/><path d="M59 45 L62 44 L61 47Z" fill="#c58a78"/><circle cx="88" cy="22" r="12" fill="#f6efd9" opacity=".35"/>', '#dfe9e5', '#80a064')
+  };
   var GENERIC_KINDS = { stone: 1, wood: 1, rock: 1, ground: 1, bamboo: 1 };
   var discovered = {};
   var discoveredCount = 0;
-  var totalKinds = Object.keys(KIND_INFO).length;
+  var totalKinds = Object.keys(CODEX_INFO).length;
 
   /* ---------- 粒子池 ---------- */
   var FX_SPARK_N = 720;
@@ -5727,24 +6029,76 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* ---------- 音效 ---------- */
+  /* ============================================================
+     微信小程序接入预留区
+     Web 端保持现状；上架小程序时，按下面 4 个入口替换：
+     1. 渲染：把 renderer 的 canvas 换成 wx.createCanvas()
+     2. 存档：PLATFORM.storageGet/Set/Remove -> wx.getStorageSync/setStorageSync/removeStorageSync
+     3. BGM：PLATFORM.createAudio -> wx.createInnerAudioContext()
+     4. 分享/支付：PLATFORM.share / PLATFORM.purchase 接 wx.shareAppMessage / 支付接口
+     页面内所有存档和两首 BGM 已走这些统一入口，避免以后全文件散改。
+     ============================================================ */
+  var MINI_PROGRAM = {
+    enabled: false, appId: '', canvasId: 'scene',
+    shareTitle: '樱花山谷庭园 · Sakura Valley',
+    sharePath: '/pages/garden/index',
+    safeArea: { top: 0, bottom: 0, left: 0, right: 0 }
+  };
+  var PLATFORM = {
+    kind: 'web',
+    storageGet: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    storageSet: function (k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+    storageRemove: function (k) { try { localStorage.removeItem(k); } catch (e) {} },
+    createAudio: function (src) {
+      if (typeof Audio === 'undefined') return null;
+      var a = new Audio(src || '');
+      a.loop = true; a.preload = 'auto';
+      return a;
+    },
+    share: function () { return false; },
+    purchase: function () { return false; },
+    track: function (name, data) { if (window.__platformLog) window.__platformLog(name, data); }
+  };
+
   /* ---------- 游戏设置：音量 / 帧率 / 画质 ---------- */
-  var GAME_SETTINGS = { master: 0.8, sfx: 0.8, ambient: 0.6, fps: 60, quality: 'mid', shadows: true, autosave: true };
+  var GAME_SETTINGS = {
+    master: 0.8, sfx: 0.8, ambient: 0.6, bgmVol: 0.65,
+    fps: 60, quality: 'mid', shadows: true, autosave: true,
+    bgmSlots: [
+      { title: 'BGM 1', src: '', name: '' },
+      { title: 'BGM 2', src: '', name: '' }
+    ]
+  };
   (function loadGameSettings() {
     try {
-      var raw = localStorage.getItem('sakuraGarden_settings_p1');
+      var raw = PLATFORM.storageGet('sakuraGarden_settings_p1');
       if (!raw) return;
       var d = JSON.parse(raw) || {};
       if (typeof d.master === 'number') GAME_SETTINGS.master = Math.max(0, Math.min(1, d.master));
       if (typeof d.sfx === 'number') GAME_SETTINGS.sfx = Math.max(0, Math.min(1, d.sfx));
       if (typeof d.ambient === 'number') GAME_SETTINGS.ambient = Math.max(0, Math.min(1, d.ambient));
+      if (typeof d.bgmVol === 'number') GAME_SETTINGS.bgmVol = Math.max(0, Math.min(1, d.bgmVol));
       if (d.fps === 0 || d.fps === 30 || d.fps === 60 || d.fps === 120) GAME_SETTINGS.fps = d.fps;
       if (d.quality === 'low' || d.quality === 'mid' || d.quality === 'high') GAME_SETTINGS.quality = d.quality;
       GAME_SETTINGS.shadows = d.shadows !== false;
       GAME_SETTINGS.autosave = d.autosave !== false;
+      if (Array.isArray(d.bgmSlots)) {
+        for (var i = 0; i < 2; i++) if (d.bgmSlots[i]) {
+          GAME_SETTINGS.bgmSlots[i].src = String(d.bgmSlots[i].src || '');
+          GAME_SETTINGS.bgmSlots[i].name = String(d.bgmSlots[i].name || '');
+        }
+      }
     } catch (e) {}
   })();
   function gmSaveSettings() {
-    try { localStorage.setItem('sakuraGarden_settings_p1', JSON.stringify(GAME_SETTINGS)); } catch (e) {}
+    var out = JSON.parse(JSON.stringify(GAME_SETTINGS));
+    // 本地临时文件（blob:）刷新后失效，不写入持久化配置
+    for (var bi = 0; bi < out.bgmSlots.length; bi++) {
+      if (out.bgmSlots[bi].src && out.bgmSlots[bi].src.indexOf('blob:') === 0) {
+        out.bgmSlots[bi].src = ''; out.bgmSlots[bi].name = '';
+      }
+    }
+    PLATFORM.storageSet('sakuraGarden_settings_p1', JSON.stringify(out));
   }
   function gmApplyQuality() {
     var dpr = window.devicePixelRatio || 1;
@@ -5755,15 +6109,68 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     renderer.shadowMap.needsUpdate = true;
   }
   function gmAudioSync() {
-    if (!audioCtx) return;
+    if (!audioCtx) { gmBgmSync(); return; }
     try {
       if (masterGain) masterGain.gain.setTargetAtTime(Math.max(0.0001, GAME_SETTINGS.master), audioCtx.currentTime, 0.15);
       if (sfxBus) sfxBus.gain.setTargetAtTime(Math.max(0.0001, GAME_SETTINGS.sfx), audioCtx.currentTime, 0.15);
       if (amb.ready) ambUpdate();
+      gmBgmSync();
     } catch (e) {}
   }
 
   var audioCtx = null, sfxOn = true, masterGain = null, sfxBus = null;
+  var BGM_AUDIO = [null, null], bgmActive = -1;
+  function gmEsc(v) {
+    return String(v === null || v === undefined ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* 两首 BGM：设置里填 URL / 选本地文件；以后小程序可替换 PLATFORM.createAudio */
+  function gmBgmEnsure(i) {
+    var slot = GAME_SETTINGS.bgmSlots[i];
+    if (!slot || !slot.src) return null;
+    if (!BGM_AUDIO[i]) {
+      BGM_AUDIO[i] = PLATFORM.createAudio(slot.src);
+      if (!BGM_AUDIO[i]) return null;
+      try { BGM_AUDIO[i].loop = true; } catch (e) {}
+    }
+    if (BGM_AUDIO[i].src !== slot.src) {
+      try { BGM_AUDIO[i].src = slot.src; } catch (e) {}
+    }
+    return BGM_AUDIO[i];
+  }
+  function gmBgmSync() {
+    var vol = Math.max(0, Math.min(1, GAME_SETTINGS.master * GAME_SETTINGS.bgmVol));
+    for (var i = 0; i < BGM_AUDIO.length; i++) {
+      if (BGM_AUDIO[i]) { try { BGM_AUDIO[i].volume = vol; } catch (e) {} }
+    }
+  }
+  function gmBgmStop() {
+    for (var i = 0; i < BGM_AUDIO.length; i++) {
+      if (BGM_AUDIO[i]) { try { BGM_AUDIO[i].pause(); } catch (e) {} }
+    }
+    bgmActive = -1;
+  }
+  function gmBgmPlay(i) {
+    var a = gmBgmEnsure(i);
+    if (!a) { gmToast('先设置 BGM ' + (i + 1) + ' 的音源'); return; }
+    for (var j = 0; j < BGM_AUDIO.length; j++) {
+      if (j !== i && BGM_AUDIO[j]) { try { BGM_AUDIO[j].pause(); } catch (e) {} }
+    }
+    try {
+      var p = a.play();
+      if (p && p.catch) p.catch(function () { gmToast('浏览器阻止了自动播放，请再点一次播放'); });
+    } catch (e) { gmToast('BGM 无法播放，请检查音源 URL'); }
+    bgmActive = i; gmBgmSync();
+    gmToast('BGM · ' + (GAME_SETTINGS.bgmSlots[i].name || ('槽位 ' + (i + 1))));
+  }
+  function gmBgmToggle(i) {
+    var a = BGM_AUDIO[i];
+    if (bgmActive === i && a && !a.paused) { try { a.pause(); } catch (e) {} bgmActive = -1; gmToast('BGM 已暂停'); }
+    else gmBgmPlay(i);
+  }
+
   function ensureAudio() {
     if (audioCtx) return audioCtx;
     try {
@@ -6043,7 +6450,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (n <= 10) return 20;
     if (n <= 20) return 30;
     if (n <= 40) return 50;
-    return 100;
+    if (n <= 45) return 100;
+    if (n <= 49) return 150;
+    return 200;
   }
   function gmDiscoverReward(kind) {
     if (typeof GM === 'undefined' || !GM || GM.money === undefined) return;
@@ -6052,14 +6461,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     GM.codexPaid = discoveredCount;
     GM.stats.codexTotal = discoveredCount;
     GM.weekDiscover = (GM.weekDiscover || 0) + 1;
-    gmToast('图鉴 · ' + (KIND_INFO[kind] ? KIND_INFO[kind][0] : kind) + ' +' + reward + ' 銭');
+    gmToast('图鉴 · ' + (CODEX_INFO[kind] ? CODEX_INFO[kind][0] : kind) + ' +' + reward + ' 銭');
     GM.hudT = 0;
     gmHud(performance.now());
     gmSave();
   }
 
   function showLabel(kind, pt) {
-    var info = KIND_INFO[kind] || EXTRA_LABELS[kind] || ['景物', '景', '山谷回应了你'];
+    var info = CODEX_INFO[kind] || ['景物', '景', '山谷回应了你'];
     tlName.textContent = info[0];
     tlJp.textContent = info[1];
     tlDesc.textContent = info[2];
@@ -6068,7 +6477,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     tapLabelPos.copy(pt);
     tapLabelLife = 2.9;
     tapLabelEl.classList.add('on');
-    if (kind !== 'built' && KIND_INFO[kind] && !discovered[kind]) {
+    if (kind !== 'built' && CODEX_INFO[kind] && !discovered[kind]) {
       discovered[kind] = true;
       discoveredCount++;
       codexBtn.textContent = '图鉴 ' + discoveredCount + '/' + totalKinds;
@@ -6076,20 +6485,71 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       gmDiscoverReward(kind);
     }
   }
+  var codexFilter = 'all';
+  function cxArtHtml(kind, missing) {
+    var art = CODEX_ART[kind];
+    if (!art) art = cxArt('<circle cx="60" cy="42" r="18" fill="#8d938b"/><path d="M48 62 L72 62" stroke="#6e756b" stroke-width="3"/>', '#dfe8e6', '#819366');
+    return '<span class="cx-art' + (missing ? ' missing' : '') + '">' + art + '</span>';
+  }
+  function gmCodexKeys() { return Object.keys(CODEX_INFO); }
+  function gmCodexDetail(kind) {
+    var keys = gmCodexKeys(), idx = keys.indexOf(kind);
+    var info = CODEX_INFO[kind];
+    if (!info || idx < 0) return;
+    var got = !!discovered[kind];
+    var shownName = got ? info[0] : '？？？';
+    var no = ('0' + (idx + 1)).slice(-2);
+    var body = '<div class="cx-detail-art' + (got ? '' : ' missing') + '">' + (CODEX_ART[kind] || '') + '</div>' +
+      '<span class="cx-detail-tag">No.' + no + ' · ' + (got ? '已解锁' : '未发现') + '</span>' +
+      '<div class="rt"><b>' + shownName + ' <span style="font-weight:400;opacity:.5;font-size:9px">' + (got ? info[1] : '未発見') + '</span></b>' +
+      '<span class="' + (got ? 'up' : 'num') + '">' + (got ? '已收录' : '待发现') + '</span></div>' +
+      '<p>' + (got ? info[2] : '在庭园中寻找并点击对应景物，即可解锁这张图鉴。') + '</p>' +
+      '<p style="opacity:.62">首次发现奖励 <span class="num">+' + gmCodexTier(idx + 1) + ' 銭</span> · 图鉴第 ' + (idx + 1) + ' / ' + totalKinds + ' 类</p>';
+    gmShowModal('图鉴 · ' + shownName, body, [{ t: '返回图鉴' }]);
+  }
   function renderCodex() {
+    var keys = gmCodexKeys();
+    var shown = 0;
     var html = '';
-    Object.keys(KIND_INFO).forEach(function (k) {
-      var got = !!discovered[k];
-      html += '<div class="cx-item' + (got ? ' got' : '') + '">'
-        + '<b>' + (got ? KIND_INFO[k][0] : '？？？') + '</b>'
-        + '<i>' + (got ? KIND_INFO[k][1] : '未発見') + '</i>'
-        + '<s>' + (got ? KIND_INFO[k][2] : '点击场景中的对应景物解锁') + '</s></div>';
-    });
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i], got = !!discovered[k];
+      if (codexFilter === 'got' && !got) continue;
+      if (codexFilter === 'missing' && got) continue;
+      shown++;
+      var info = CODEX_INFO[k];
+      var no = ('0' + (i + 1)).slice(-2);
+      html += '<button class="cx-item' + (got ? ' got' : ' missing') + '" type="button" data-cx-kind="' + k + '">' +
+        cxArtHtml(k, !got) +
+        '<span class="cx-meta"><b>' + (got ? info[0] : '？？？') + '</b><i>' + (got ? info[1] : '未発見') + '</i><em>No.' + no + '</em></span>' +
+        '<s>' + (got ? info[2] : '点击查看线索，去园中寻找') + '</s>' +
+        '<span class="cx-state">' + (got ? '已解锁' : '未发现') + '</span>' +
+        '</button>';
+    }
+    if (!shown) html = '<div class="cx-empty">' + (codexFilter === 'got' ? '还没有解锁任何图鉴，去庭园里点点看。' : '这个筛选下没有条目。') + '</div>';
     codexGrid.innerHTML = html;
+    var progress = document.getElementById('cxProgress');
+    if (progress) progress.textContent = discoveredCount + ' / ' + totalKinds + ' 类已发现';
+    var reward = document.getElementById('cxReward');
+    if (reward) reward.textContent = discoveredCount >= totalKinds ? '图鉴全收集达成' : '下一发现 · +' + gmCodexTier(discoveredCount + 1) + ' 銭';
+    var note = document.querySelector('.cx-note');
+    if (note) note.textContent = '全 ' + totalKinds + ' 类 · 首发现 20 / 30 / 50 / 100 / 150 銭';
   }
   codexBtn.addEventListener('click', function () {
     codexEl.hidden = !codexEl.hidden;
     codexBtn.classList.toggle('on', !codexEl.hidden);
+    if (!codexEl.hidden) renderCodex();
+  });
+  var cxFilterBtns = document.querySelectorAll('[data-cx-filter]');
+  for (var cxf = 0; cxf < cxFilterBtns.length; cxf++) {
+    cxFilterBtns[cxf].onclick = function () {
+      codexFilter = this.getAttribute('data-cx-filter');
+      for (var j = 0; j < cxFilterBtns.length; j++) cxFilterBtns[j].classList.toggle('on', cxFilterBtns[j] === this);
+      renderCodex();
+    };
+  }
+  codexGrid.addEventListener('click', function (e) {
+    var card = e.target.closest ? e.target.closest('.cx-item') : null;
+    if (card) gmCodexDetail(card.getAttribute('data-cx-kind'));
   });
   document.getElementById('codexClose').addEventListener('click', function () {
     codexEl.hidden = true; codexBtn.classList.remove('on');
@@ -6104,13 +6564,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   });
   sfxBtn.classList.add('on');
   codexBtn.textContent = '图鉴 0/' + totalKinds;
+  var cxNote = document.querySelector('.cx-note');
+  if (cxNote) cxNote.textContent = '全 ' + totalKinds + ' 类 · 首发现 20 / 30 / 50 / 100 / 150 銭';
   renderCodex();
 
   window.__V3 = THREE.Vector3;
   window.__amb = amb;
 
   Object.defineProperty(window, '__ac', { get: function () { return audioCtx; } });
-  window.__props = { zones: pickZones, giant: giantGroup, fuji: fujiMesh, kinds: KIND_INFO,
+  window.__props = { zones: pickZones, giant: giantGroup, fuji: fujiMesh, kinds: CODEX_INFO,
     st: function () { return { from: propSeasonFrom, to: propSeasonTo, e: propSeasonE, key: seasonKey, snow: snowAmount,
       col: [giantCanopyMesh.instanceColor.array[0], giantCanopyMesh.instanceColor.array[1], giantCanopyMesh.instanceColor.array[2]],
       sc: giantBaseScale[0], vis: giantCanopySets[propSeasonTo].vis }; },
@@ -7027,7 +7489,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   var GM_VERSION = 'p1';
   var GM_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   var GM_MONTH_JP = ['睦月', '如月', '弥生', '卯月', '皐月', '水無月', '文月', '葉月', '長月', '神無月', '霜月', '師走'];
-  var GM_WEEK_JP = ['月', '火', '水', '木', '金', '土', '日'];
+  var GM_WEEK_JP = ['日', '月', '火', '水', '木', '金', '土'];
+  var GM_CAL_START = Date.UTC(2026, 2, 1); // 游戏第 1 日对应 2026-03-01（周日）
   var GM_SEASON_NAME = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' };
   var GM_SEASON_JP = { spring: '春の庭', summer: '夏の庭', autumn: '秋の庭', winter: '冬の庭' };
 
@@ -7045,6 +7508,26 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     kuri:    { name: '栗子摊', jp: '栗', cost: 110, appeal: 13, income: 25, research: 1, weeks: 1, kind: 'wood', season: 'autumn', desc: '糖炒栗子，秋天的香气' },
     oden:    { name: '关东煮', jp: 'おでん', cost: 120, appeal: 14, income: 28, research: 1, weeks: 1, kind: 'wood', season: 'winter', desc: '热汤里的萝卜与竹轮' }
   };
+
+  /* 建造卡片插图：全部为内联 SVG，无外部图片依赖 */
+  var GM_ITEM_ART = {
+    lantern: '<rect x="0" y="47" width="120" height="17" fill="#5f7354"/><ellipse cx="60" cy="56" rx="32" ry="5" fill="#7f916d" opacity=".75"/><rect x="48" y="45" width="24" height="8" rx="2" fill="#9a978b"/><rect x="52" y="29" width="16" height="16" fill="#aaa69a"/><rect x="48" y="26" width="24" height="5" fill="#87847a"/><path d="M45 26 L60 16 L75 26 Z" fill="#6c6a61"/><rect x="58" y="18" width="4" height="8" fill="#7c7a70"/><circle cx="60" cy="37" r="4" fill="#ffd58a"/><circle cx="60" cy="37" r="8" fill="#ffd58a" opacity=".18"/><rect x="57" y="49" width="6" height="9" fill="#858277"/>',
+    ema: '<rect x="0" y="49" width="120" height="15" fill="#5b704e"/><ellipse cx="60" cy="56" rx="34" ry="4" fill="#81916b" opacity=".7"/><rect x="28" y="39" width="64" height="5" fill="#725238"/><rect x="34" y="43" width="5" height="16" fill="#65482f"/><rect x="81" y="43" width="5" height="16" fill="#65482f"/><rect x="42" y="19" width="36" height="4" fill="#8c6a49"/><path d="M42 21 L38 36 L52 32 Z" fill="#d8bd92"/><path d="M53 21 L51 36 L66 33 Z" fill="#c8a779"/><path d="M68 21 L67 37 L81 33 Z" fill="#e0c9a4"/><circle cx="60" cy="29" r="2" fill="#a55b4f"/><path d="M60 31 L55 38 L64 38 Z" fill="#9f5c4c" opacity=".7"/>',
+    dango: '<rect x="0" y="49" width="120" height="15" fill="#627650"/><ellipse cx="60" cy="56" rx="36" ry="4" fill="#83926b" opacity=".65"/><rect x="43" y="44" width="34" height="7" rx="2" fill="#7a5638"/><rect x="58" y="15" width="4" height="40" fill="#b68b5c"/><circle cx="60" cy="18" r="7" fill="#e5a8b6"/><circle cx="60" cy="29" r="7" fill="#f1e0c5"/><circle cx="60" cy="40" r="7" fill="#a9c78c"/><circle cx="57" cy="15" r="2" fill="#fff" opacity=".55"/><circle cx="57" cy="26" r="2" fill="#fff" opacity=".5"/>',
+    sakura: '<rect x="0" y="48" width="120" height="16" fill="#61784f"/><ellipse cx="60" cy="57" rx="42" ry="5" fill="#87956d" opacity=".7"/><path d="M58 54 Q56 38 48 29" stroke="#68452f" stroke-width="5" fill="none"/><path d="M60 53 Q64 39 74 30" stroke="#714b33" stroke-width="4" fill="none"/><circle cx="43" cy="24" r="13" fill="#efb9ce"/><circle cx="58" cy="18" r="16" fill="#f4c9d8"/><circle cx="76" cy="25" r="14" fill="#e8a8c0"/><circle cx="68" cy="34" r="11" fill="#f0bdd0"/><circle cx="50" cy="32" r="10" fill="#f6d2df"/><circle cx="45" cy="20" r="13" fill="#efb9ce"/><circle cx="50" cy="14" r="3" fill="#fff" opacity=".6"/><circle cx="72" cy="19" r="3" fill="#fff" opacity=".5"/><circle cx="33" cy="38" r="4" fill="#f5cadb" opacity=".8"/>',
+    pine: '<rect x="0" y="49" width="120" height="15" fill="#5b7050"/><ellipse cx="60" cy="57" rx="40" ry="4" fill="#84946c" opacity=".65"/><rect x="56" y="45" width="8" height="14" fill="#6a4d34"/><path d="M60 8 L76 31 L44 31 Z" fill="#3f6245"/><path d="M60 18 L82 42 L38 42 Z" fill="#4a704c"/><path d="M60 29 L88 51 L32 51 Z" fill="#557c54"/><circle cx="46" cy="34" r="3" fill="#7e9c6a" opacity=".7"/><circle cx="77" cy="44" r="3" fill="#7e9c6a" opacity=".6"/>',
+    fence: '<rect x="0" y="47" width="120" height="17" fill="#5e7451"/><ellipse cx="60" cy="56" rx="40" ry="4" fill="#83936b" opacity=".65"/><rect x="24" y="19" width="5" height="36" fill="#8c9a59"/><rect x="36" y="15" width="5" height="40" fill="#7d8c50"/><rect x="48" y="19" width="5" height="36" fill="#95a462"/><rect x="60" y="15" width="5" height="40" fill="#7d8c50"/><rect x="72" y="19" width="5" height="36" fill="#8c9a59"/><rect x="84" y="15" width="5" height="40" fill="#7d8c50"/><rect x="96" y="19" width="5" height="36" fill="#95a462"/><rect x="20" y="25" width="82" height="3" fill="#6a7944"/><rect x="20" y="45" width="82" height="3" fill="#6a7944"/>',
+    tea: '<rect x="0" y="48" width="120" height="16" fill="#61774f"/><ellipse cx="60" cy="57" rx="42" ry="5" fill="#82926a" opacity=".7"/><path d="M26 37 L60 19 L94 37 Z" fill="#795239"/><path d="M31 37 L60 23 L89 37 Z" fill="#9a6b48"/><rect x="36" y="37" width="48" height="17" fill="#cbb58d"/><rect x="43" y="42" width="10" height="12" fill="#6e5137"/><rect x="58" y="42" width="10" height="12" fill="#6e5137"/><rect x="73" y="42" width="8" height="12" fill="#7a5c3e"/><path d="M82 15 Q88 22 84 28" stroke="#e7e1d2" stroke-width="3" fill="none" opacity=".7"/><ellipse cx="96" cy="38" rx="8" ry="4" fill="#b9a37d"/><ellipse cx="96" cy="36" rx="6" ry="2" fill="#6f8a58"/>',
+    inn: '<rect x="0" y="48" width="120" height="16" fill="#60764f"/><ellipse cx="60" cy="57" rx="44" ry="5" fill="#84926b" opacity=".7"/><rect x="29" y="21" width="62" height="31" fill="#cdb68e"/><path d="M24 21 L60 8 L96 21 Z" fill="#7a5237"/><path d="M30 21 L60 11 L90 21 Z" fill="#9d6d48"/><rect x="37" y="28" width="13" height="11" fill="#6c5138"/><rect x="70" y="28" width="13" height="11" fill="#6c5138"/><rect x="55" y="41" width="12" height="11" fill="#6f8a58"/><rect x="55" y="41" width="12" height="11" fill="#6f8a58"/><rect x="56" y="42" width="5" height="10" fill="#8aa46f"/><circle cx="59" cy="16" r="2" fill="#f3dfb7"/>',
+    sakuraMochi: '<rect x="0" y="48" width="120" height="16" fill="#61774f"/><ellipse cx="60" cy="57" rx="38" ry="4" fill="#829169" opacity=".7"/><path d="M32 45 Q48 23 66 24 Q83 25 92 44 Q70 53 32 45 Z" fill="#8fa662"/><path d="M38 43 Q54 29 68 29 Q82 30 87 43 Q67 48 38 43 Z" fill="#a9b975" opacity=".8"/><ellipse cx="59" cy="37" rx="17" ry="12" fill="#e8b1c0"/><ellipse cx="59" cy="36" rx="12" ry="8" fill="#f4cad6"/><path d="M46 32 Q59 22 74 32" stroke="#fff" stroke-width="2" fill="none" opacity=".5"/><circle cx="48" cy="41" r="3" fill="#d99aad" opacity=".5"/>',
+    kakigori: '<rect x="0" y="47" width="120" height="17" fill="#60764f"/><ellipse cx="60" cy="57" rx="40" ry="5" fill="#84936b" opacity=".65"/><path d="M34 38 Q60 20 86 38 Q96 54 60 57 Q24 54 34 38 Z" fill="#dceff2" opacity=".8"/><path d="M36 39 Q60 24 84 39 Q88 48 60 51 Q32 48 36 39 Z" fill="#f4fcfd"/><path d="M45 35 Q58 29 70 36" stroke="#e3a6b6" stroke-width="4" fill="none"/><path d="M40 41 Q58 35 74 42" stroke="#a9c78c" stroke-width="4" fill="none"/><rect x="46" y="50" width="28" height="5" rx="2" fill="#c99f6d"/>',
+    kuri: '<rect x="0" y="48" width="120" height="16" fill="#60764f"/><ellipse cx="60" cy="57" rx="38" ry="4" fill="#829169" opacity=".65"/><path d="M35 46 Q40 24 58 22 Q77 20 82 42 Q60 53 35 46 Z" fill="#c49463"/><path d="M34 46 Q46 35 55 36 Q49 45 34 46 Z" fill="#e0b78b"/><ellipse cx="49" cy="34" rx="11" ry="8" fill="#7e4d31"/><ellipse cx="74" cy="37" rx="10" ry="7" fill="#915938"/><ellipse cx="63" cy="47" rx="12" ry="6" fill="#6f452d"/><path d="M43 28 Q46 24 51 28" stroke="#d4a273" stroke-width="2" fill="none"/><path d="M69 32 Q72 28 77 33" stroke="#d4a273" stroke-width="2" fill="none"/><path d="M58 43 Q61 39 66 44" stroke="#d4a273" stroke-width="2" fill="none"/>',
+    oden: '<rect x="0" y="48" width="120" height="16" fill="#61774f"/><ellipse cx="60" cy="57" rx="40" ry="4" fill="#83926b" opacity=".65"/><rect x="31" y="30" width="58" height="23" rx="4" fill="#8a5d3c"/><rect x="33" y="33" width="54" height="17" fill="#c58a52"/><ellipse cx="60" cy="34" rx="27" ry="5" fill="#e7b26e"/><rect x="42" y="36" width="14" height="7" rx="3" fill="#e8d3a6"/><rect x="60" y="35" width="12" height="8" rx="3" fill="#b47b45"/><rect x="75" y="37" width="8" height="6" rx="2" fill="#e3c394"/><path d="M45 28 Q50 22 46 16" stroke="#e8ddd0" stroke-width="2" fill="none" opacity=".7"/><path d="M61 26 Q66 20 62 13" stroke="#e8ddd0" stroke-width="2" fill="none" opacity=".6"/><path d="M77 28 Q82 22 78 17" stroke="#e8ddd0" stroke-width="2" fill="none" opacity=".6"/>'
+  };
+  function gmItemArt(key) {
+    var art = GM_ITEM_ART[key] || '<rect x="0" y="45" width="120" height="19" fill="#60764f"/><rect x="42" y="22" width="36" height="24" fill="#b08a63"/><path d="M38 22 L60 10 L82 22 Z" fill="#7a5237"/>';
+    return '<span class="gs-ill"><svg viewBox="0 0 120 64" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + art + '</svg></span>';
+  }
 
   var GM_COMBOS = [
     { a: 'sakura', b: 'tea', name: '花下茶', appeal: 8, income: 0.15 },
@@ -7072,6 +7555,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     { key: 'snow', name: '雪吊', jp: '雪吊り', cost: 80, desc: '冬季景 appeal +25%' },
     { key: 'night', name: '夜灯', jp: '夜灯', cost: 95, desc: '夜间景 appeal +12%，夜客消费 +10%' }
   ];
+
+  var GM_POLICIES = {
+    balanced: { name: '均衡', jp: '調和', desc: '景致、收入、研究均无偏向', appeal: 1.0, income: 1.0, research: 1.0 },
+    scenery: { name: '景致', jp: '景勝', desc: '景致 +12%，店铺收入 -5%', appeal: 1.12, income: 0.95, research: 1.0 },
+    business: { name: '商卖', jp: '商い', desc: '店铺收入 +12%，景致 -5%', appeal: 0.95, income: 1.12, research: 1.0 },
+    research: { name: '研究', jp: '研究', desc: '研究点 +15%，店铺收入 -5%', appeal: 1.0, income: 0.95, research: 1.15 }
+  };
 
   var GM_GOALS = [
     { id: 'g1', name: '开园之基', desc: '建成 3 处庭园设施', type: 'built', target: 3, reward: { money: 120, renown: 6 } },
@@ -7118,7 +7608,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     zones: { core: true }, codexPaid: 0,
     stats: { builtTotal: 0, visitorsTotal: 0, incomeTotal: 0, upgrades: 0, codexTotal: 0 },
     goalsClaimed: [], goalNotified: {}, weekly: null, weekBuilt: 0, weekDiscover: 0,
-    rating: 3.0, review: null, history: [],
+    rating: 3.0, review: null, history: [], policy: 'balanced',
     staff: {}, nextSpawn: 0, hudT: 0, toastT: 0, wasRunning: true, loaded: false, lastAutoSave: 0
   };
 
@@ -7128,6 +7618,20 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var d = Math.floor(doy), m = 0;
     while (m < 12 && d > GM_MONTH[m]) { d -= GM_MONTH[m]; m++; }
     return { m: m + 1, d: d };
+  }
+  function gmDoyFromMD(m, d) {
+    var n = d;
+    for (var i = 0; i < m - 1; i++) n += GM_MONTH[i];
+    return n;
+  }
+  function gmWeekdayIndex(day) {
+    var n = Math.floor(day) - 1;
+    return new Date(GM_CAL_START + n * 86400000).getUTCDay();
+  }
+  // 庭园年从 3 月 1 日开始，次年 2 月 28 日结束；把公历月日换算回本年周期日
+  function gmCycleDayFromMD(m, d) {
+    var doy = gmDoyFromMD(m, d);
+    return m >= 3 ? doy - 59 : doy + 306;
   }
   function gmSeason(m) {
     if (m >= 3 && m <= 5) return 'spring';
@@ -7187,7 +7691,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* ---------- HUD ---------- */
   var gmEl = {};
   function gmDom() {
-    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast'].forEach(function (id) {
+    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn'].forEach(function (id) {
       gmEl[id] = document.getElementById(id);
     });
   }
@@ -7204,7 +7708,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     GM.hudT = now || performance.now();
     var dt = gmDate(GM.doy);
     var sk = gmSeason(dt.m);
-    var mi = Math.floor(GM.day - 1) % 7;
+    var mi = gmWeekdayIndex(GM.day);
     gmEl.gMoney.textContent = gmFmt(GM.money);
     gmEl.gResearch.textContent = gmFmt(GM.research);
     gmEl.gRenown.textContent = gmFmt(GM.renown);
@@ -7259,6 +7763,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (seasonKey === 'spring') a *= 1.12;
     if (seasonKey === 'autumn') a *= 1.08;
     if (GM.unlocked.night && (hour < 6 || hour >= 18)) a *= 1.12;
+    var polA = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
+    a *= polA.appeal;
     return Math.round(a);
   }
   function gmSalary() {
@@ -8530,6 +9036,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* ---------- 建造面板 ---------- */
+  var gmSheetReadyAt = 0, gmSheetShieldT = 0;
   function gmOpenSheet(plotId) {
     GM.selected = plotId;
     var p = GM.plots[plotId];
@@ -8539,8 +9046,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       gmToast((zd ? zd.name : '外圈') + ' · 誉 ' + (zd ? zd.need : 0) + ' 开放');
       return;
     }
-    gmEl.gSheetTitle.textContent = (gmZoneDef(p.zone) ? gmZoneDef(p.zone).name + ' · ' : '') + '空地 ' + (plotId + 1) + ' / ' + GM.plots.length;
-    var html = '';
+    var pickedKey = null;
+    gmEl.gSheetTitle.textContent = (gmZoneDef(p.zone) ? gmZoneDef(p.zone).name + ' · ' : '') + '空地 ' + (plotId + 1) + ' / ' + GM.plots.length + ' · 选择设施';
+    var html = '<p class="gs-tip">先点选设施卡片，再按「建造」才会扣銭开工；点地块或卡片本身都不会自动建造。</p>';
     var seasonNow = gmSeason(gmDate(GM.doy).m);
     for (var key in GM_ITEMS) {
       var it = GM_ITEMS[key];
@@ -8549,6 +9057,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var off = it.season && it.season !== seasonNow;
       var tag = locked ? '<span class="lock">需研究</span>' : off ? '<span class="lock">季货 · ' + GM_SEASON_NAME[it.season] + '</span>' : it.season ? '<span style="color:#a9d39a">当季 +35%</span>' : '';
       html += '<button class="gs-card" data-k="' + key + '"' + (locked || poor || off ? ' disabled' : '') + '>' +
+        gmItemArt(key) +
         '<b>' + it.name + '</b><i>' + it.jp + '</i>' +
         '<s>' + it.desc + '</s>' +
         '<em>' + tag + ' · 銭 ' + it.cost + ' · 景 +' + it.appeal + (it.income ? ' · 收 +' + it.income : '') + '</em>' +
@@ -8556,13 +9065,45 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     gmEl.gSheetGrid.innerHTML = html;
     gmEl.gSheet.hidden = false;
+    gmSheetReadyAt = performance.now();
+    gmSetBuildMode(false);
+    if (gmEl.gSheetGrid) {
+      gmEl.gSheetGrid.classList.add('locked');
+      clearTimeout(gmSheetShieldT);
+      gmSheetShieldT = setTimeout(function () {
+        if (gmEl.gSheetGrid) gmEl.gSheetGrid.classList.remove('locked');
+      }, 700);
+    }
     var cards = gmEl.gSheetGrid.querySelectorAll('.gs-card');
+    var pickEl = gmEl.gSheet.querySelector('.gs-pick');
+    var goEl = gmEl.gSheet.querySelector('.gs-go');
+    function syncPick() {
+      if (!pickedKey || !GM_ITEMS[pickedKey]) {
+        pickEl.textContent = '尚未选择设施';
+        goEl.disabled = true;
+        return;
+      }
+      pickEl.textContent = '已选 ' + GM_ITEMS[pickedKey].name + ' · 銭 ' + GM_ITEMS[pickedKey].cost;
+      goEl.disabled = false;
+    }
     for (var i = 0; i < cards.length; i++) {
       cards[i].onclick = function () {
-        var k = this.getAttribute('data-k');
-        if (gmBuild(GM.selected, k)) { gmEl.gSheet.hidden = true; }
+        if (performance.now() - gmSheetReadyAt < 650) return;
+        if (this.disabled) return;
+        pickedKey = this.getAttribute('data-k');
+        for (var j = 0; j < cards.length; j++) cards[j].classList.toggle('sel', cards[j] === this);
+        syncPick();
+        sfx('soft');
       };
     }
+    if (goEl) goEl.onclick = function () {
+      if (!pickedKey) return;
+      if (gmBuild(GM.selected, pickedKey)) {
+        gmEl.gSheet.hidden = true;
+        gmSetBuildMode(false);
+      }
+    };
+    syncPick();
   }
 
   /* ---------- 模态 ---------- */
@@ -8655,14 +9196,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       research += it.research * (1 + 0.35 * (lv - 1));
     }
     var combo = gmComboInfo();
+    var polW = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
     income = income * (1 + combo.income) * (0.6 + Math.min(1.2, GM.weekVisitors / 10)) *
-      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075);
+      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income;
     var maint = built * 2 + gmSalary();
     var net = Math.round(income + GM.spent - maint);
     GM.money += net;
     GM.stats.incomeTotal = (GM.stats.incomeTotal || 0) + Math.round(income + GM.spent);
-    var rGain = Math.round(4 + research + GM.weekVisitors * 1.2 + (GM.staff.steward ? 3 : 0) +
-      (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0));
+    var rGain = Math.round((4 + research + GM.weekVisitors * 1.2 + (GM.staff.steward ? 3 : 0) +
+      (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0)) * polW.research);
     GM.research += rGain;
     var gain = 1.5 + gmAppeal() / 18 + GM.weekVisitors / 2 - 0.5 + (GM.staff.miko ? 1 : 0);
     GM.renown = Math.max(0, GM.renown + gain);
@@ -8815,6 +9357,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function gmGoalsPanel() {
     gmEnsureWeekly();
     var html = '<p class="gset-note">主线目标引导庭园成长；本周委托每周刷新，完成可领奖励。</p>';
+    html += '<div class="gpol"><div class="rt"><b>经营方针</b><span style="opacity:.5">随时切换 · 影响景致与收支</span></div><div class="gpol-grid">';
+    for (var pk in GM_POLICIES) {
+      var pp = GM_POLICIES[pk];
+      html += '<button type="button" class="gpol-b' + (GM.policy === pk ? ' on' : '') + '" data-policy="' + pk + '"><b>' + pp.name +
+        '</b><i>' + pp.jp + '</i><em>' + pp.desc + '</em></button>';
+    }
+    html += '</div></div>';
     for (var i = 0; i < GM_GOALS.length; i++) {
       var g = GM_GOALS[i], claimed = gmIsGoalClaimed(g.id), met = gmGoalMet(g);
       var prog = Math.min(g.target, gmGoalProgress(g));
@@ -8843,6 +9392,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     html += '<div class="rt" style="margin-top:8px"><b>庭园账本</b><span style="opacity:.5">累计</span></div>' +
       '<div class="gfin">建造 <b>' + (GM.stats.builtTotal || 0) + '</b> 处 · 访客 <b>' + (GM.stats.visitorsTotal || 0) + '</b> 位 · 累计收入 <b>' + Math.round(GM.stats.incomeTotal || 0) + '</b> 銭 · 口碑 <b>★ ' + GM.rating.toFixed(1) + '</b></div>';
     gmShowModal('经营目标', html, [{ t: '关闭' }]);
+    var pbtns = gmEl.gModalBody.querySelectorAll('button[data-policy]');
+    for (var pb = 0; pb < pbtns.length; pb++) pbtns[pb].onclick = function () { gmSetPolicy(this.getAttribute('data-policy')); };
     var gbtns = gmEl.gModalBody.querySelectorAll('button[data-goal]');
     for (var gi = 0; gi < gbtns.length; gi++) gbtns[gi].onclick = function () { gmClaimGoal(this.getAttribute('data-goal')); };
     var wbtns = gmEl.gModalBody.querySelectorAll('button[data-week]');
@@ -8850,6 +9401,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* ---------- 季评 / 年终 ---------- */
+  function gmSetPolicy(k) {
+    if (!GM_POLICIES[k]) return;
+    GM.policy = k;
+    sfx('click'); gmToast('经营方针 · ' + GM_POLICIES[k].name); gmSave(); gmHud(performance.now()); gmGoalsPanel();
+  }
+
   function gmSeasonReport(key) {
     var g = gmGrade(GM.renown);
     var bonus = { spring: 120, summer: 160, autumn: 200, winter: 240 }[key] || 100;
@@ -8874,6 +9431,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       '<p style="opacity:.5;margin-top:10px">P1 经营演示 · 池泉回游与茶庭将在后续开放</p>';
     gmShowModal('年终评鉴', body, [{ t: '再开一园', fn: function () { gmReset(); } }]);
   }
+  function gmPopularity() {
+    var list = [];
+    for (var k in GM_ITEMS) {
+      var cnt = 0, lvSum = 0;
+      for (var i = 0; i < GM.built.length; i++) if (GM.built[i].key === k) { cnt++; lvSum += GM.built[i].level || 1; }
+      if (!cnt) continue;
+      list.push({ key: k, count: cnt, level: Math.round(lvSum / cnt),
+        score: (GM_ITEMS[k].appeal || 0) + cnt * 3 + lvSum * 2 });
+    }
+    list.sort(function (a, b) { return b.score - a.score; });
+    return list;
+  }
   function gmReport() {
     var w = GM.weekLog;
     if (!w) { gmToast('第 1 周尚未结算'); return; }
@@ -8896,6 +9465,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var h = hist[i];
       body += '<div class="gfin">第 ' + h.week + ' 周 · 入 <b>' + h.gross + '</b> · 净 <b>' + (h.net >= 0 ? '+' : '') + h.net + '</b> · 客 ' + h.visitors + ' · ★ ' + h.stars.toFixed(1) + ' · 现金 ' + h.cash + '</div>';
     }
+    var pops = gmPopularity();
+    body += '<div class="rt" style="margin-top:8px"><b>设施人气榜</b><span style="opacity:.5">数量 / 等级</span></div>';
+    if (!pops.length) body += '<p style="opacity:.5">尚无设施，先造一处试试。</p>';
+    for (var pi = 0; pi < Math.min(5, pops.length); pi++) {
+      var po = pops[pi];
+      body += '<div class="gpop"><b>' + (pi + 1) + '</b><span>' + GM_ITEMS[po.key].name + '</span><i style="width:' +
+        Math.min(100, Math.round(po.score / Math.max(1, pops[0].score) * 100)) + '%"></i><em>×' + po.count + ' · Lv.' + po.level + '</em></div>';
+    }
     var done = 0;
     if (GM.weekly && GM.weekly.tasks) for (var t = 0; t < GM.weekly.tasks.length; t++) if (GM.weekly.tasks[t].claimed) done++;
     body += '<p style="opacity:.55;margin-top:8px">本周委托已完成 ' + done + '/' + (GM.weekly ? GM.weekly.tasks.length : 0) + ' · 每周一 0:00 自动结算，一周 = 24 游戏小时。</p>';
@@ -8906,17 +9483,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function gmCalendarPanel() {
     var today = gmDate(GM.doy);
     var cls = { spring: 'sp', summer: 'su', autumn: 'au', winter: 'wi' };
-    var html = '<p style="opacity:.62">一年 365 日 · 12 月 · 52 周。朱色为今日，底色随季。</p><div class="gcal">';
+    var html = '<p style="opacity:.62">一年 365 日 · 12 月 · 52 周 · 与 2026.3–2027.2 公历星期对齐。朱色为今日，底色随季。</p><div class="gcal">';
     for (var m = 1; m <= 12; m++) {
       var sk = gmSeason(m);
-      html += '<div class="gcal-m"><b>' + m + '月 · ' + GM_MONTH_JP[m - 1] + '</b><div class="gcal-days">';
+      html += '<div class="gcal-m"><b>' + m + '月 · ' + GM_MONTH_JP[m - 1] + '</b>';
+      html += '<div class="gcal-week">';
+      for (var wd = 0; wd < 7; wd++) html += '<i>' + GM_WEEK_JP[wd] + '</i>';
+      html += '</div><div class="gcal-days">';
+      var firstDow = gmWeekdayIndex(gmCycleDayFromMD(m, 1));
+      for (var bl = 0; bl < firstDow; bl++) html += '<span class="blank"></span>';
       for (var d = 1; d <= GM_MONTH[m - 1]; d++) {
         var isT = (m === today.m && d === today.d);
         html += '<span class="' + cls[sk] + (isT ? ' today' : '') + '">' + d + '</span>';
       }
       html += '</div></div>';
     }
-    html += '</div><div class="gcal-foot">今日 ' + today.m + '月' + today.d + '日 · 第 ' + GM.week + ' 周 · ' + GM_SEASON_JP[seasonKey] +
+    html += '</div><div class="gcal-foot">今日 ' + today.m + '月' + today.d + '日（' + GM_WEEK_JP[gmWeekdayIndex(GM.day)] + '）· 第 ' + GM.week + ' 周 · ' + GM_SEASON_JP[seasonKey] +
       ' · 昼 ' + Math.floor(SUN.daylight) + 'h' + Math.round((SUN.daylight % 1) * 60) + 'm · 月相 ' + GM.moonName + '</div>';
     gmShowModal('岁历 · 365 日', html, [{ t: '合上' }]);
   }
@@ -9023,19 +9605,34 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var q = [['low', '流畅'], ['mid', '均衡'], ['high', '精细']];
     var qHtml = '';
     for (var j = 0; j < q.length; j++) qHtml += '<button type="button" data-quality="' + q[j][0] + '" class="' + (GAME_SETTINGS.quality === q[j][0] ? 'on' : '') + '">' + q[j][1] + '</button>';
+    var bgmHtml = '';
+    for (var b = 0; b < GAME_SETTINGS.bgmSlots.length; b++) {
+      var bs = GAME_SETTINGS.bgmSlots[b];
+      bgmHtml += '<div class="bgm-slot"><div class="bh"><b>BGM ' + (b + 1) + '</b><span>' + gmEsc(bs.name || '未设置') + '</span></div>' +
+        '<input type="url" class="bgm-url" data-bgm-url="' + b + '" placeholder="粘贴可公开访问的音频 URL（.mp3/.ogg/.m4a）" value="' + gmEsc(bs.src) + '">' +
+        '<div class="bgm-btns"><button type="button" data-bgm-play="' + b + '">播放 / 暂停</button>' +
+        '<button type="button" data-bgm-file="' + b + '">选本地音频</button>' +
+        '<button type="button" data-bgm-clear="' + b + '">清空</button>' +
+        '<input type="file" accept="audio/*" data-bgm-fileinput="' + b + '" style="display:none"></div></div>';
+    }
+    bgmHtml += '<p class="bgm-tip">本地文件只在当前会话有效；正式分享请用可公开访问的 URL。两首槽位已预留在 GAME_SETTINGS.bgmSlots。</p>';
     var html = '' +
       '<div class="gset-sect"><b>声音</b>' +
       '<div class="gset-row"><span>总音量</span><input type="range" data-set="master" min="0" max="100" step="1" value="' + Math.round(GAME_SETTINGS.master * 100) + '"><em data-v="master">' + Math.round(GAME_SETTINGS.master * 100) + '</em></div>' +
       '<div class="gset-row"><span>音效</span><input type="range" data-set="sfx" min="0" max="100" step="1" value="' + Math.round(GAME_SETTINGS.sfx * 100) + '"><em data-v="sfx">' + Math.round(GAME_SETTINGS.sfx * 100) + '</em></div>' +
       '<div class="gset-row"><span>环境声</span><input type="range" data-set="ambient" min="0" max="100" step="1" value="' + Math.round(GAME_SETTINGS.ambient * 100) + '"><em data-v="ambient">' + Math.round(GAME_SETTINGS.ambient * 100) + '</em></div>' +
+      '<div class="gset-row"><span>BGM</span><input type="range" data-set="bgmVol" min="0" max="100" step="1" value="' + Math.round(GAME_SETTINGS.bgmVol * 100) + '"><em data-v="bgmVol">' + Math.round(GAME_SETTINGS.bgmVol * 100) + '</em></div>' +
       '<div class="gset-row"><span>声音开关</span><button type="button" class="gswitch ' + (sfxOn ? 'on' : '') + '" data-sound>' + (sfxOn ? '开' : '关') + '</button></div>' +
       '<p class="gset-note">音效与环境声独立调节；总音量同时作用于两者。关闭开关后两者都会静音。</p>' +
       '<div class="gset-acts"><button type="button" data-audio-test>试听一声</button></div></div>' +
+      '<div class="gset-sect"><b>两首 BGM</b>' + bgmHtml +
+      '<p class="gset-note">可在 GAME_SETTINGS.bgmSlots 直接预填两首固定曲目；小程序上架时把 PLATFORM.createAudio 换成 wx.createInnerAudioContext 即可。</p></div>' +
       '<div class="gset-sect"><b>画面</b>' +
       '<div class="gset-row"><span>帧率</span><div class="gseg">' + fpsHtml + '</div></div>' +
       '<div class="gset-row"><span>画质</span><div class="gseg">' + qHtml + '</div></div>' +
       '<div class="gset-row"><span>阴影</span><button type="button" class="gswitch ' + (GAME_SETTINGS.shadows ? 'on' : '') + '" data-shadow>' + (GAME_SETTINGS.shadows ? '开' : '关') + '</button></div>' +
       '<p class="gset-note">帧率上限为 30 / 60 / 120 帧或不限制；实际帧率还受屏幕刷新率与设备性能影响。画质越高，像素比与阴影越精细。</p></div>' +
+      '<div class="gset-sect"><b>触屏操作</b><p class="gset-note">单指拖动只旋转视角，不会改变远近；双指需同时张开或捏合才会缩放，另一根手指搭在屏幕上不会误触。需要单指平移时点「平移视角」。</p></div>' +
       '<div class="gset-sect"><b>存档与其他</b>' +
       '<div class="gset-row"><span>自动存档</span><button type="button" class="gswitch ' + (GAME_SETTINGS.autosave ? 'on' : '') + '" data-autosave>' + (GAME_SETTINGS.autosave ? '开' : '关') + '</button></div>' +
       '<div class="gset-acts"><button type="button" data-save>立即存档</button><button type="button" data-full>全屏</button><button type="button" data-reset>重置庭园</button></div>' +
@@ -9096,6 +9693,73 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       this.textContent = GAME_SETTINGS.autosave ? '开' : '关';
       gmSaveSettings();
     };
+    var bgmUrls = body.querySelectorAll('input[data-bgm-url]');
+    for (var bu = 0; bu < bgmUrls.length; bu++) {
+      bgmUrls[bu].oninput = function () {
+        var bi = Number(this.getAttribute('data-bgm-url'));
+        var slot = GAME_SETTINGS.bgmSlots[bi];
+        slot.src = this.value.trim();
+        try {
+          var guess = decodeURIComponent((slot.src.split('?')[0].split('/').pop() || '')).slice(0, 40);
+          slot.name = guess || (slot.src ? 'URL 音源' : '');
+        } catch (e) { slot.name = slot.src ? 'URL 音源' : ''; }
+        var lab = this.parentNode.querySelector('.bh span');
+        if (lab) lab.textContent = slot.name || '未设置';
+        gmSaveSettings();
+      };
+    }
+    var bgmPlayBtns = body.querySelectorAll('button[data-bgm-play]');
+    for (var bp = 0; bp < bgmPlayBtns.length; bp++) {
+      bgmPlayBtns[bp].onclick = function () {
+        var bi = Number(this.getAttribute('data-bgm-play'));
+        gmBgmToggle(bi);
+        var lab = this.parentNode.parentNode.querySelector('.bh span');
+        if (lab) lab.textContent = (GAME_SETTINGS.bgmSlots[bi].name || '未设置') + (bgmActive === bi ? ' · 播放中' : '');
+      };
+    }
+    var bgmFileBtns = body.querySelectorAll('button[data-bgm-file]');
+    for (var bf = 0; bf < bgmFileBtns.length; bf++) {
+      bgmFileBtns[bf].onclick = function () {
+        var bi = Number(this.getAttribute('data-bgm-file'));
+        var inp = body.querySelector('input[data-bgm-fileinput="' + bi + '"]');
+        if (inp) inp.click();
+      };
+    }
+    var bgmFileInputs = body.querySelectorAll('input[data-bgm-fileinput]');
+    for (var bfi = 0; bfi < bgmFileInputs.length; bfi++) {
+      bgmFileInputs[bfi].onchange = function () {
+        var bi = Number(this.getAttribute('data-bgm-fileinput'));
+        var f = this.files && this.files[0];
+        if (!f) return;
+        var slot = GAME_SETTINGS.bgmSlots[bi];
+        if (slot.src && slot.src.indexOf('blob:') === 0) { try { URL.revokeObjectURL(slot.src); } catch (e) {} }
+        slot.src = URL.createObjectURL(f);
+        slot.name = f.name.slice(0, 40);
+        var urlInput = body.querySelector('input[data-bgm-url="' + bi + '"]');
+        if (urlInput) urlInput.value = '';
+        var lab = this.parentNode.parentNode.querySelector('.bh span');
+        if (lab) lab.textContent = slot.name + ' · 仅本次会话';
+        BGM_AUDIO[bi] = null; bgmActive = -1;
+        gmSaveSettings();
+        gmToast('已载入本地音频：刷新页面后需重新选择');
+      };
+    }
+    var bgmClearBtns = body.querySelectorAll('button[data-bgm-clear]');
+    for (var bc = 0; bc < bgmClearBtns.length; bc++) {
+      bgmClearBtns[bc].onclick = function () {
+        var bi = Number(this.getAttribute('data-bgm-clear'));
+        var slot = GAME_SETTINGS.bgmSlots[bi];
+        if (BGM_AUDIO[bi]) { try { BGM_AUDIO[bi].pause(); } catch (e) {} }
+        if (slot.src && slot.src.indexOf('blob:') === 0) { try { URL.revokeObjectURL(slot.src); } catch (e) {} }
+        BGM_AUDIO[bi] = null; bgmActive = -1;
+        slot.src = ''; slot.name = '';
+        var urlInput = body.querySelector('input[data-bgm-url="' + bi + '"]');
+        if (urlInput) urlInput.value = '';
+        var lab = this.parentNode.parentNode.querySelector('.bh span');
+        if (lab) lab.textContent = '未设置';
+        gmSaveSettings(); gmBgmSync();
+      };
+    }
     var saveBtn = body.querySelector('[data-save]');
     if (saveBtn) saveBtn.onclick = function () { gmSave(true); gmToast('已保存到本地'); };
     var fullBtn = body.querySelector('[data-full]');
@@ -9118,12 +9782,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function gmSave(force) {
     if (!force && GAME_SETTINGS.autosave === false) return;
     try {
-      localStorage.setItem('sakuraGarden_' + GM_VERSION, JSON.stringify({
+      PLATFORM.storageSet('sakuraGarden_' + GM_VERSION, JSON.stringify({
         day: GM.day, hour: GM.hour, money: GM.money, research: GM.research, renown: GM.renown,
         weekLog: GM.weekLog, unlocked: GM.unlocked, staff: GM.staff, zones: GM.zones,
         codexPaid: GM.codexPaid, stats: GM.stats, goalsClaimed: GM.goalsClaimed, goalNotified: GM.goalNotified,
         weekly: GM.weekly, weekVisitors: GM.weekVisitors, spent: GM.spent, weekBuilt: GM.weekBuilt,
-        weekDiscover: GM.weekDiscover, rating: GM.rating, review: GM.review, history: GM.history,
+        weekDiscover: GM.weekDiscover, rating: GM.rating, review: GM.review, history: GM.history, policy: GM.policy,
         codex: Object.keys(discovered).filter(function (k) { return discovered[k]; }),
         built: GM.built.map(function (b) { return [b.plot, b.key, b.level || 1]; }),
         construction: GM.construction.map(function (c) { return [c.plot, c.key, c.ready]; })
@@ -9132,7 +9796,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
   function gmLoad() {
     try {
-      var raw = localStorage.getItem('sakuraGarden_' + GM_VERSION);
+      var raw = PLATFORM.storageGet('sakuraGarden_' + GM_VERSION);
       if (!raw) return false;
       var d = JSON.parse(raw);
       if (!d || !d.day || d.day > 400) return false;
@@ -9140,6 +9804,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       GM.research = d.research || 0; GM.renown = d.renown || 0;
       GM.unlocked = d.unlocked || {}; GM.weekLog = d.weekLog || null;
       GM.staff = d.staff || {};
+      GM.policy = GM_POLICIES[d.policy] ? d.policy : 'balanced';
       GM.zones = d.zones || { core: true };
       if (GM.zones.core === undefined) GM.zones.core = true;
       var ss = d.stats || {};
@@ -9158,7 +9823,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (d.codex && d.codex.length) {
         discovered = {};
         discoveredCount = 0;
-        d.codex.forEach(function (k) { if (KIND_INFO[k] && !discovered[k]) { discovered[k] = true; discoveredCount++; } });
+        d.codex.forEach(function (k) { if (CODEX_INFO[k] && !discovered[k]) { discovered[k] = true; discoveredCount++; } });
         codexBtn.textContent = '图鉴 ' + discoveredCount + '/' + totalKinds;
         renderCodex();
       }
@@ -9198,7 +9863,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     } catch (e) { return false; }
   }
   function gmReset() {
-    try { localStorage.removeItem('sakuraGarden_' + GM_VERSION); } catch (e) {}
+    PLATFORM.storageRemove('sakuraGarden_' + GM_VERSION);
     location.reload();
   }
 
