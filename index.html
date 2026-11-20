@@ -19748,7 +19748,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     requestAnimationFrame(lifeDrive);
   }
 
-  lifeInit();
+  setTimeout(lifeInit, 500);
 
   /* ============================================================
      14.10 节庆 event：岁时八节 / 场景装饰 / 限定图鉴
@@ -20620,7 +20620,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     requestAnimationFrame(evDrive);
   }
 
-  evInit();
+  setTimeout(evInit, 500);
 
 
   /* ============================================================
@@ -21234,6 +21234,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   })();
   }
   animate();
+  setTimeout(function () { loader.classList.add('hide'); }, 500);
 
   /* ============================================================
      14.10 委托 quest：委托所 / 每日与每周委托 / 成就称号
@@ -21892,11 +21893,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
   }
 
-  qsInit();
+  setTimeout(qsInit, 600);
 
-  setTimeout(function () {
-    loader.classList.add('hide');
-  }, 1200);
+  /* 加载层已在 animate() 后隐藏；委托初始化改为异步，避免拖住揭幕 */
 
 })();
 </script>
