@@ -926,7 +926,7 @@
     <div class="eg-mark" lang="ja">桜</div>
     <div class="eg-sub">Sakura Valley Garden</div>
     <div class="eg-bar"><i></i></div>
-    <div class="eg-hint">轻触进入 · 开启声音</div>
+    <div class="eg-hint">庭园生成中…</div>
   </div>
 </div>
 
@@ -939,8 +939,12 @@
   var engaged = false;
   function ack() {
     if (engaged) return;
-    engaged = true;
     var hint = g.querySelector('.eg-hint');
+    if (!window.__sceneReady) {
+      if (hint) hint.textContent = '庭园生成中，请稍候…';
+      return;
+    }
+    engaged = true;
     if (hint) hint.textContent = '正在进入庭园…';
     setTimeout(function () {
       g.classList.add('leave');
@@ -11663,6 +11667,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   var enterGateTimer = null;
   function gmEnterGarden(silent) {
     if (enterGateDone) return;
+    if (!silent && !window.__sceneReady) { gmToast('庭园还在生成，请稍候'); return; }
     enterGateDone = true;
     if (enterGateTimer) { clearTimeout(enterGateTimer); enterGateTimer = null; }
     if (!silent) { try { ambUnlock(); } catch (e) {} }
@@ -11695,6 +11700,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var gateAutoTick = function () {
       if (enterGateDone) return;
       if (window.__sceneReady) {
+        var gh = enterGateEl.querySelector('.eg-hint');
+        if (gh && gh.textContent.indexOf('生成中') >= 0) gh.textContent = '轻触进入 · 开启声音';
         enterGateTimer = setTimeout(function () { gmEnterGarden(true); }, 6000);
       } else if (performance.now() - gateAutoStart < 20000) {
         setTimeout(gateAutoTick, 700);
