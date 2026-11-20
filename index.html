@@ -868,12 +868,78 @@
     .ev-reward{ font-size:9.5px; }
   }
 
+  /* 启动页：把“进入庭园”变成一次用户手势，BGM 才能合法起播 */
+  #enterGate{
+    position:fixed; inset:0; z-index:95;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% 42%, rgba(22,15,12,.20) 0%, rgba(22,15,12,.68) 58%, rgba(15,10,8,.93) 100%),
+      linear-gradient(180deg, rgba(22,15,12,.20), rgba(22,15,12,.72));
+    color:#f7efe4; cursor:pointer; touch-action:manipulation;
+    backdrop-filter:blur(3px) saturate(.9);
+    -webkit-backdrop-filter:blur(3px) saturate(.9);
+    user-select:none; -webkit-user-select:none;
+    transition:opacity .7s ease, visibility .7s ease;
+  }
+  #enterGate.leave{ opacity:0; visibility:hidden; pointer-events:none; }
+  #enterGate[hidden]{ display:none; }
+  .eg-inner{
+    text-align:center; padding:clamp(22px,6vw,48px);
+    transform:translateY(-2vh); max-width:min(92vw,680px);
+  }
+  .eg-kicker{
+    font-size:10px; letter-spacing:.5em; font-weight:600;
+    color:rgba(247,239,228,.58); text-transform:uppercase;
+  }
+  .eg-title{
+    margin:18px 0 10px; font-size:clamp(28px,6.6vw,62px);
+    font-weight:700; letter-spacing:.18em; line-height:1.28;
+    color:#fbf3e7; text-shadow:0 2px 28px rgba(0,0,0,.32);
+  }
+  .eg-sub{
+    font-size:10px; letter-spacing:.32em; text-transform:uppercase;
+    color:rgba(247,239,228,.56);
+  }
+  .eg-rule{
+    width:64px; height:1px; margin:26px auto 0;
+    background:linear-gradient(to right, rgba(232,192,138,0), rgba(232,192,138,.9), rgba(232,192,138,0));
+  }
+  .eg-btn{
+    display:inline-block; margin-top:26px; padding:12px 30px;
+    border:1px solid rgba(232,192,138,.52); border-radius:2px;
+    background:rgba(232,192,138,.07); color:#f4d9b0;
+    font-size:13px; letter-spacing:.22em; font-weight:600;
+    box-shadow:0 0 0 1px rgba(255,255,255,.03) inset, 0 10px 36px rgba(0,0,0,.18);
+  }
+  .eg-note{
+    margin-top:16px; font-size:10px; letter-spacing:.16em;
+    color:rgba(247,239,228,.48);
+  }
+  @media (max-width:720px){
+    .eg-title{ font-size:clamp(24px,7.4vw,34px); letter-spacing:.10em; line-height:1.34; }
+    .eg-inner{ padding:20px 16px; }
+    .eg-btn{ padding:11px 22px; font-size:12px; }
+    .eg-note{ font-size:9px; letter-spacing:.08em; }
+  }
+
 </style>
 </head>
 <body>
 <div id="scene" aria-label="日式樱花山谷三维庭园"></div>
 <div id="wxFlash"></div>
 <div id="vignette"></div>
+
+<div id="enterGate" role="button" tabindex="0" aria-label="轻触进入庭园，开启背景音乐">
+  <div class="eg-inner">
+    <div class="eg-kicker">SAKURA VALLEY</div>
+    <div class="eg-title">樱 花 山 谷 庭 园</div>
+    <div class="eg-sub">Japanese Garden · 春</div>
+    <div class="eg-rule"></div>
+    <div class="eg-btn">轻触进入庭园</div>
+    <div class="eg-note">建议开启声音 · 首次触摸即起播 BGM</div>
+  </div>
+</div>
+
 
 <header class="brand">
   <div class="rule"></div>
@@ -11575,6 +11641,29 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     ambBuild();
     ambUpdate();
   }
+
+  /* 启动页：点击/触摸/回车进入时，直接在手势里起播；不等用户再找音效按钮 */
+  var enterGateEl = document.getElementById('enterGate');
+  var enterGateDone = false;
+  function gmEnterGarden() {
+    if (enterGateDone) return;
+    enterGateDone = true;
+    try { ambUnlock(); } catch (e) {}
+    if (!enterGateEl) return;
+    enterGateEl.classList.add('leave');
+    setTimeout(function () { if (enterGateEl) enterGateEl.hidden = true; }, 750);
+  }
+  if (enterGateEl) {
+    enterGateEl.addEventListener('pointerdown', gmEnterGarden, { passive: true });
+    enterGateEl.addEventListener('touchstart', gmEnterGarden, { passive: true });
+    enterGateEl.addEventListener('click', gmEnterGarden);
+    enterGateEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault(); gmEnterGarden();
+      }
+    });
+  }
+
   window.addEventListener('pointerdown', ambUnlock, { passive: true });
   /* 老 WebView / 部分内置浏览器不派发 pointerdown，补 touchstart 与 click 两个入口 */
   window.addEventListener('touchstart', ambUnlock, { passive: true });
@@ -11582,6 +11671,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   window.addEventListener('keydown', ambUnlock);
   /* 场景稳定后再预热内置曲，避开首屏最紧张的那几百毫秒 */
   setTimeout(bgmWarmAll, 2500);
+  /* 启动页会先挡住首屏，先把第一首 data URI 和 <audio> 备好，首触只剩 play() */
+  bgmWarmSlot(0);
   document.addEventListener('visibilitychange', function () {
     if (!amb.ready) return;
     if (document.hidden) { ambRamp(amb.master.gain, 0, 0.25); bgmHandleHide(true); }
