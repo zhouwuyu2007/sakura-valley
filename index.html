@@ -3377,6 +3377,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   var lanternLights = [];
   var lanternGlows = [];
   var fireflies = null;
+  var fireflyHalo = null;
   var fireflySeeds = [];
   var FIREFLY_MAX = 120;
   var FIREFLY_SEASON_W = { spring: 0.38, summer: 1, autumn: 0, winter: 0 };
@@ -3639,13 +3640,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         y = Math.max(terrainH(x, z), WATER_Y) + rr(0.45, 3.1);
       }
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
-      col[i * 3] = 1.0; col[i * 3 + 1] = 0.88; col[i * 3 + 2] = 0.60;
+      col[i * 3] = 0.98; col[i * 3 + 1] = 1.0; col[i * 3 + 2] = 0.46;
       fireflySeeds.push({
         x: x, y: y, z: z,
         phase: rr(0, Math.PI * 2),
         ampX: rr(0.8, 2.2), ampZ: rr(0.6, 1.8), ampY: rr(0.15, 0.55),
         speed: rr(0.45, 1.15),
-        blink: rr(1.6, 3.6), glowPhase: rr(0, Math.PI * 2)
+        blink: rr(1.0, 2.4), glowPhase: rr(0, Math.PI * 2)
       });
     }
     var geo = new THREE.BufferGeometry();
@@ -3653,7 +3654,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     geo.setDrawRange(0, 0);
     var mat = new THREE.PointsMaterial({
-      map: glowTex, color: 0xffffff, vertexColors: true, size: 0.55, transparent: true,
+      map: glowTex, color: 0xffffff, vertexColors: true, size: 1.1, transparent: true,
       opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
       sizeAttenuation: true, fog: false
     });
@@ -3661,6 +3662,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     fireflies.visible = false;
     fireflies.frustumCulled = false;
     scene.add(fireflies);
+    // 外圈柔光：同一套顶点，放大成光晕，让萤火在远处也一眼能认出来
+    var haloMat = new THREE.PointsMaterial({
+      map: glowTex, color: 0x8cff58, size: 3.2, transparent: true,
+      opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+      sizeAttenuation: true, fog: false
+    });
+    fireflyHalo = new THREE.Points(geo, haloMat);
+    fireflyHalo.visible = false;
+    fireflyHalo.frustumCulled = false;
+    fireflyHalo.raycast = function () {};
+    scene.add(fireflyHalo);
   })();
 
   (function buildLotus() {
@@ -4244,10 +4256,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var ffNight = Math.max(0, Math.min(1, nightF));
     var ffCount = Math.round(FIREFLY_MAX * fireflySeasonW * ffWx * ffNight);
     fireflies.visible = ffCount > 0;
+    if (fireflyHalo) fireflyHalo.visible = ffCount > 0;
     if (ffCount > 0) {
       fireflies.geometry.setDrawRange(0, ffCount);
-      fireflies.material.size = 0.44 + 0.20 * fireflySeasonW;
-      fireflies.material.opacity = Math.min(1, nightF * 1.35) * (0.70 + 0.30 * ffWx) * 0.94;
+      fireflies.material.size = 0.9 + 0.55 * fireflySeasonW;
+      fireflies.material.opacity = Math.min(1, nightF * 1.35) * (0.78 + 0.22 * ffWx);
+      fireflyHalo.visible = true;
+      fireflyHalo.material.size = 2.6 + 1.5 * fireflySeasonW;
+      fireflyHalo.material.opacity = Math.min(1, nightF * 1.35) * (0.14 + 0.14 * ffWx);
       var fa = fireflies.geometry.attributes.position.array;
       var fc = fireflies.geometry.attributes.color.array;
       for (var ffi = 0; ffi < ffCount; ffi++) {
@@ -4256,10 +4272,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         fa[ffi * 3 + 1] = fsd.y + Math.sin(el * 0.9 * fsd.speed + fsd.phase * 1.7) * fsd.ampY;
         fa[ffi * 3 + 2] = fsd.z + Math.cos(el * 0.5 * fsd.speed + fsd.phase) * fsd.ampZ;
         var fbm = 0.5 + 0.5 * Math.sin(el * fsd.blink + fsd.glowPhase + Math.sin(el * 0.5 + fsd.phase) * 0.9);
-        fbm = 0.10 + 0.90 * fbm * fbm * fbm;
-        fc[ffi * 3] = fbm;
-        fc[ffi * 3 + 1] = fbm * 0.88;
-        fc[ffi * 3 + 2] = fbm * 0.60;
+        fbm = 0.40 + 0.60 * Math.pow(fbm, 2.2);
+        fc[ffi * 3] = fbm * 0.98;
+        fc[ffi * 3 + 1] = fbm;
+        fc[ffi * 3 + 2] = fbm * 0.46;
       }
       fireflies.geometry.attributes.position.needsUpdate = true;
       fireflies.geometry.attributes.color.needsUpdate = true;
