@@ -11654,12 +11654,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     setTimeout(function () { if (enterGateEl) enterGateEl.hidden = true; }, 750);
   }
   if (enterGateEl) {
-    enterGateEl.addEventListener('pointerdown', gmEnterGarden, { passive: true });
-    enterGateEl.addEventListener('touchstart', gmEnterGarden, { passive: true });
-    enterGateEl.addEventListener('click', gmEnterGarden);
+    /* 启动页只认 click/回车：iOS 的 pointerdown/touchstart 不一定算媒体手势，
+       先在按下阶段触发起播会被拒，还会把仅一次的手势窗口用掉。
+       这里同时阻断冒泡，避免全局 pointerdown/touchstart 抢先调 ambUnlock。 */
+    enterGateEl.addEventListener('pointerdown', function (e) { e.stopPropagation(); }, { passive: true });
+    enterGateEl.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+    enterGateEl.addEventListener('click', function (e) { e.stopPropagation(); gmEnterGarden(); });
     enterGateEl.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-        e.preventDefault(); gmEnterGarden();
+        e.preventDefault(); e.stopPropagation(); gmEnterGarden();
       }
     });
   }
