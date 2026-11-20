@@ -1733,9 +1733,149 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* ============================================================
+     6.5 全园建模标准 GM_ART
+     ------------------------------------------------------------
+     后续新增任何 3D 模型，统一使用本节的调色、材质、几何与细部层级：
+       主体（mass） + 收边（trim） + 接缝/五金（joint） + 接地（ground）
+     禁止再直接写随机 hex 色或另起一套低精度 primitive。
+     运行 window.__art.audit() 可检查全园网格、材质与未登记模型。
+     ============================================================ */
+  var GM_ART = (function () {
+    var coarse = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 760;
+    var detailLevel = coarse ? 1 : 2; // 1=标准，2=精细
+    var detailObjects = [];
+    var matCache = {};
+    var geoCache = {};
+    var palette = {
+      stone: ['#8a887d', '#969386', '#7b7d73', '#a09d8f'],
+      wetStone: ['#4d5a53', '#56635b', '#44514a'],
+      wood: ['#6b4a33', '#7a563b', '#5a3f2c', '#8a6544'],
+      darkWood: '#3d2e26',
+      lacquer: '#b43a2b',
+      lacquerDark: '#8f2c22',
+      plaster: ['#ddd2be', '#e2d8c6', '#d3c7b2'],
+      roof: ['#56534c', '#494741', '#625f57'],
+      thatch: ['#9a8757', '#8a7749', '#a99561'],
+      metal: '#4a443d',
+      bronze: '#66553f',
+      rope: '#d8c7a1',
+      paper: '#fbf7ee',
+      moss: ['#557a44', '#4a6d3b', '#63884e'],
+      flower: ['#f4d6df', '#efb9ce', '#f6e6b0', '#dfe9f2']
+    };
+    function mat(name, color, opts) {
+      var key = name + '|' + color + '|' + JSON.stringify(opts || {});
+      if (matCache[key]) return matCache[key];
+      var p = { color: color, roughness: 0.86, metalness: 0.03, flatShading: true };
+      if (opts) for (var k in opts) p[k] = opts[k];
+      matCache[key] = new THREE.MeshStandardMaterial(p);
+      return matCache[key];
+    }
+    function rockGeo(variant) {
+      var key = 'rock' + (variant % 4);
+      if (geoCache[key]) return geoCache[key];
+      var g = new THREE.IcosahedronGeometry(1, 1);
+      var a = g.attributes.position;
+      for (var i = 0; i < a.count; i++) {
+        var x = a.getX(i), y = a.getY(i), z = a.getZ(i);
+        var n = 0.87 + 0.10 * Math.sin(x * 7.7 + y * 4.3 + variant * 1.7)
+          + 0.055 * Math.sin(z * 12.1 - y * 6.2 + variant * 2.3)
+          + 0.035 * Math.sin(x * 17.0 + z * 9.0);
+        a.setXYZ(i, x * n * 1.04, y * n * 0.88, z * n);
+      }
+      g.computeVertexNormals();
+      g.userData.artRole = 'rock';
+      geoCache[key] = g;
+      return g;
+    }
+    function plaqueTex(main, sub) {
+      var key = 'plaque|' + main + '|' + sub;
+      if (geoCache[key]) return geoCache[key];
+      var c = document.createElement('canvas');
+      c.width = 256; c.height = 144;
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#3a2b21'; ctx.fillRect(0, 0, 256, 144);
+      ctx.strokeStyle = '#b28a55'; ctx.lineWidth = 5; ctx.strokeRect(10, 10, 236, 124);
+      ctx.strokeStyle = '#8a673f'; ctx.lineWidth = 1; ctx.strokeRect(18, 18, 220, 108);
+      ctx.fillStyle = '#efe2c5'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var fs = main.length <= 2 ? 82 : (main.length === 3 ? 62 : 48);
+      ctx.font = '700 ' + fs + 'px "Noto Serif SC", serif';
+      ctx.fillText(main, 128, 70);
+      ctx.font = '600 17px "Noto Serif SC", serif';
+      ctx.fillStyle = '#cbb58d';
+      ctx.fillText(sub, 128, 120);
+      var tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      tex.userData = { main: main, sub: sub };
+      geoCache[key] = tex;
+      return tex;
+    }
+    function plaqueMesh(main, sub, w, h) {
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({
+        map: plaqueTex(main, sub), roughness: 0.8, metalness: 0.02
+      }));
+      m.userData.kind = 'torii';
+      tag(m, 'plaque', 2);
+      return m;
+    }
+    function tag(obj, role, tier) {
+      if (!obj) return obj;
+      obj.userData.artRole = role || 'furniture';
+      obj.userData.artTier = tier === undefined ? detailLevel : tier;
+      return obj;
+    }
+    function detail(obj, tier) {
+      tag(obj, obj.userData.artRole || 'detail', tier === undefined ? 2 : tier);
+      detailObjects.push(obj);
+      return obj;
+    }
+    function applyQuality(q) {
+      for (var i = 0; i < detailObjects.length; i++) {
+        var o = detailObjects[i];
+        o.visible = !(q === 'low' && o.userData.artTier >= 2);
+      }
+    }
+    function audit() {
+      var meshes = 0, tris = 0, mats = {}, roles = {}, untagged = 0, untaggedNames = [];
+      scene.traverse(function (o) {
+        if (!o.isMesh && !o.isInstancedMesh) return;
+        meshes++;
+        var g = o.geometry;
+        if (g) tris += (g.index ? g.index.count : (g.attributes.position ? g.attributes.position.count : 0)) / 3;
+        if (o.material) {
+          var mm = Array.isArray(o.material) ? o.material : [o.material];
+          for (var i = 0; i < mm.length; i++) {
+            var n = mm[i].name || mm[i].type;
+            mats[n] = (mats[n] || 0) + 1;
+          }
+        }
+        var role = o.userData.artRole || o.userData.kind;
+        if (role) roles[role] = (roles[role] || 0) + 1;
+        else { untagged++; if (untaggedNames.length < 16) untaggedNames.push(o.name || o.type); }
+      });
+      return { detailLevel: detailLevel, meshes: meshes, triangles: Math.round(tris), materials: mats, roles: roles, untagged: untagged, untaggedNames: untaggedNames };
+    }
+    return {
+      version: '1.0',
+      detailLevel: detailLevel,
+      palette: palette,
+      mat: mat,
+      rockGeo: rockGeo,
+      plaqueTex: plaqueTex,
+      plaqueMesh: plaqueMesh,
+      tag: tag,
+      detail: detail,
+      applyQuality: applyQuality,
+      audit: audit
+    };
+  })();
+  window.__art = GM_ART;
+
+  /* ============================================================
      7. 岩石、苔藓、瀑布崖壁
      ============================================================ */
   var rockParts = [];
+  var rockVariant = 0;
   var mossParts = [];
   var mossMat = null;
   var mossMesh = null;
@@ -1743,7 +1883,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   function addRock(x, z, sx, sy, sz, rotY, colorHex, mossy) {
     if (!placingCliff && x > -9.5 && x < 1.5 && z > -10.5 && z < 2.5) return;
-    var geo = new THREE.DodecahedronGeometry(1, 0);
+    var geo = GM_ART.rockGeo(rockVariant++);
     var pos = new THREE.Vector3(x, terrainH(x, z) + sy * 0.28 - 0.18, z);
     var rot = new THREE.Euler(rr(-0.2, 0.2), rotY, rr(-0.2, 0.2));
     rockParts.push({
@@ -1922,6 +2062,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     var initDir = new THREE.Vector3((rng() - 0.5) * 0.22, 1, (rng() - 0.5) * 0.22).normalize();
     grow(trunk, initDir, 3.0 * scale, 0.5 * scale, 0);
+
+    // 樱花树板根：把树干和地面真正连起来
+    for (var rr = 0; rr < 4; rr++) {
+      var ra = rr / 4 * Math.PI * 2 + rng() * 0.45;
+      var rl = (1.05 + rng() * 0.55) * scale;
+      var rs = new THREE.Vector3(x + Math.cos(ra) * 0.28 * scale, baseY + 0.42 * scale, z + Math.sin(ra) * 0.28 * scale);
+      var re = new THREE.Vector3(x + Math.cos(ra) * rl, baseY - 0.06, z + Math.sin(ra) * rl);
+      var rdir = re.clone().sub(rs).normalize();
+      var rmid = rs.clone().add(re).multiplyScalar(0.5);
+      var rq = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), rdir);
+      treeParts.push({
+        geo: new THREE.CylinderGeometry(0.06 * scale, (0.22 + rng() * 0.08) * scale, rs.distanceTo(re), 5, 1),
+        matrix: new THREE.Matrix4().compose(rmid, rq, new THREE.Vector3(1, 1, 1)),
+        color: new THREE.Color('#4a3428'), tint: 0.03
+      });
+    }
 
     var tipCount = Math.max(1, tips.length);
     canopyCenter.multiplyScalar(1 / (tipCount + 1));
@@ -2333,6 +2489,45 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       put(toriiRed, new THREE.BoxGeometry(0.24, 1.25, 0.24), new THREE.Vector3(side * 4.7, 6.1, 0),
         new THREE.Euler(0, 0, side * 0.7), new THREE.Color('#b63728'));
     });
+
+    // 柱脚石与青铜箍：把朱柱“落地”
+    [-4.15, 4.15].forEach(function (px) {
+      put(toriiDark, new THREE.CylinderGeometry(0.7, 0.78, 0.22, 10), new THREE.Vector3(px, 0.11, 0), null, new THREE.Color('#4d4a42'));
+      put(toriiDark, new THREE.CylinderGeometry(0.49, 0.49, 0.10, 12), new THREE.Vector3(px, 1.22, 0), null, new THREE.Color('#5b4b38'));
+      put(toriiDark, new THREE.CylinderGeometry(0.46, 0.46, 0.09, 12), new THREE.Vector3(px, 6.55, 0), null, new THREE.Color('#5b4b38'));
+    });
+
+    // 笠木上的瓦脊
+    for (var tr = 0; tr < 13; tr++) {
+      var tx = -5.5 + tr * (11.0 / 12);
+      var ty = 7.48 + Math.pow(Math.abs(tx) / 5.7, 2.1) * 0.9 + 0.16;
+      put(toriiDark, new THREE.BoxGeometry(0.34, 0.16, 1.24), new THREE.Vector3(tx, ty, 0), null, new THREE.Color('#292622'));
+    }
+
+    // 注连绳与纸垂
+    for (var rs = 0; rs < 7; rs++) {
+      var rx = -3.55 + rs * 1.18;
+      var ry = 5.92 - 0.30 * (1 - Math.pow(rx / 4.15, 2));
+      put(toriiRed, new THREE.CylinderGeometry(0.11, 0.11, 1.28, 7),
+        new THREE.Vector3(rx, ry, 0.12), new THREE.Euler(0, 0, Math.PI / 2), new THREE.Color('#d8c7a1'));
+    }
+    [-2.7, -0.9, 0.9, 2.7].forEach(function (sx2, si2) {
+      var sy2 = 5.80 - 0.26 * (1 - Math.pow(sx2 / 4.15, 2));
+      for (var sp = 0; sp < 3; sp++) {
+        put(toriiRed, new THREE.BoxGeometry(0.23, 0.26, 0.035),
+          new THREE.Vector3(sx2 + (sp % 2 ? 0.10 : -0.10), sy2 - 0.30 - sp * 0.27, 0.14),
+          new THREE.Euler(0, 0, sp % 2 ? 0.13 : -0.13), new THREE.Color('#fbf7ee'));
+      }
+    });
+
+    // 额束上的樱纹匾额
+    var plaque = GM_ART.plaqueMesh('櫻', 'SAKURA VALLEY', 1.22, 0.72);
+    var plaquePos = new THREE.Vector3(0, 6.55, 0.56).applyMatrix4(base);
+    plaque.position.copy(plaquePos);
+    plaque.rotation.y = rotY;
+    plaque.scale.setScalar(s);
+    GM_ART.detail(plaque, 2);
+    scene.add(plaque);
   }
 
   function addLantern(x, z, s, rotY) {
@@ -2366,6 +2561,30 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       matrix: base.clone().multiply(M4(new THREE.Vector3(0, 2.43, 0), null, 1)),
       color: new THREE.Color('#f4fafc')
     });
+
+    // 底座两级石阶
+    put(stoneParts, new THREE.CylinderGeometry(0.72, 0.78, 0.10, 10), 0.05, stoneCol, 0.04);
+    put(stoneParts, new THREE.CylinderGeometry(0.62, 0.68, 0.09, 10), 0.14, stoneCol, 0.03);
+    // 火窗棂：四角与上下横档
+    function putLocal(geo, x, y, z, color, tint) {
+      stoneParts.push({
+        geo: geo,
+        matrix: base.clone().multiply(M4(new THREE.Vector3(x, y, z), null, 1)),
+        color: color, tint: tint || 0
+      });
+    }
+    var mull = new THREE.Color('#5d5b52');
+    [[0.24, 1.73, 0], [-0.24, 1.73, 0], [0, 1.73, 0.24], [0, 1.73, -0.24]].forEach(function (mp) {
+      putLocal(new THREE.BoxGeometry(0.055, 0.42, 0.055), mp[0], mp[1], mp[2], mull);
+    });
+    [1.54, 1.92].forEach(function (hy) {
+      putLocal(new THREE.BoxGeometry(0.52, 0.05, 0.05), 0, hy, 0.24, mull);
+      putLocal(new THREE.BoxGeometry(0.52, 0.05, 0.05), 0, hy, -0.24, mull);
+      putLocal(new THREE.BoxGeometry(0.05, 0.05, 0.52), 0.24, hy, 0, mull);
+      putLocal(new THREE.BoxGeometry(0.05, 0.05, 0.52), -0.24, hy, 0, mull);
+    });
+    // 顶饰
+    put(stoneParts, new THREE.TorusGeometry(0.12, 0.03, 5, 10), 2.45, stoneCol, 0.02);
   }
   var glowParts = [];
 
@@ -2465,6 +2684,57 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     });
   }
 
+  // 参道收边石：沿主路两侧排小石，路径不再是一条贴图
+  (function buildPathEdging() {
+    var rng = mulberry32(4401);
+    for (var pi = 0; pi < pathPts.length - 1; pi++) {
+      var ax = pathPts[pi][0], az = pathPts[pi][1];
+      var bx = pathPts[pi + 1][0], bz = pathPts[pi + 1][1];
+      var dx = bx - ax, dz = bz - az;
+      var len = Math.hypot(dx, dz);
+      var ux = dx / len, uz = dz / len;
+      var nx = -uz, nz = ux;
+      var steps = Math.max(1, Math.round(len / 0.95));
+      for (var si = 0; si < steps; si++) {
+        var tt = (si + 0.5) / steps;
+        var px = ax + dx * tt, pz = az + dz * tt;
+        [-1, 1].forEach(function (side) {
+          var off = 1.62 + rng() * 0.18;
+          var ex = px + nx * off * side, ez = pz + nz * off * side;
+          if (pondP(ex, ez) < 1.2) return;
+          if (Math.hypot(ex - 15.6, ez - 37.5) < 4.6) return;
+          var ey = terrainH(ex, ez);
+          var sc = 0.18 + rng() * 0.20;
+          stoneParts.push({
+            geo: GM_ART.rockGeo(Math.floor(rng() * 4)),
+            matrix: M4(new THREE.Vector3(ex, ey + sc * 0.18 - 0.02, ez),
+              new THREE.Euler(rng() * 0.2, rng() * 6.28, rng() * 0.2),
+              new THREE.Vector3(sc * (0.9 + rng() * 0.5), sc * 0.65, sc * (0.9 + rng() * 0.45))),
+            color: new THREE.Color(['#9b998d', '#8d8d82', '#a6a294'][Math.floor(rng() * 3)]),
+            tint: 0.04
+          });
+        });
+      }
+    }
+    // 池岸细卵石，补在现有大石之间
+    for (var pe = 0; pe < 34; pe++) {
+      var pa = pe / 34 * Math.PI * 2 + 0.12;
+      var prr = pondShapeR(pa) * (0.99 + rng() * 0.07);
+      var pex = POND.cx + Math.cos(pa) * POND.rx * prr;
+      var pez = POND.cz + Math.sin(pa) * POND.rz * prr;
+      var pey = Math.max(terrainH(pex, pez), WATER_Y - 0.02);
+      var psc = 0.14 + rng() * 0.18;
+      stoneParts.push({
+        geo: GM_ART.rockGeo(Math.floor(rng() * 4)),
+        matrix: M4(new THREE.Vector3(pex, pey + psc * 0.16, pez),
+          new THREE.Euler(rng() * 0.15, rng() * 6.28, 0),
+          new THREE.Vector3(psc * 1.2, psc * 0.55, psc * 0.9)),
+        color: new THREE.Color(['#98968b', '#8a8c83', '#a3a093'][Math.floor(rng() * 3)]),
+        tint: 0.05
+      });
+    }
+  })();
+
   // 竹垣
   (function buildFence() {
     var startZ = 8, endZ = 32, x = 37.5;
@@ -2540,8 +2810,63 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         color: new THREE.Color('#f4fafc')
       });
       // 屋檐下红色小梁
-      var beam = new THREE.BoxGeometry(lv.w * 2.15, 0.14, lv.w * 2.15);
-      parts.push({ geo: beam, matrix: M4(new THREE.Vector3(px, base + (lv.y + lv.h) * s, pz), null, s), color: red });
+      var beam = new THREE.BoxGeometry(lv.w * 1.78, 0.12, lv.w * 1.78);
+      parts.push({ geo: beam, matrix: M4(new THREE.Vector3(px, base + (lv.y + lv.h) * s, pz), null, s), color: new THREE.Color('#6f4d39') });
+
+      // 每层栏杆：四角柱 + 四面横档
+      var railY = base + (lv.y + 0.24) * s;
+      [-1, 1].forEach(function (sx) {
+        [-1, 1].forEach(function (sz) {
+          parts.push({
+            geo: new THREE.BoxGeometry(0.07, 0.36, 0.07),
+            matrix: M4(new THREE.Vector3(px + sx * lv.w * 0.9, railY + 0.17 * s, pz + sz * lv.w * 0.9), null, s),
+            color: red
+          });
+        });
+      });
+      parts.push({ geo: new THREE.BoxGeometry(lv.w * 1.84, 0.05, 0.05), matrix: M4(new THREE.Vector3(px, railY + 0.31 * s, pz + lv.w * 0.9), null, s), color: red });
+      parts.push({ geo: new THREE.BoxGeometry(lv.w * 1.84, 0.05, 0.05), matrix: M4(new THREE.Vector3(px, railY + 0.31 * s, pz - lv.w * 0.9), null, s), color: red });
+      parts.push({ geo: new THREE.BoxGeometry(0.05, 0.05, lv.w * 1.84), matrix: M4(new THREE.Vector3(px + lv.w * 0.9, railY + 0.31 * s, pz), null, s), color: red });
+      parts.push({ geo: new THREE.BoxGeometry(0.05, 0.05, lv.w * 1.84), matrix: M4(new THREE.Vector3(px - lv.w * 0.9, railY + 0.31 * s, pz), null, s), color: red });
+
+      // 门窗
+      parts.push({
+        geo: new THREE.BoxGeometry(lv.w * 0.58, lv.h * 0.46, 0.06),
+        matrix: M4(new THREE.Vector3(px, base + (lv.y + lv.h * 0.52) * s, pz + lv.w + 0.02), null, s),
+        color: new THREE.Color('#3d332b')
+      });
+      parts.push({
+        geo: new THREE.BoxGeometry(0.06, lv.h * 0.46, lv.w * 0.58),
+        matrix: M4(new THREE.Vector3(px + lv.w + 0.02, base + (lv.y + lv.h * 0.52) * s, pz), null, s),
+        color: new THREE.Color('#3d332b')
+      });
+      // 窗棂：让门洞读成窗，而不是黑洞
+      var winY = base + (lv.y + lv.h * 0.52) * s;
+      [-0.18, 0.18].forEach(function (wx) {
+        parts.push({ geo: new THREE.BoxGeometry(0.045, lv.h * 0.42, 0.025), matrix: M4(new THREE.Vector3(px + wx * lv.w, winY, pz + lv.w + 0.055), null, s), color: new THREE.Color('#7d6248') });
+        parts.push({ geo: new THREE.BoxGeometry(0.025, lv.h * 0.42, 0.045), matrix: M4(new THREE.Vector3(px + lv.w + 0.055, winY, pz + wx * lv.w), null, s), color: new THREE.Color('#7d6248') });
+      });
+      parts.push({ geo: new THREE.BoxGeometry(lv.w * 0.56, 0.04, 0.025), matrix: M4(new THREE.Vector3(px, winY, pz + lv.w + 0.055), null, s), color: new THREE.Color('#7d6248') });
+      parts.push({ geo: new THREE.BoxGeometry(0.025, 0.04, lv.w * 0.56), matrix: M4(new THREE.Vector3(px + lv.w + 0.055, winY, pz), null, s), color: new THREE.Color('#7d6248') });
+
+      // 斗拱：檐下四角块
+      [-1, 1].forEach(function (sx) {
+        [-1, 1].forEach(function (sz) {
+          parts.push({
+            geo: new THREE.BoxGeometry(0.28, 0.18, 0.28),
+            matrix: M4(new THREE.Vector3(px + sx * lv.w * 0.92, base + (lv.y + lv.h + 0.05) * s, pz + sz * lv.w * 0.92), null, s),
+            color: new THREE.Color('#6e4b37')
+          });
+        });
+      });
+    }
+    // 塔前石阶
+    for (var stp = 0; stp < 4; stp++) {
+      parts.push({
+        geo: new THREE.BoxGeometry(2.4 - stp * 0.34, 0.18, 0.42),
+        matrix: M4(new THREE.Vector3(px, base + 0.09 + stp * 0.16, pz + 2.15 + stp * 0.38), null, 1),
+        color: new THREE.Color(stp % 2 ? '#b4b1a1' : '#918e80')
+      });
     }
     // 塔刹
     parts.push({ geo: new THREE.CylinderGeometry(0.09, 0.09, 2.2, 6, 1), matrix: M4(new THREE.Vector3(px, base + 6.0 * s, pz), null, s), color: new THREE.Color('#4c4741') });
@@ -5210,6 +5535,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var sp2 = L(0, 3.60 + sr * 0.62, 0);
       snowAt(sg, sp2.x, sp2.y, sp2.z, rot, new THREE.Vector3(1.18, 1, 1.0));
     }
+    // 门前暖帘、石阶与缘侧柱
+    for (var nn = -1; nn <= 1; nn++) {
+      boxAt(parts, 0.42, 0.64, 0.035, L(nn * 0.47, 2.86, 2.52).x, L(nn * 0.47, 2.86, 2.52).y, L(nn * 0.47, 2.86, 2.52).z, '#3d4d63', rot, 0.02);
+    }
+    boxAt(parts, 1.9, 0.12, 0.62, L(0, 0.28, 3.58).x, L(0, 0.28, 3.58).y, L(0, 0.28, 3.58).z, '#8d897b', rot, 0.04);
+    boxAt(parts, 1.55, 0.10, 0.44, L(0, 0.17, 3.96).x, L(0, 0.17, 3.96).y, L(0, 0.17, 3.96).z, '#989487', rot, 0.03);
+    [-3.15, 3.15].forEach(function (vx) {
+      cylAt(parts, 0.09, 0.11, 0.9, L(vx, 0.45, 3.15).x, L(vx, 0.45, 3.15).y, L(vx, 0.45, 3.15).z, '#674a33', null, 6, 0.03);
+    });
+    boxAt(parts, 0.92, 0.16, 0.92, ridge.x, ridge.y + 0.18, ridge.z, '#5f4b2f', rot, 0.03);
+
     var tm = meshFromParts(parts, stdMat, true, true);
     if (tm) tm.userData.kind = 'teahouse';
 
@@ -6534,6 +6870,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows;
     renderer.shadowMap.needsUpdate = true;
+    if (window.__art && __art.applyQuality) __art.applyQuality(GAME_SETTINGS.quality);
   }
   function gmAudioSync() {
     if (!audioCtx) { gmBgmSync(); return; }
@@ -7989,7 +8326,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     kuri: '<rect x="0" y="48" width="120" height="16" fill="#60764f"/><ellipse cx="60" cy="57" rx="38" ry="4" fill="#829169" opacity=".65"/><path d="M35 46 Q40 24 58 22 Q77 20 82 42 Q60 53 35 46 Z" fill="#c49463"/><path d="M34 46 Q46 35 55 36 Q49 45 34 46 Z" fill="#e0b78b"/><ellipse cx="49" cy="34" rx="11" ry="8" fill="#7e4d31"/><ellipse cx="74" cy="37" rx="10" ry="7" fill="#915938"/><ellipse cx="63" cy="47" rx="12" ry="6" fill="#6f452d"/><path d="M43 28 Q46 24 51 28" stroke="#d4a273" stroke-width="2" fill="none"/><path d="M69 32 Q72 28 77 33" stroke="#d4a273" stroke-width="2" fill="none"/><path d="M58 43 Q61 39 66 44" stroke="#d4a273" stroke-width="2" fill="none"/>',
     oden: '<rect x="0" y="48" width="120" height="16" fill="#61774f"/><ellipse cx="60" cy="57" rx="40" ry="4" fill="#83926b" opacity=".65"/><rect x="31" y="30" width="58" height="23" rx="4" fill="#8a5d3c"/><rect x="33" y="33" width="54" height="17" fill="#c58a52"/><ellipse cx="60" cy="34" rx="27" ry="5" fill="#e7b26e"/><rect x="42" y="36" width="14" height="7" rx="3" fill="#e8d3a6"/><rect x="60" y="35" width="12" height="8" rx="3" fill="#b47b45"/><rect x="75" y="37" width="8" height="6" rx="2" fill="#e3c394"/><path d="M45 28 Q50 22 46 16" stroke="#e8ddd0" stroke-width="2" fill="none" opacity=".7"/><path d="M61 26 Q66 20 62 13" stroke="#e8ddd0" stroke-width="2" fill="none" opacity=".6"/><path d="M77 28 Q82 22 78 17" stroke="#e8ddd0" stroke-width="2" fill="none" opacity=".6"/>'
   };
-  function gmItemArt(key) {
+  function gmBuildArt(key) {
     var art = GM_ITEM_ART[key] || '<rect x="0" y="45" width="120" height="19" fill="#60764f"/><rect x="42" y="22" width="36" height="24" fill="#b08a63"/><path d="M38 22 L60 10 L82 22 Z" fill="#7a5237"/>';
     return '<span class="gs-ill"><svg viewBox="0 0 120 64" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + art + '</svg></span>';
   }
@@ -9850,6 +10187,39 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 8), mat);
     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m;
   }
+  // 所有设施的共用细部：接地阴影 + 石基 + 木牌
+  function gmFacilityDetail(g, key) {
+    var def = GM_ITEMS[key] || { jp: '施設', name: '设施' };
+    var plant = key === 'sakura' || key === 'pine';
+    var r = key === 'inn' ? 2.0 : (key === 'tea' ? 1.35 : 1.0);
+    if (!plant) {
+      var disc = new THREE.Mesh(new THREE.CircleGeometry(r, 24),
+        new THREE.MeshBasicMaterial({ color: 0x1d1810, transparent: true, opacity: 0.16, depthWrite: false }));
+      disc.rotation.x = -Math.PI / 2;
+      disc.position.y = 0.012;
+      disc.userData.noPick = true;
+      g.add(disc);
+      var plinth = gmCyl(r * 0.9, r, 0.08, gmMat(0x8d8a7f, 0.95), 0, 0.04, 0, 14);
+      plinth.userData.noPick = true;
+      g.add(plinth);
+    }
+    if (plant) return;
+    var hasSign = key === 'tea' || key === 'inn' || key === 'dango' || key === 'sakuraMochi'
+      || key === 'kakigori' || key === 'kuri' || key === 'oden';
+    if (!hasSign) return;
+    var signX = 0.62, signZ = (key === 'inn' ? 1.45 : 1.02), signY = (key === 'inn' ? 1.9 : 1.45);
+    g.add(gmCyl(0.035, 0.045, signY - 0.15, gmMat(0x5d432f, 0.94), signX, (signY - 0.15) / 2, signZ, 6));
+    g.add(gmBox(0.72, 0.40, 0.055, gmMat(0x3d2e26, 0.92), signX, signY, signZ));
+    var sign = new THREE.Mesh(new THREE.PlaneGeometry(0.64, 0.32),
+      new THREE.MeshStandardMaterial({ map: GM_ART.plaqueTex(def.jp, def.name), roughness: 0.82 }));
+    sign.position.set(signX, signY, signZ + 0.035);
+    sign.userData.kind = 'built';
+    sign.userData.gmKey = key;
+    sign.userData.artRole = 'facility-sign';
+    sign.userData.artTier = 2;
+    g.add(sign);
+  }
+
   function gmItemMesh(key) {
     var g = new THREE.Group();
     var wood = gmMat(0x6b4a33, 0.92), dark = gmMat(0x3d2e26, 0.9);
@@ -10030,6 +10400,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     g.userData.kind = 'built'; g.userData.gmKey = key;
     g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.userData.kind = 'built'; o.userData.gmKey = key; } });
+    gmFacilityDetail(g, key);
     return g;
   }
 
@@ -10128,7 +10499,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var off = it.season && it.season !== seasonNow;
       var tag = locked ? '<span class="lock">需研究</span>' : off ? '<span class="lock">季货 · ' + GM_SEASON_NAME[it.season] + '</span>' : it.season ? '<span style="color:#a9d39a">当季 +35%</span>' : '';
       html += '<button class="gs-card" data-k="' + key + '"' + (locked || poor || off ? ' disabled' : '') + '>' +
-        gmItemArt(key) +
+        gmBuildArt(key) +
         '<b>' + it.name + '</b><i>' + it.jp + '</i>' +
         '<s>' + it.desc + '</s>' +
         '<em>' + tag + ' · 銭 ' + it.cost + ' · 景 +' + it.appeal + (it.income ? ' · 收 +' + it.income : '') + '</em>' +
@@ -10342,6 +10713,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); root.add(m); return m;
     }
     function box(w, h, d, mat, x, y, z) { return add(new THREE.BoxGeometry(w, h, d), mat, x, y, z); }
+
+    // 脚下接地阴影
+    var vshadow = add(new THREE.CircleGeometry(0.27, 16),
+      new THREE.MeshBasicMaterial({ color: 0x17120d, transparent: true, opacity: 0.18, depthWrite: false }), 0, 0.012, 0);
+    vshadow.rotation.x = -Math.PI / 2;
+    vshadow.userData.tempMat = true;
+    vshadow.userData.noPick = true;
 
     var torso = add(new THREE.CylinderGeometry(0.135 * bw, 0.19 * bw, 0.46, 6, 1), cloth, 0, 0.79, 0);
     var skirt = add(new THREE.CylinderGeometry(0.19 * bw, 0.245 * bw, 0.2, 6, 1), cloth2, 0, 0.56, 0);
