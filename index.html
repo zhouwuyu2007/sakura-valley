@@ -11212,6 +11212,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!a) { if (!silent) gmToast('先设置 BGM ' + (i + 1) + ' 的音源'); return false; }
     var prev = bgmActive;
     if (prev >= 0 && prev !== i && BGM_AUDIO[prev] && !BGM_AUDIO[prev].paused) {
+      /* 快速连续切歌时，上一轮淡变可能还留下第三个声部在播，先清掉 */
+      for (var q = 0; q < BGM_AUDIO.length; q++) {
+        if (q !== prev && q !== i && BGM_AUDIO[q] && !BGM_AUDIO[q].paused) {
+          try { BGM_AUDIO[q].pause(); BGM_AUDIO[q].volume = bgmTargetVol(); } catch (e) {}
+        }
+      }
       if (bgmCrossfade(prev, i)) { if (!silent) bgmAnnounce(i); return true; }
     }
     bgmCancelFade();
@@ -11263,7 +11269,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var a = BGM_AUDIO[i];
     if (bgmActive === i && a && !a.paused) {
       bgmCancelFade();
-      try { a.pause(); } catch (e) {}
+      /* 淡变中暂停时，淡出中的旧曲也要一起停，否则会留一层残响 */
+      for (var k = 0; k < BGM_AUDIO.length; k++) {
+        if (BGM_AUDIO[k]) {
+          try { BGM_AUDIO[k].pause(); BGM_AUDIO[k].volume = bgmTargetVol(); } catch (e) {}
+        }
+      }
       bgmActive = -1; gmToast('BGM 已暂停');
     }
     else gmBgmPlay(i);
