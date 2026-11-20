@@ -4270,10 +4270,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     moonCore.position.copy(moonDir).multiplyScalar(330);
     var moonVis = nightF * moonUp;
     var _mi = (typeof GM !== 'undefined' && GM) ? GM.moonIllum : 1;
-    moonHalo.material.opacity = moonVis * (0.18 + 0.34 * _mi);
-    moonGlow.material.opacity = moonVis * (0.12 + 0.28 * _mi);
-    moonCore.material.opacity = moonVis * Math.min(1, 0.22 + 0.90 * _mi);
-    starMat.uniforms.uOpacity.value = nightF * (1.30 + 0.36 * (1 - _mi) + 0.12 * Math.sin(el * 1.7));
+    var skyT = wxSkyTrans();
+    moonHalo.material.opacity = moonVis * (0.18 + 0.34 * _mi) * skyT;
+    moonGlow.material.opacity = moonVis * (0.12 + 0.28 * _mi) * skyT;
+    moonCore.material.opacity = moonVis * Math.min(1, 0.22 + 0.90 * _mi) * skyT;
+    starMat.uniforms.uOpacity.value = nightF * (1.30 + 0.36 * (1 - _mi) + 0.12 * Math.sin(el * 1.7)) * wxStarVis();
     starMat.uniforms.uTime.value = el;
     starGroup.rotation.y = -(hour / 24) * Math.PI * 2 * 0.55 + el * 0.0006;
 
@@ -8105,49 +8106,49 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       key: 'clear', name: '晴', jp: '晴れ', icon: '☀', tag: '天色明朗',
       appeal: 1.14, comfort: 1.00, cap: 1.02, spawn: 0.86, spend: 1.08, sat: 7,
       research: 1.00, build: 1.00, income: 1.05,
-      sun: 1.00, grey: 0.00, fogFar: 1.00, cloud: 0.95, rain: 0, snow: 0, snowFall: 0.45, firefly: 1.00,
+      sun: 1.00, grey: 0.00, fogFar: 1.00, cloud: 0.95, cover: 0.03, rain: 0, snow: 0, snowFall: 0.45, firefly: 1.00,
       note: '光足风轻，樱影最清。客人愿意多走一圈，店前也排得起队。'
     },
     cloudy: {
       key: 'cloudy', name: '多云', jp: '薄曇り', icon: '☁', tag: '云影浮动',
       appeal: 1.03, comfort: 0.87, cap: 0.97, spawn: 1.00, spend: 1.00, sat: 2,
       research: 1.00, build: 1.00, income: 1.00,
-      sun: 0.88, grey: 0.14, fogFar: 0.95, cloud: 1.06, rain: 0, snow: 0, snowFall: 0.55, firefly: 0.92,
+      sun: 0.88, grey: 0.14, fogFar: 0.95, cloud: 1.06, cover: 0.38, rain: 0, snow: 0, snowFall: 0.55, firefly: 0.92,
       note: '光被云揉散，颜色反而温润。人不多不少，是个平稳的日子。'
     },
     overcast: {
       key: 'overcast', name: '阴', jp: '曇り', icon: '☁', tag: '天光低沉',
       appeal: 0.94, comfort: 0.74, cap: 0.93, spawn: 1.10, spend: 0.97, sat: -2,
       research: 1.05, build: 0.95, income: 0.97,
-      sun: 0.58, grey: 0.32, fogFar: 0.90, cloud: 1.12, rain: 0, snow: 0, snowFall: 0.65, firefly: 0.72,
+      sun: 0.58, grey: 0.32, fogFar: 0.90, cloud: 1.12, cover: 0.72, rain: 0, snow: 0, snowFall: 0.65, firefly: 0.72,
       note: '山色发灰，远景收进雾里。客人来得慢，坐得久。'
     },
     rain: {
       key: 'rain', name: '雨', jp: '雨', icon: '☂', tag: '细雨湿庭',
       appeal: 0.86, comfort: 0.52, cap: 0.80, spawn: 1.50, spend: 0.86, sat: -7,
       research: 1.22, build: 0.72, income: 0.94,
-      sun: 0.32, grey: 0.50, fogFar: 0.72, cloud: 1.18, rain: 1.0, snow: 0, snowFall: 0.25, firefly: 0.10,
+      sun: 0.32, grey: 0.50, fogFar: 0.72, cloud: 1.18, cover: 0.88, rain: 1.0, snow: 0, snowFall: 0.25, firefly: 0.10,
       note: '石径发亮，苔色变深。茶屋与宿坊成了避雨处，翻书的人比看花的人多。'
     },
     storm: {
       key: 'storm', name: '暴雨', jp: '雷雨', icon: '⛈', tag: '雷雨过境',
       appeal: 0.72, comfort: 0.24, cap: 0.52, spawn: 2.40, spend: 0.70, sat: -15,
       research: 1.38, build: 0.45, income: 0.88,
-      sun: 0.18, grey: 0.68, fogFar: 0.60, cloud: 1.26, rain: 1.7, snow: 0, snowFall: 0.12, firefly: 0.02,
+      sun: 0.18, grey: 0.68, fogFar: 0.60, cloud: 1.26, cover: 0.96, rain: 1.7, snow: 0, snowFall: 0.12, firefly: 0.02,
       note: '檐水成线，庭中无人久留。工期受阻，只有灯下还亮着一盏茶。'
     },
     snow: {
       key: 'snow', name: '雪', jp: '雪', icon: '❄', tag: '雪覆庭石',
       appeal: 1.12, comfort: 0.48, cap: 0.64, spawn: 1.95, spend: 0.78, sat: -6,
       research: 1.12, build: 0.55, income: 0.90,
-      sun: 0.52, grey: 0.34, fogFar: 0.80, cloud: 1.14, rain: 0, snow: 1.0, snowFall: 1.25, firefly: 0.00,
+      sun: 0.52, grey: 0.34, fogFar: 0.80, cloud: 1.14, cover: 0.62, rain: 0, snow: 1.0, snowFall: 1.25, firefly: 0.00,
       note: '雪把庭园压成一张白纸，石与树只剩轮廓。雪见客踏雪而来，关东煮最暖。'
     },
     fog: {
       key: 'fog', name: '雾', jp: '霧', icon: '≋', tag: '雾锁山谷',
       appeal: 1.07, comfort: 0.64, cap: 0.86, spawn: 1.30, spend: 0.95, sat: -3,
       research: 1.10, build: 0.88, income: 0.98,
-      sun: 0.45, grey: 0.42, fogFar: 0.45, cloud: 1.10, rain: 0, snow: 0, snowFall: 0.6, firefly: 0.55,
+      sun: 0.45, grey: 0.42, fogFar: 0.45, cloud: 1.10, cover: 0.90, rain: 0, snow: 0, snowFall: 0.6, firefly: 0.55,
       note: '五步外的鸟居只剩影子。雾里的灯像浮着，反倒比晴天更入画。'
     }
   };
@@ -8334,15 +8335,36 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   var WX_MOON_AMB = new THREE.Color(0xffe0b8);
   var WX_MOON_HEMI = new THREE.Color(0xffd39a);
   var WX_MOON_FOG = new THREE.Color(0xd9aa70);
+
+  // 云量：随天气过渡插值，晴天约 3%，暴雨几乎全遮
+  function wxCover() {
+    if (typeof WX === 'undefined' || !WX || !WX.ready) return 0.03;
+    var a = WX.prev || WX.def, b = WX.def;
+    var t = typeof WX.tone === 'number' ? Math.max(0, Math.min(1, WX.tone)) : 1;
+    var ca = a && typeof a.cover === 'number' ? a.cover : 0.03;
+    var cb = b && typeof b.cover === 'number' ? b.cover : 0.03;
+    return Math.max(0, Math.min(1, ca + (cb - ca) * t));
+  }
+  // 月光通透度：晴天归一化为 1；阴雨按幂函数下降，保留少量散射月光
+  function wxSkyTrans() {
+    var c = wxCover();
+    var raw = Math.max(0, Math.min(1, (1 - c) / 0.97));
+    return Math.pow(raw, 1.35);
+  }
+  // 星光可见度：比月光衰减更快，雨雾天基本无星
+  function wxStarVis() {
+    var c = wxCover();
+    var raw = Math.max(0, Math.min(1, (1 - c) / 0.97));
+    return Math.pow(raw, 1.10);
+  }
   function wxMoonFactor() {
     if (!WX.ready || !GM.moonIllum) return 0;
-    if (WX.def.key !== 'clear') return 0;
     if (!(hour < 6 || hour >= 18)) return 0;
     // 月光随月相渐强：月牙只留一线冷光，满月才把暖黄铺满庭院
     var t = Math.max(0, Math.min(1, (GM.moonIllum - 0.02) / 0.98));
     var m = Math.pow(t, 1.30);
     var nf = typeof nightF === 'number' ? nightF : 0;
-    var f = m * Math.min(1, Math.max(0, nf * 1.35));
+    var f = m * Math.min(1, Math.max(0, nf * 1.35)) * wxSkyTrans();
     if (gmCountBuilt('tsukimi') > 0) f = Math.min(1, f * 1.05);
     return f;
   }
@@ -8396,7 +8418,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     sunSprite.material.opacity *= sun;
     moonHalo.material.opacity *= (0.55 + 0.45 * sun);
     moonGlow.material.opacity *= (0.55 + 0.45 * sun);
-    if (typeof moonLight !== 'undefined' && moonLight) moonLight.intensity *= (0.55 + 0.45 * sun);
+    if (typeof moonLight !== 'undefined' && moonLight) moonLight.intensity *= (0.55 + 0.45 * sun) * (0.15 + 0.85 * wxSkyTrans());
     cloudMat.opacity = Math.min(1, cloudMat.opacity * (1 + 0.55 * grey));
     birdMat.opacity *= (1 - 0.80 * grey);
     motes.mesh.material.opacity *= (1 - 0.60 * grey);
@@ -8582,15 +8604,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     tbl += '</div>';
     var nameTxt = d.name + (d.jp && d.jp !== d.name ? '（' + d.jp + '）' : '');
+    var moonHtml = '';
+    if (WX.ready && GM.moonIllum >= 0.86 && (hour < 6 || hour >= 18)) {
+      var mv = wxSkyTrans();
+      var mdesc = mv >= 0.70 ? '暖黄月光漫过庭院' : mv >= 0.15 ? '月色被云滤过，只余一层柔光' : '云厚雨密，今夜难见月';
+      moonHtml = '<p style="margin-top:6px;color:#f0c07a">今夜满月 · ' + mdesc + (mv >= 0.15 && gmCountBuilt('tsukimi') > 0 ? '，待月亭里已备下坐席。' : '') + '</p>';
+    }
     var html = '<div class="rt"><b>天候 · ' + nameTxt + '</b><span class="num">体感 ' + Math.round(d.comfort * 100) + '</span></div>' +
       '<p style="margin:2px 0 0;opacity:.72">' + d.tag + ' · ' + d.note + '</p>' +
+      '<p style="margin:5px 0 0;opacity:.72">云量 <b>' + Math.round(wxCover() * 100) + '%</b> · 月光通透 <b>' + Math.round(wxSkyTrans() * 100) + '%</b> · 星光 <b>' + Math.round(wxStarVis() * 100) + '%</b></p>' +
       wxEffectChips() +
       '<div class="rt" style="margin-top:8px"><b>接下来</b><span style="opacity:.5">' + hh + ' 小时后变化</span></div>' +
       '<div class="wx-fc">' + fc + '</div>' +
       '<div class="rt" style="margin-top:10px"><b>季节气候分布</b><span style="opacity:.5">每季合计 100%</span></div>' +
       tbl +
       '<p style="opacity:.55;margin-top:6px">季节与天候为中等强度相关（Cramér\'s V ≈ 0.34）：季节只改变各天候的出现概率。雨与雾四季皆可，雪限冬季，雷雨限夏秋——类型集合由气候常识约束，概率由季节调节。</p>' +
-      (WX.ready && WX.def.key === 'clear' && GM.moonIllum >= 0.86 && (hour < 6 || hour >= 18) ? '<p style="margin-top:6px;color:#f0c07a">今夜满月 · 暖黄月光漫过庭院' + (gmCountBuilt('tsukimi') > 0 ? '，待月亭里已备下坐席。' : '；若建一座待月亭，赏月更有去处。') + '</p>' : '');
+      moonHtml;
     gmShowModal('天候 · ' + d.name, html, [{ t: '合上' }]);
   }
 
@@ -12088,6 +12117,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       force: function (k) { WX.queue = []; wxApply(k, false); WX.nextAt = WX.clock + 4; wxPlan(3); },
       spots: gmShelterSpots,
       moonFactor: wxMoonFactor,
+      cover: wxCover,
+      sky: wxSkyTrans,
+      star: wxStarVis,
       vis: function () {
         return GM.visList.map(function (v) {
           return { name: v.name, kind: v.kind.key, u: +v.u.toFixed(2), umb: !!v.hasUmbrella,
