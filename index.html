@@ -11649,6 +11649,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
        这里同时阻断冒泡，避免全局 pointerdown/touchstart 抢先调 ambUnlock。 */
     enterGateEl.addEventListener('pointerdown', function (e) { e.stopPropagation(); }, { passive: true });
     enterGateEl.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+    /* 部分内置 WebView 不把 click 派发给全屏覆盖层：touchend 兜底进入。
+       touchend 仍是用户手势，起播不会比 click 更差；click 后续触发会被 enterGateDone 拦住。 */
+    enterGateEl.addEventListener('touchend', function (e) { e.stopPropagation(); gmEnterGarden(); }, { passive: true });
     enterGateEl.addEventListener('click', function (e) { e.stopPropagation(); gmEnterGarden(); });
     enterGateEl.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
