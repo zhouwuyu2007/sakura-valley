@@ -465,6 +465,47 @@
   .gm-body .rt button[disabled]{ opacity:.4; cursor:not-allowed; }
   .gm-foot{ display:flex; gap:8px; justify-content:flex-end; padding:12px 16px 16px;
     position:sticky; bottom:0; background:rgba(32,26,22,.98); border-top:1px solid rgba(247,239,228,.08); }
+  /* —— 访客档案 —— */
+  .gv-top{ display:flex; gap:13px; align-items:flex-start; padding-bottom:11px; border-bottom:1px solid rgba(247,239,228,.1); }
+  .gv-avatar{ flex:0 0 92px; width:92px; height:112px; overflow:hidden; border:1px solid rgba(247,239,228,.18);
+    background:linear-gradient(160deg,#d9e1dc 0%,#c6d0c6 55%,#aebca8 100%); }
+  .gv-avatar svg{ display:block; width:100%; height:100%; }
+  .gv-id{ flex:1; min-width:0; padding-top:2px; }
+  .gv-role{ display:inline-block; padding:2px 7px; margin-bottom:5px; font-size:8px; letter-spacing:.18em;
+    color:#e8c08a; border:1px solid rgba(232,192,138,.35); }
+  .gv-id b{ display:block; font-size:18px; line-height:1.35; letter-spacing:.12em; font-weight:600; color:#fff8ee; }
+  .gv-id i{ display:block; margin-top:3px; font-style:normal; font-size:9px; letter-spacing:.12em; color:rgba(244,233,218,.5); }
+  .gv-id p{ margin:7px 0 0; font-size:10px; line-height:1.7; letter-spacing:.04em; color:rgba(244,233,218,.64); }
+  .gv-meter{ margin:12px 0 3px; }
+  .gv-meter .l{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; font-size:9px; letter-spacing:.12em; color:rgba(244,233,218,.55); }
+  .gv-meter .l b{ font-size:15px; font-weight:600; color:#e8c08a; }
+  .gv-meter .l em{ font-style:normal; font-size:9px; color:rgba(244,233,218,.6); }
+  .gv-bar{ height:7px; margin-top:4px; overflow:hidden; background:rgba(247,239,228,.08); }
+  .gv-bar i{ display:block; height:100%; background:linear-gradient(90deg,#8d4a44,#d8a267,#e9cf9d); transition:width .25s; }
+  .gv-facts{ display:grid; grid-template-columns:1fr 1fr; gap:5px; margin:10px 0 4px; }
+  .gv-fact{ padding:6px 8px 7px; border:1px solid rgba(247,239,228,.09); background:rgba(247,239,228,.035); }
+  .gv-fact span{ display:block; font-size:8px; letter-spacing:.14em; color:rgba(244,233,218,.4); }
+  .gv-fact b{ display:block; margin-top:2px; font-size:11px; font-weight:500; letter-spacing:.06em; color:#e8c08a; }
+  .gv-sec{ margin-top:11px; }
+  .gv-sec>b{ display:block; margin-bottom:4px; font-size:8px; letter-spacing:.18em; font-weight:500; color:rgba(244,233,218,.45); }
+  .gv-prefs{ display:flex; flex-wrap:wrap; gap:4px; }
+  .gv-pref{ padding:2px 7px; font-size:8px; letter-spacing:.08em; color:rgba(244,233,218,.45); border:1px solid rgba(247,239,228,.12); }
+  .gv-pref.on{ color:#cbe4b9; border-color:rgba(169,211,154,.38); background:rgba(169,211,154,.06); }
+  .gv-log div{ display:flex; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px dashed rgba(247,239,228,.1); font-size:9.5px; }
+  .gv-log div:last-child{ border-bottom:none; }
+  .gv-log span{ color:rgba(244,233,218,.66); }
+  .gv-log em{ font-style:normal; color:#e8c08a; white-space:nowrap; }
+  .gv-total{ display:flex; justify-content:space-between; margin-top:5px; padding-top:5px; border-top:1px solid rgba(247,239,228,.12); font-size:9px; color:rgba(244,233,218,.55); }
+  .gv-total b{ font-size:13px; font-weight:500; color:#e8c08a; }
+  .gv-quote{ margin:11px 0 2px; padding:8px 10px; border-left:2px solid #9c4a4a; background:rgba(247,239,228,.04);
+    font-size:10px; line-height:1.8; letter-spacing:.04em; color:rgba(244,233,218,.72); }
+  .gv-note{ margin:8px 0 0; font-size:8.5px; line-height:1.7; color:rgba(244,233,218,.38); }
+  @media (max-width:520px){
+    .gv-avatar{ flex-basis:76px; width:76px; height:96px; }
+    .gv-id b{ font-size:16px; }
+    .gv-facts{ grid-template-columns:1fr 1fr; }
+  }
+
   .gm-foot button{ appearance:none; cursor:pointer; padding:8px 20px; font-family:inherit;
     font-size:10px; letter-spacing:.18em; color:#f7efe4; background:#9c4a4a; border:1px solid #9c4a4a; }
 
@@ -6680,6 +6721,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (!vis) continue;
       if (h.object.userData && h.object.userData.noPick) continue;
       var ok = kindOf(h.object);
+      // 访客优先于脚下的地块/分区拾取，站在鸟居或茶屋旁也能点开档案
+      if (ok === 'visitor') {
+        var vo = h.object; var vv = null;
+        while (vo) { if (vo.userData && vo.userData.visitor) { vv = vo.userData.visitor; break; } vo = vo.parent; }
+        if (vv) return { kind: 'visitor', point: h.point, normal: new THREE.Vector3(0, 1, 0), zone: null, hit: h, visitor: vv };
+      }
       var zn = bestZone(h.point);
       if (zn && zn.r <= 2.6) return { kind: zn.kind, point: h.point, normal: h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : new THREE.Vector3(0, 1, 0), zone: zn, hit: h };
       if (ok && !GENERIC_KINDS[ok]) return { kind: ok, point: h.point, normal: h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : new THREE.Vector3(0, 1, 0), zone: (zn && zn.kind === ok) ? zn : null, hit: h };
@@ -6716,6 +6763,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function respond(res) {
     var kind = res.kind, pt = res.point, n = res.normal;
     var up = new THREE.Vector3(0, 1, 0);
+    if (kind === 'visitor' && res.visitor) {
+      var vp = new THREE.Vector3();
+      res.visitor.g.getWorldPosition(vp); vp.y += 1.45;
+      burst(vp, '#f3d69a', 16, { speed: 1.4, up: 1.2, life: 0.8 });
+      ringAt(new THREE.Vector3(res.visitor.g.position.x, res.visitor.g.position.y + 0.05, res.visitor.g.position.z), up, '#f3d69a', 0.3, 2.2, 0.85);
+      sfx('click');
+      gmVisitorPanel(res.visitor);
+      return;
+    }
     var builtKey = null;
     if (kind === 'built' && res.hit) {
       var bo = res.hit.object;
@@ -9137,25 +9193,313 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     new THREE.Vector3(10, 0, 24), new THREE.Vector3(18, 0, 27), new THREE.Vector3(23, 0, 34),
     new THREE.Vector3(22, 0, 42), new THREE.Vector3(18, 0, 52), new THREE.Vector3(20, 0, 64)
   ]);
-  var gmCloth = [0x3c4d63, 0x6b3f46, 0x4d5a3c, 0x7a6448, 0x3a3a40, 0x8a5a4a];
-  function gmSpawnVisitor() {
-    var g = new THREE.Group();
-    var cloth = gmMat(gmCloth[Math.floor(Math.random() * gmCloth.length)], 0.9);
-    var skin = gmMat(0xe8c8a8, 0.9);
-    var body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.5, 3, 8), cloth);
-    body.position.y = 0.62; body.castShadow = true; g.add(body);
-    var head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 10, 8), skin);
-    head.position.y = 1.06; head.castShadow = true; g.add(head);
-    var hat = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.16, 10), gmMat(0xc9ac74, 0.92));
-    hat.position.y = 1.2; g.add(hat);
-    g.traverse(function (o) { o.userData.noPick = true; o.raycast = function () {}; });
-    g.scale.set(1.45, 1.45, 1.45);
+  var GM_VISITOR_SURNAMES = ['佐藤', '高桥', '小林', '田中', '渡边', '伊藤', '山本', '中村', '松本', '藤井', '大野', '清水'];
+  var GM_VISITOR_GIVEN_M = ['悠', '透', '健', '诚', '春树', '直人', '海斗', '宗一郎', '和真', '修'];
+  var GM_VISITOR_GIVEN_F = ['千鹤', '雪', '葵', '春菜', '美咲', '结衣', '小春', '澪', '铃', '知夏'];
+  var GM_VISITOR_KINDS = [
+    { key: 'pilgrim', title: '参拜客', jp: '参拝客', gender: 'any', weight: 1.2,
+      purpose: '参拜', prefs: ['ema', 'lantern'], hat: 'kasa', accessory: 'ema',
+      cloth: [0x3b4960, 0x45536a, 0x303d51], cloth2: [0x5a6b84, 0x4d5c73], obi: 0xc7ae86, accent: 0xefe4cf, hatColor: 0xc7a96f,
+      budget: [28, 48], desc: '循着鸟居与灯笼，来山谷里参拜。',
+      quotes: ['鸟居后的风，比想象中更安静。', '灯亮起来的时候，山谷像有了呼吸。', '下次要带一枚新的绘马来。'] },
+    { key: 'tea', title: '茶人', jp: '茶人', gender: 'f', weight: 1.0,
+      purpose: '品茶', prefs: ['tea', 'sakura'], hat: 'none', accessory: 'fan',
+      cloth: [0x5b6b4f, 0x6b7356, 0x4c5a43], cloth2: [0x78866a, 0x5c6752], obi: 0xb98a5f, accent: 0xe8dfc9,
+      budget: [48, 78], desc: '为了一盏茶，愿意在山里坐上一个下午。',
+      quotes: ['茶汤的温度，刚刚好。', '樱影落在茶盏里，舍不得喝。', '若再有一处安静的石庭就好了。'] },
+    { key: 'painter', title: '画师', jp: '絵師', gender: 'm', weight: 0.85,
+      purpose: '写生', prefs: ['sakura', 'pine'], hat: 'cap', accessory: 'book',
+      cloth: [0x6a5746, 0x7a624e], cloth2: [0x4d4036, 0x5a4a3d], obi: 0xb0855f, accent: 0xe0d1b5, hatColor: 0x51443a,
+      budget: [30, 48], desc: '带着速写本，寻找最能入画的一角。',
+      quotes: ['这一角的山脊线，值得画下来。', '风一动，樱枝的形就变了。', '下次要带更大的纸来。'] },
+    { key: 'photographer', title: '摄影师', jp: '写真家', gender: 'any', weight: 0.9,
+      purpose: '摄影', prefs: ['sakura', 'lantern'], hat: 'cap', accessory: 'camera',
+      cloth: [0x3e4a44, 0x4d5a52], cloth2: [0x29312d, 0x363f39], obi: 0x6f5a46, accent: 0xd9cbb4, hatColor: 0x2e302f,
+      budget: [38, 62], desc: '背着相机，等樱吹雪落进取景框。',
+      quotes: ['今天的光很软，适合拍人像。', '灯笼亮起的那一瞬间最好看。', '存储卡快满了，但还想再等一会儿。'] },
+    { key: 'scholar', title: '学者', jp: '学者', gender: 'm', weight: 0.8,
+      purpose: '考察', prefs: ['ema', 'tea', 'inn'], hat: 'none', accessory: 'book',
+      cloth: [0x4d4f59, 0x5b5d66], cloth2: [0x3b3d45, 0x464851], obi: 0x8f7d62, accent: 0xe9dfcc,
+      budget: [28, 45], desc: '研究庭园的构成，也研究人心的安放。',
+      quotes: ['石与水的比例，很有意思。', '这里的留白，比堆叠更难。', '记下了，回去慢慢整理。'] },
+    { key: 'poet', title: '歌人', jp: '歌人', gender: 'f', weight: 0.8,
+      purpose: '寻句', prefs: ['sakura', 'tea', 'fence'], hat: 'none', accessory: 'fan',
+      cloth: [0x8a5a63, 0x9a6a70], cloth2: [0x6e444d, 0x7c5059], obi: 0xc9a77d, accent: 0xf0e3d1,
+      budget: [24, 40], desc: '把看见的风景，写成短歌。',
+      quotes: ['花落的声音，比风更轻。', '这一句还差一个韵。', '山色入句，心也慢下来。'] },
+    { key: 'family', title: '亲子客', jp: '親子連れ', gender: 'f', weight: 0.9,
+      purpose: '踏青', prefs: ['dango', 'sakuraMochi', 'kakigori'], hat: 'none', accessory: 'basket', party: 'child',
+      cloth: [0x7a5a55, 0x8a6a5e], cloth2: [0xa37f6a, 0x8e6f5b], obi: 0xd0ab7c, accent: 0xf0dfc8,
+      budget: [38, 60], desc: '带孩子出来走走，顺便吃点甜的。',
+      quotes: ['孩子说下次还要来喂锦鲤。', '团子很甜，走累也值得。', '要是有个能坐久一点的地方就好了。'] },
+    { key: 'couple', title: '情侣', jp: '恋人', gender: 'f', weight: 0.8,
+      purpose: '散心', prefs: ['sakura', 'lantern', 'tea'], hat: 'none', accessory: 'parasol', party: 'partner',
+      cloth: [0x9b5d67, 0x7a5368], cloth2: [0xb87c86, 0x6b5a7d], obi: 0xe0c08c, accent: 0xf5e3d8,
+      budget: [40, 65], desc: '和喜欢的人一起，把春天走慢一点。',
+      quotes: ['这里的樱吹雪，像电影一样。', '下次点灯的时候再来一次吧。', '人少一点的话，就更好了。'] },
+    { key: 'elder', title: '老翁', jp: '老翁', gender: 'm', weight: 0.8,
+      purpose: '静坐', prefs: ['tea', 'inn', 'fence'], hat: 'none', accessory: 'cane',
+      cloth: [0x5b5b58, 0x696964], cloth2: [0x42423f, 0x50504c], obi: 0x8a7c68, accent: 0xddd5c6,
+      budget: [26, 42], desc: '走得慢，看得久，茶要温的。',
+      quotes: ['这园子，越看越有味道。', '年轻人走得快，我坐一会儿。', '石灯笼的光，还是老样子。'] },
+    { key: 'local', title: '村民', jp: '村人', gender: 'any', weight: 1.0,
+      purpose: '闲游', prefs: ['dango', 'kuri', 'oden'], hat: 'straw', accessory: 'basket',
+      cloth: [0x3f5360, 0x50656e], cloth2: [0x6b7d80, 0x536568], obi: 0xb69a73, accent: 0xe5d8c1, hatColor: 0xc5a96e,
+      budget: [20, 34], desc: '住在山脚，来看看自家的后山。',
+      quotes: ['今年的樱，比去年开得密。', '走一圈，顺便买点栗子回去。', '人多了，热闹是热闹。'] },
+    { key: 'foreign', title: '远客', jp: '遠客', gender: 'any', weight: 0.5,
+      purpose: '远行', prefs: ['sakura', 'tea', 'ema'], hat: 'cap', accessory: 'camera',
+      cloth: [0x44627a, 0x55758a], cloth2: [0x2f4557, 0x3a5365], obi: 0x8f7a5f, accent: 0xe8dcc6, hatColor: 0x3a4148,
+      budget: [55, 90], desc: '从很远的港口来，想看看传说中的山谷。',
+      quotes: ['这就是书里写的山谷吗？', '我会把这里画进旅行记。', '如果能多住一晚就好了。'] },
+    { key: 'miko', title: '巫女', jp: '巫女', gender: 'f', weight: 0.7,
+      purpose: '休憩', prefs: ['ema', 'lantern', 'sakura'], hat: 'none', accessory: 'ema',
+      cloth: [0xf0ece3, 0xe8e3d8], cloth2: [0xa94943, 0xb35a4f], obi: 0xa94943, accent: 0xf4eee2,
+      budget: [24, 40], desc: '在神社帮忙，难得有空来庭园走走。',
+      quotes: ['风铃的声音，今天格外清。', '祈愿的人比去年多了。', '等会儿还要回去点灯。'] }
+  ];
+
+  function gmVRand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function gmHexCss(n) {
+    return '#' + ('000000' + (Number(n || 0)).toString(16)).slice(-6);
+  }
+  function gmVisitorPickKind() {
+    var pool = [], total = 0;
+    for (var i = 0; i < GM_VISITOR_KINDS.length; i++) {
+      var k = GM_VISITOR_KINDS[i], w = k.weight || 1;
+      if (k.key === 'foreign') w *= GM.rating >= 3.4 ? 1.1 : 0.3;
+      if (k.key === 'couple' && GM.rating < 3.0) w *= 0.6;
+      total += w; pool.push({ k: k, w: w });
+    }
+    var r = Math.random() * total;
+    for (var j = 0; j < pool.length; j++) { r -= pool[j].w; if (r <= 0) return pool[j].k; }
+    return pool[0].k;
+  }
+  function gmVisitorLook(kind) {
+    var female = kind.gender === 'f' ? true : kind.gender === 'm' ? false : Math.random() < 0.5;
+    var look = {
+      female: female,
+      cloth: gmVRand(kind.cloth), cloth2: gmVRand(kind.cloth2),
+      obi: kind.obi, accent: kind.accent, hatColor: kind.hatColor || 0xc7a96f,
+      hat: kind.hat || 'none', accessory: kind.accessory || 'none',
+      skin: gmVRand([0xe9c9a8, 0xdfb995, 0xf0d3b6, 0xd7ad8d]),
+      hair: kind.key === 'elder' ? 0xb7b1a7 : gmVRand([0x2f2925, 0x3b3029, 0x241e1b, 0x4a3a2f])
+    };
+    return look;
+  }
+  function gmVisitorName(kind, female) {
+    return gmVRand(GM_VISITOR_SURNAMES) + ' ' + gmVRand(female ? GM_VISITOR_GIVEN_F : GM_VISITOR_GIVEN_M);
+  }
+  function gmVisitorOrigin(kind) {
+    return gmVRand(['山脚町', '河内村', '京都', '大阪', '奈良', '海边港町', '北陆', '奥州', '云取山']);
+  }
+
+  /* 低多边形人形：身体、头发、五官、手脚与随身物，全部挂在可动画的 Group 上 */
+  function gmVisitorPerson(look, opts) {
+    opts = opts || {};
+    var root = new THREE.Group();
+    var female = !!opts.female;
+    var child = !!opts.child;
+    var skin = gmMat(look.skin, 0.92);
+    var hair = gmMat(look.hair, 0.95);
+    var cloth = gmMat(look.cloth, 0.9);
+    var cloth2 = gmMat(look.cloth2, 0.9);
+    var obi = gmMat(look.obi, 0.9);
+    var accent = gmMat(look.accent, 0.9);
+    var hatMat = gmMat(look.hatColor || 0xc7a96f, 0.92);
+    var dark = gmMat(0x272321, 0.92);
+    var bw = female ? 0.92 : 1.04;
+    function add(geo, mat, x, y, z) {
+      var m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); root.add(m); return m;
+    }
+    function box(w, h, d, mat, x, y, z) { return add(new THREE.BoxGeometry(w, h, d), mat, x, y, z); }
+
+    var torso = add(new THREE.CylinderGeometry(0.135 * bw, 0.19 * bw, 0.46, 6, 1), cloth, 0, 0.79, 0);
+    var skirt = add(new THREE.CylinderGeometry(0.19 * bw, 0.245 * bw, 0.2, 6, 1), cloth2, 0, 0.56, 0);
+    var belt = add(new THREE.CylinderGeometry(0.155 * bw, 0.165 * bw, 0.065, 6, 1), obi, 0, 0.685, 0);
+    // 羽织前襟
+    var panelL = box(0.09, 0.27, 0.016, cloth2, -0.078, 0.885, 0.151); panelL.rotation.z = 0.12;
+    var panelR = box(0.09, 0.27, 0.016, cloth2, 0.078, 0.885, 0.151); panelR.rotation.z = -0.12;
+    // 交领
+    var collarL = box(0.042, 0.19, 0.016, accent, -0.052, 0.945, 0.158); collarL.rotation.z = 0.34;
+    var collarR = box(0.042, 0.19, 0.016, accent, 0.052, 0.945, 0.158); collarR.rotation.z = -0.34;
+    // 腰带结
+    box(0.12, 0.055, 0.045, accent, 0, 0.665, 0.168);
+
+    function limb(side, isArm) {
+      var p = new THREE.Group();
+      p.position.set(side * (isArm ? 0.198 : 0.085), isArm ? 0.955 : 0.54, 0);
+      var len = isArm ? 0.34 : 0.48;
+      var limbMesh = new THREE.Mesh(new THREE.CylinderGeometry(isArm ? 0.046 : 0.058, isArm ? 0.062 : 0.066, len, 5, 1), isArm ? cloth : cloth2);
+      limbMesh.position.y = -len / 2; p.add(limbMesh);
+      if (isArm) {
+        var cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.061, 0.062, 0.055, 5), accent);
+        cuff.position.y = -len + 0.045; p.add(cuff);
+        var hand = new THREE.Mesh(new THREE.SphereGeometry(0.042, 7, 5), skin);
+        hand.position.y = -len - 0.018; p.add(hand);
+      } else {
+        var shoe = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.06, 0.20), dark);
+        shoe.position.set(0, -len + 0.01, 0.038); p.add(shoe);
+      }
+      p.rotation.z = isArm ? side * 0.06 : 0;
+      root.add(p);
+      return p;
+    }
+    var armL = limb(-1, true), armR = limb(1, true), legL = limb(-1, false), legR = limb(1, false);
+
+    // 脖子与头
+    add(new THREE.CylinderGeometry(0.045, 0.052, 0.09, 6), skin, 0, 1.025, 0);
+    var head = add(new THREE.SphereGeometry(child ? 0.145 : 0.135, 10, 8), skin, 0, 1.14, 0);
+    head.scale.set(1, 0.96, 0.92);
+    // 头发：后脑与刘海
+    var hairCap = add(new THREE.SphereGeometry(0.143, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.46), hair, 0, 1.145, 0);
+    if (female) {
+      var bun = add(new THREE.SphereGeometry(0.052, 8, 6), hair, 0.112, 1.215, -0.075);
+      bun.scale.set(0.9, 1.05, 0.9);
+      var pin = add(new THREE.CylinderGeometry(0.006, 0.008, 0.11, 5), accent, 0.145, 1.245, -0.02);
+      pin.rotation.z = -0.5;
+    }
+    // 五官
+    add(new THREE.SphereGeometry(0.011, 6, 4), dark, -0.042, 1.155, 0.123);
+    add(new THREE.SphereGeometry(0.011, 6, 4), dark, 0.042, 1.155, 0.123);
+    add(new THREE.BoxGeometry(0.034, 0.007, 0.008), gmMat(0x8c4a45, 0.9), 0, 1.103, 0.126);
+    if (kindLooksOld(look)) {
+      add(new THREE.BoxGeometry(0.055, 0.008, 0.008), hair, 0, 1.092, 0.128);
+    }
+
+    // 帽子
+    if (look.hat === 'kasa' || look.hat === 'straw') {
+      var brim = add(new THREE.CylinderGeometry(look.hat === 'kasa' ? 0.29 : 0.25, look.hat === 'kasa' ? 0.29 : 0.25, 0.012, 12), hatMat, 0, 1.295, 0);
+      var crown = add(new THREE.ConeGeometry(look.hat === 'kasa' ? 0.255 : 0.22, look.hat === 'kasa' ? 0.105 : 0.085, 12), hatMat, 0, 1.335, 0);
+    } else if (look.hat === 'cap') {
+      var cap = add(new THREE.CylinderGeometry(0.145, 0.152, 0.055, 8), hatMat, 0, 1.275, 0);
+      var brim2 = box(0.16, 0.012, 0.1, hatMat, 0, 1.255, 0.12);
+    }
+
+    // 随身物
+    if (look.accessory === 'camera') {
+      var cam = box(0.11, 0.068, 0.05, dark, 0, 0.86, 0.165);
+      var lens = add(new THREE.CylinderGeometry(0.032, 0.036, 0.032, 8), gmMat(0x1e2528, 0.8), 0, 0.86, 0.198);
+      lens.rotation.x = Math.PI / 2;
+      var strap = add(new THREE.TorusGeometry(0.095, 0.007, 4, 10, Math.PI), accent, 0, 0.93, 0.12);
+      strap.rotation.x = Math.PI / 2;
+    } else if (look.accessory === 'book') {
+      var book = box(0.125, 0.17, 0.025, accent, -0.285, 0.63, 0.115);
+      book.rotation.z = 0.22;
+      var book2 = box(0.105, 0.15, 0.02, cloth2, -0.292, 0.635, 0.13);
+      book2.rotation.z = 0.22;
+    } else if (look.accessory === 'basket') {
+      var basket = add(new THREE.CylinderGeometry(0.095, 0.075, 0.12, 8), hatMat, 0.30, 0.44, 0.04);
+      var handle = add(new THREE.TorusGeometry(0.068, 0.011, 4, 8, Math.PI), dark, 0.30, 0.49, 0.04);
+      handle.rotation.z = Math.PI / 2;
+    } else if (look.accessory === 'cane') {
+      var cane = add(new THREE.CylinderGeometry(0.011, 0.014, 0.56, 5), dark, 0.32, 0.31, 0.06);
+      add(new THREE.SphereGeometry(0.025, 6, 4), accent, 0.32, 0.585, 0.06);
+    } else if (look.accessory === 'fan') {
+      var fan = add(new THREE.CircleGeometry(0.105, 7, 0, Math.PI), accent, 0.275, 0.63, 0.08);
+      fan.rotation.z = -0.45; fan.rotation.y = 0.28; fan.material.side = THREE.DoubleSide;
+      var fanStick = add(new THREE.CylinderGeometry(0.006, 0.007, 0.12, 5), dark, 0.275, 0.59, 0.08);
+      fanStick.rotation.z = -0.45;
+    } else if (look.accessory === 'ema') {
+      var plaque = box(0.10, 0.13, 0.015, accent, 0, 0.86, 0.168);
+      var plaqueMark = box(0.055, 0.012, 0.006, gmMat(0x8d5a43, 0.9), 0, 0.875, 0.178);
+    } else if (look.accessory === 'parasol') {
+      var pole = add(new THREE.CylinderGeometry(0.008, 0.008, 1.02, 5), dark, 0.36, 0.95, 0.02);
+      var canopy = add(new THREE.ConeGeometry(0.37, 0.105, 12), accent, 0.36, 1.49, 0.02);
+      var rim = add(new THREE.TorusGeometry(0.365, 0.013, 4, 12), obi, 0.36, 1.44, 0.02);
+      rim.rotation.x = Math.PI / 2;
+    }
+
+    root.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
+    return { root: root, armL: armL, armR: armR, legL: legL, legR: legR, head: head };
+  }
+  function kindLooksOld(look) { return look.hair === 0xb7b1a7; }
+
+  function gmVisitorSatTarget(v) {
+    var base = 42 + Math.min(26, gmAppeal() * 0.24) + (GM.rating - 3) * 5 + Math.min(9, GM.built.length * 1.3);
+    for (var i = 0; i < v.prefs.length; i++) {
+      for (var j = 0; j < GM.built.length; j++) {
+        if (GM.built[j].key === v.prefs[i]) { base += 3.5; break; }
+      }
+    }
+    if (v.party > 1) base += 1.5;
+    if (GM.visList.length / Math.max(1, gmCap()) > 0.78) base -= 5;
+    if (v.kind.key === 'poet' && (hour < 6 || hour >= 18)) base += 4;
+    if (v.kind.key === 'foreign' && GM.renown > 40) base += 4;
+    return Math.round(clamp(base, 20, 98));
+  }
+  function gmVisitorMatched(v) {
+    var out = [];
+    for (var i = 0; i < v.prefs.length; i++) {
+      for (var j = 0; j < GM.built.length; j++) {
+        if (GM.built[j].key === v.prefs[i]) { out.push(v.prefs[i]); break; }
+      }
+    }
+    return out;
+  }
+  function gmVisitorSpend(v) {
+    var shops = [];
+    for (var i = 0; i < GM.built.length; i++) {
+      var b = GM.built[i], it = GM_ITEMS[b.key];
+      if (it && it.income > 0 && b.key !== 'inn') shops.push(it);
+    }
+    if (!shops.length || v.spent >= v.budget - 3) return;
+    var pick = shops[Math.floor(Math.random() * shops.length)];
+    var price = Math.min(v.budget - v.spent, Math.round(4 + pick.income * 0.18 + v.sat * 0.07 + Math.random() * 3));
+    if (price < 3) return;
+    v.spent += price;
+    v.log.push({ name: pick.name, amount: price });
+    if (v.log.length > 7) v.log.splice(1, v.log.length - 7);
+    v.sat = Math.min(100, v.sat + 2.2);
+  }
+
+  function gmSpawnVisitor(kindOverride) {
+    var kind = kindOverride || gmVisitorPickKind();
+    var look = gmVisitorLook(kind);
+    var person = gmVisitorPerson(look, { female: look.female });
+    var g = person.root;
+    g.scale.set(1.36, 1.36, 1.36);
+    var comp = null;
+    if (kind.party) {
+      var compLook = gmVisitorLook(kind);
+      if (kind.party === 'partner') compLook.female = !look.female;
+      comp = gmVisitorPerson(compLook, { female: compLook.female, child: kind.party === 'child' });
+      comp.root.scale.setScalar(kind.party === 'child' ? 0.72 : 0.94);
+      comp.root.position.set(kind.party === 'child' ? 0.36 : -0.36, 0, 0.06);
+      g.add(comp.root);
+    }
+    // 放大的透明拾取体，手机上更容易点中
+    var proxy = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.5, 1.9, 8),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+    proxy.position.y = 0.92;
+    proxy.userData.tempMat = true;
+    g.add(proxy);
     g.position.copy(gmCurve.getPointAt(0));
     g.position.y = terrainH(g.position.x, g.position.z) + 0.02;
     scene.add(g);
-    GM.visList.push({ g: g, u: Math.random() * 0.02, sp: 0.9 + Math.random() * 0.35, ph: Math.random() * 6 });
+
+    var v = {
+      g: g, anim: person, compAnim: comp, kind: kind, look: look, female: look.female,
+      name: gmVisitorName(kind, look.female), identity: kind.title, jp: kind.jp,
+      origin: gmVisitorOrigin(kind), purpose: kind.purpose, desc: kind.desc,
+      prefs: kind.prefs.slice(), party: kind.party === 'child' ? 2 : kind.party === 'partner' ? 2 : 1,
+      u: Math.random() * 0.02, sp: 0.9 + Math.random() * 0.35, ph: Math.random() * 6,
+      walkPhase: Math.random() * 6, compPhase: Math.random() * 6,
+      budget: Math.round(gmVRand(kind.budget)),
+      spent: 0, log: [], sat: 0, satTarget: 0,
+      nextSpendU: 0.18 + Math.random() * 0.1,
+      entryHour: Math.floor(GM.hour), gone: false
+    };
+    v.spent = Math.min(v.budget, Math.round(4 + GM.rating * 1.2 + Math.random() * 5));
+    v.log.push({ name: '入园寄付', amount: v.spent });
+    g.userData.visitor = v;
+    g.traverse(function (o) { o.userData.kind = 'visitor'; o.userData.visitor = v; });
+    GM.visList.push(v);
+    v.satTarget = gmVisitorSatTarget(v);
+    v.sat = Math.max(28, v.satTarget - 4);
     GM.visitors = GM.visList.length;
   }
+
   function gmVisitors(rdt) {
     var cap = gmCap();
     if (GM.visList.length < cap && performance.now() > GM.nextSpawn) {
@@ -9166,21 +9510,137 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var v = GM.visList[i];
       v.u += (rdt / 42) * v.sp;
       if (v.u >= 1) {
-        scene.remove(v.g);
-        v.g.traverse(function (o) { if (o.isMesh) o.geometry.dispose(); });
-        GM.visList.splice(i, 1);
+        v.gone = true;
+        GM.spent += Math.round(v.spent);
         GM.weekVisitors++;
         GM.stats.visitorsTotal = (GM.stats.visitorsTotal || 0) + 1;
-        GM.spent += (10 + GM.built.length * 5 + gmAppeal() * 0.3) * (0.8 + GM.rating * 0.06) * (GM.unlocked.tour ? 1.1 : 1) * ((GM.unlocked.night && (hour < 6 || hour >= 18)) ? 1.1 : 1);
+        scene.remove(v.g);
+        v.g.traverse(function (o) {
+          if (o.isMesh) {
+            o.geometry.dispose();
+            if (o.userData.tempMat && o.material) o.material.dispose();
+          }
+        });
+        GM.visList.splice(i, 1);
         continue;
+      }
+      while (v.u > v.nextSpendU) {
+        gmVisitorSpend(v);
+        v.nextSpendU += 0.2 + Math.random() * 0.12;
       }
       var p = gmCurve.getPointAt(v.u);
       var tan = gmCurve.getTangentAt(v.u);
       var y = terrainH(p.x, p.z);
-      v.g.position.set(p.x, y + Math.abs(Math.sin(v.u * 60 + v.ph)) * 0.03, p.z);
+      v.walkPhase += rdt * Math.max(0.5, v.sp) * 8.5;
+      var swing = Math.sin(v.walkPhase);
+      v.anim.armL.rotation.x = swing * 0.38;
+      v.anim.armR.rotation.x = -swing * 0.42;
+      v.anim.legL.rotation.x = -swing * 0.48;
+      v.anim.legR.rotation.x = swing * 0.52;
+      if (v.compAnim) {
+        v.compPhase += rdt * Math.max(0.5, v.sp) * 8.5;
+        var cs = Math.sin(v.compPhase);
+        v.compAnim.armL.rotation.x = -cs * 0.34;
+        v.compAnim.armR.rotation.x = cs * 0.38;
+        v.compAnim.legL.rotation.x = cs * 0.52;
+        v.compAnim.legR.rotation.x = -cs * 0.48;
+      }
+      v.g.position.set(p.x, y + Math.abs(Math.sin(v.walkPhase)) * 0.022, p.z);
       v.g.rotation.y = Math.atan2(tan.x, tan.z);
+      v.sat += (gmVisitorSatTarget(v) - v.sat) * Math.min(1, rdt * 0.22);
+      v.anim.head.rotation.y = Math.sin(v.walkPhase * 0.5 + v.ph) * 0.05;
     }
     GM.visitors = GM.visList.length;
+  }
+
+  function gmVisitorMood(sat) {
+    if (sat >= 86) return '非常满意';
+    if (sat >= 70) return '满意';
+    if (sat >= 54) return '还算满意';
+    if (sat >= 38) return '一般';
+    return '不太满意';
+  }
+  function gmVisitorQuote(v) {
+    var q = v.kind.quotes || [];
+    var idx = v.sat >= 80 ? 0 : v.sat >= 52 ? 1 : 2;
+    return q[idx] || '这一趟，记下了。';
+  }
+  function gmVisitorPortrait(v) {
+    var l = v.look;
+    var c1 = gmHexCss(l.cloth), c2 = gmHexCss(l.cloth2), skin = gmHexCss(l.skin);
+    var hair = gmHexCss(l.hair), obi = gmHexCss(l.obi), accent = gmHexCss(l.accent);
+    var hat = gmHexCss(l.hatColor || 0xc7a96f), dark = '#272321';
+    var hatSvg = '';
+    if (l.hat === 'kasa') hatSvg = '<path d="M14 39 L86 39 L50 9 Z" fill="' + hat + '"/><rect x="10" y="37" width="80" height="4" rx="2" fill="' + hat + '"/>';
+    else if (l.hat === 'straw') hatSvg = '<path d="M22 39 L78 39 L50 17 Z" fill="' + hat + '"/><rect x="19" y="37" width="62" height="3.5" rx="1.7" fill="' + hat + '"/>';
+    else if (l.hat === 'cap') hatSvg = '<path d="M28 32 Q50 15 72 32 L72 36 L28 36 Z" fill="' + hat + '"/><rect x="47" y="34" width="32" height="3" rx="1.5" fill="' + hat + '"/>';
+    var accSvg = '', behindSvg = '';
+    if (l.accessory === 'parasol') behindSvg = '<path d="M6 26 Q50 -4 94 26 Z" fill="' + accent + '" opacity=".88"/><line x1="50" y1="22" x2="50" y2="112" stroke="#4c3a2c" stroke-width="1.5"/>';
+    if (l.accessory === 'camera') accSvg = '<rect x="55" y="86" width="20" height="13" fill="' + dark + '"/><circle cx="65" cy="92.5" r="4.3" fill="#1b2226" stroke="' + accent + '" stroke-width="1"/><rect x="50" y="88" width="6" height="3" fill="' + accent + '"/>';
+    if (l.accessory === 'book') accSvg = '<rect x="12" y="84" width="17" height="22" fill="' + accent + '" transform="rotate(-12 20 95)"/><rect x="15" y="88" width="12" height="15" fill="' + c2 + '" transform="rotate(-12 20 95)"/>';
+    if (l.accessory === 'basket') accSvg = '<rect x="10" y="88" width="15" height="15" rx="2" fill="' + hat + '"/><path d="M12 88 Q17 78 23 88" fill="none" stroke="#4c3a2c" stroke-width="1.4"/>';
+    if (l.accessory === 'fan') accSvg = '<path d="M74 88 L86 68 L94 78 L82 96 Z" fill="' + accent + '"/><line x1="78" y1="95" x2="87" y2="72" stroke="#4c3a2c" stroke-width="1.2"/>';
+    if (l.accessory === 'cane') accSvg = '<line x1="82" y1="86" x2="88" y2="116" stroke="#5a4030" stroke-width="3"/><circle cx="82" cy="86" r="2.6" fill="' + accent + '"/>';
+    if (l.accessory === 'ema') accSvg = '<rect x="58" y="82" width="13" height="17" fill="' + accent + '"/><rect x="60" y="84" width="9" height="2.5" fill="#8d5a43"/><line x1="64" y1="80" x2="64" y2="84" stroke="#4c3a2c" stroke-width="1"/>';
+    var bunSvg = l.female ? '<circle cx="74" cy="44" r="7" fill="' + hair + '"/><line x1="77" y1="38" x2="86" y2="34" stroke="' + accent + '" stroke-width="1.6"/>' : '';
+    var beardSvg = l.hair === 0xb7b1a7 ? '<path d="M38 70 Q50 83 62 70 Q58 78 50 79 Q42 78 38 70Z" fill="' + hair + '" opacity=".55"/>' : '';
+    return '<div class="gv-avatar"><svg viewBox="0 0 100 120" preserveAspectRatio="xMidYMid slice">' +
+      '<rect width="100" height="120" fill="#dbe3dd"/>' +
+      '<circle cx="82" cy="20" r="32" fill="#efd9de" opacity=".4"/>' +
+      '<path d="M0 92 Q48 78 100 92 L100 120 L0 120Z" fill="#a9b69e"/>' +
+      behindSvg +
+      '<path d="M13 120 L20 80 L34 74 L38 94 L30 120Z" fill="' + c2 + '"/>' +
+      '<path d="M87 120 L80 80 L66 74 L62 94 L70 120Z" fill="' + c2 + '"/>' +
+      '<path d="M28 120 L34 76 Q50 66 66 76 L72 120Z" fill="' + c1 + '"/>' +
+      '<rect x="33" y="88" width="34" height="8" fill="' + obi + '"/>' +
+      '<path d="M39 78 L50 91 L61 78 L57 96 L50 103 L43 96Z" fill="' + accent + '"/>' +
+      '<rect x="46" y="98" width="8" height="22" fill="' + skin + '"/>' +
+      '<circle cx="50" cy="54" r="21" fill="' + skin + '"/>' +
+      '<path d="M28 54 Q28 28 50 26 Q72 28 72 54 Q65 40 50 38 Q35 40 28 54Z" fill="' + hair + '"/>' +
+      bunSvg +
+      '<circle cx="42" cy="56" r="1.8" fill="' + dark + '"/><circle cx="58" cy="56" r="1.8" fill="' + dark + '"/>' +
+      '<path d="M46 63 Q50 66 54 63" fill="none" stroke="' + dark + '" stroke-width="1.2" opacity=".55"/>' +
+      beardSvg + hatSvg + accSvg +
+      '</svg></div>';
+  }
+
+  if (window.__props) window.__props.visitors = function () { return GM.visList; };
+
+  function gmVisitorPanel(v) {
+    if (!v) return;
+    var sat = Math.round(clamp(v.sat, 0, 100));
+    var matched = gmVisitorMatched(v);
+    var partyText = v.party > 1 ? (v.kind.party === 'child' ? '亲子同行 · 2 人' : '与伴侣同行 · 2 人') : '独自前来';
+    var prefHtml = '';
+    for (var i = 0; i < v.prefs.length; i++) {
+      var it = GM_ITEMS[v.prefs[i]];
+      var on = matched.indexOf(v.prefs[i]) >= 0;
+      prefHtml += '<span class="gv-pref' + (on ? ' on' : '') + '">' + gmEsc(it ? it.name : v.prefs[i]) + (on ? ' ✓' : '') + '</span>';
+    }
+    var logs = '';
+    for (var j = 0; j < v.log.length; j++) {
+      logs += '<div><span>' + gmEsc(v.log[j].name) + '</span><em>+' + v.log[j].amount + ' 銭</em></div>';
+    }
+    var hh = v.entryHour < 10 ? '0' + v.entryHour : String(v.entryHour);
+    var roleText = v.identity + (v.jp && v.jp !== v.identity ? ' · ' + v.jp : '');
+    var body = '<div class="gv-top">' + gmVisitorPortrait(v) +
+      '<div class="gv-id"><span class="gv-role">' + gmEsc(roleText) + '</span>' +
+      '<b>' + gmEsc(v.name) + '</b><i>' + gmEsc(v.origin) + ' · 为' + gmEsc(v.purpose) + '而来 · ' + partyText + '</i>' +
+      '<p>' + gmEsc(v.desc) + '</p></div></div>' +
+      '<div class="gv-meter"><div class="l"><span>满意度</span><b>' + sat + '</b><em>' + gmVisitorMood(sat) + '</em></div>' +
+      '<div class="gv-bar"><i style="width:' + sat + '%"></i></div></div>' +
+      '<div class="gv-facts">' +
+      '<div class="gv-fact"><span>本次消费</span><b>' + Math.round(v.spent) + ' 銭</b></div>' +
+      '<div class="gv-fact"><span>消费预算</span><b>' + v.budget + ' 銭</b></div>' +
+      '<div class="gv-fact"><span>游园进度</span><b>' + Math.min(99, Math.round(v.u * 100)) + '%</b></div>' +
+      '<div class="gv-fact"><span>入园时间</span><b>' + hh + ':00</b></div>' +
+      '</div>' +
+      '<div class="gv-sec"><b>偏好与满足</b><div class="gv-prefs">' + prefHtml + '</div></div>' +
+      '<div class="gv-sec"><b>本次消费明细</b><div class="gv-log">' + logs + '</div>' +
+      '<div class="gv-total"><span>累计</span><b>' + Math.round(v.spent) + ' 銭</b></div></div>' +
+      '<div class="gv-quote">「' + gmEsc(gmVisitorQuote(v)) + '」</div>' +
+      '<p class="gv-note">满意度会随园景、已建设施、拥挤程度与消费体验变化；带 ✓ 的偏好已满足。</p>';
+    gmShowModal('访客 · ' + v.name, body, [{ t: '收起' }]);
   }
 
   /* ---------- 周结 ---------- */
