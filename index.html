@@ -11693,7 +11693,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* 防卡死：场景就绪后再等 6 秒，仍没有任何有效进入手势就先静默进游戏；
-     声音等下一次触摸再起播。场景迟迟不就绪时最多等 15 秒，避免一直卡在启动页。
+     声音等下一次触摸再起播。场景迟迟不就绪时保留启动页并提示仍在加载，不再提前揭开加载层。
      正常点击/touchend 会清掉进入定时器。 */
   if (enterGateEl) {
     var gateAutoStart = performance.now();
@@ -11703,10 +11703,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         var gh = enterGateEl.querySelector('.eg-hint');
         if (gh && gh.textContent.indexOf('生成中') >= 0) gh.textContent = '轻触进入 · 开启声音';
         enterGateTimer = setTimeout(function () { gmEnterGarden(true); }, 6000);
-      } else if (performance.now() - gateAutoStart < 20000) {
-        setTimeout(gateAutoTick, 700);
       } else {
-        gmEnterGarden(true);
+        var slow = enterGateEl.querySelector('.eg-hint');
+        if (slow) slow.textContent = '庭园生成较慢，仍在加载…';
+        setTimeout(gateAutoTick, 1000);
       }
     };
     setTimeout(gateAutoTick, 800);
