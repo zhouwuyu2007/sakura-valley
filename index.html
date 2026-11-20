@@ -11662,10 +11662,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     });
   }
 
-  /* 防卡死：6 秒内没有任何有效进入手势时，先静默进游戏，声音等下一次触摸再起播。
-     正常点击/touchend 会清掉这个定时器。 */
+  /* 防卡死：场景就绪后再等 10 秒，仍没有任何有效进入手势就先静默进游戏；
+     声音等下一次触摸再起播。场景迟迟不就绪时最多等 15 秒，避免一直卡在启动页。
+     正常点击/touchend 会清掉进入定时器。 */
   if (enterGateEl) {
-    enterGateTimer = setTimeout(function () { gmEnterGarden(true); }, 6000);
+    var gateAutoStart = performance.now();
+    var gateAutoTick = function () {
+      if (enterGateDone) return;
+      if (window.__sceneReady) {
+        enterGateTimer = setTimeout(function () { gmEnterGarden(true); }, 10000);
+      } else if (performance.now() - gateAutoStart < 20000) {
+        setTimeout(gateAutoTick, 700);
+      } else {
+        gmEnterGarden(true);
+      }
+    };
+    setTimeout(gateAutoTick, 800);
   }
 
   window.addEventListener('pointerdown', ambUnlock, { passive: true });
