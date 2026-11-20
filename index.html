@@ -379,6 +379,15 @@
   .gp-clock button.on{ background:#3a3029; color:#f7efe4; border-color:#3a3029; }
   .gp-line{ margin-top:4px; font-size:9px; letter-spacing:.06em; color:rgba(54,43,35,.7); }
   .gp-line.dim{ color:rgba(54,43,35,.5); }
+  .gp-line.wx{
+    margin-top:5px; padding-top:4px; border-top:1px dashed rgba(60,48,40,.2);
+    display:flex; align-items:baseline; gap:4px; font-size:9px; color:rgba(54,43,35,.84);
+  }
+  .gp-line.wx i{ font-style:normal; font-size:12px; line-height:1; }
+  .gp-line.wx b{ font-weight:600; letter-spacing:.1em; }
+  .gp-line.wx em{ font-style:normal; opacity:.58; font-size:8.5px; }
+  .gp-line.wx s{ text-decoration:none; margin-left:auto; font-size:8px; color:rgba(156,74,74,.86);
+    border-bottom:1px solid rgba(156,74,74,.4); cursor:pointer; }
 
   .gdock{
     position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
@@ -465,6 +474,24 @@
   .gm-body .rt button[disabled]{ opacity:.4; cursor:not-allowed; }
   .gm-foot{ display:flex; gap:8px; justify-content:flex-end; padding:12px 16px 16px;
     position:sticky; bottom:0; background:rgba(32,26,22,.98); border-top:1px solid rgba(247,239,228,.08); }
+  /* —— 天候 —— */
+  .wx-tbl{ display:grid; grid-template-columns:1.35fr repeat(4,1fr); gap:4px 2px; margin:6px 0 2px;
+    font-size:9px; letter-spacing:.04em; text-align:center; }
+  .wx-tbl .hd{ opacity:.55; }
+  .wx-tbl .nm{ text-align:left; opacity:.8; }
+  .wx-tbl .cur{ color:#e8c08a; font-weight:700; }
+  .wx-tbl .zero{ opacity:.28; }
+  .wx-effect{ display:flex; flex-wrap:wrap; gap:5px; margin:8px 0 2px; }
+  .wx-effect span{ padding:3px 7px; border:1px solid rgba(247,239,228,.16); font-size:9px; letter-spacing:.06em; }
+  .wx-effect .good{ color:#a9d39a; border-color:rgba(169,211,154,.38); }
+  .wx-effect .bad{ color:#e39a9a; border-color:rgba(227,154,154,.38); }
+  .wx-fc{ display:flex; gap:6px; margin:6px 0 2px; }
+  .wx-fc div{ flex:1; padding:6px 4px; text-align:center; border:1px solid rgba(247,239,228,.14);
+    background:rgba(247,239,228,.045); font-size:9px; letter-spacing:.05em; }
+  .wx-fc div b{ display:block; font-size:13px; font-weight:400; margin-bottom:3px; }
+#wxFlash{ position:fixed; inset:0; z-index:23; pointer-events:none; opacity:0;
+    background:radial-gradient(circle at 50% 28%, rgba(240,247,255,.94), rgba(208,226,255,.38) 56%, rgba(255,255,255,0) 80%);
+    transition:opacity .18s linear; }
   /* —— 访客档案 —— */
   .gv-top{ display:flex; gap:13px; align-items:flex-start; padding-bottom:11px; border-bottom:1px solid rgba(247,239,228,.1); }
   .gv-avatar{ flex:0 0 92px; width:92px; height:112px; overflow:hidden; border:1px solid rgba(247,239,228,.18);
@@ -679,6 +706,7 @@
 </head>
 <body>
 <div id="scene" aria-label="日式樱花山谷三维庭园"></div>
+<div id="wxFlash"></div>
 <div id="vignette"></div>
 
 <header class="brand">
@@ -759,6 +787,7 @@
     <div class="gp-clock"><b id="gClock">07:00</b><button id="gPause" type="button">暂停</button><button id="gSpeed" type="button">1×</button></div>
     <div class="gp-line" id="gSun"></div>
     <div class="gp-line" id="gMoon"></div>
+    <div class="gp-line wx" id="gWx"><i>☀</i><b>晴</b><em>景 114% · 客 116%</em><s>天候</s></div>
     <div class="gp-line dim" id="gCrowd"></div>
   </div>
   <div class="gdock" id="gDock">
@@ -4046,6 +4075,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       fireflies.geometry.attributes.position.needsUpdate = true;
     }
+
+    // 天候叠加（雨云、雾、雪天光）
+    wxTint();
   }
 
   function updateSnow(dt) {
@@ -4056,7 +4088,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return;
     }
     snowMesh.visible = true;
-    snowMat.opacity = Math.min(1, snowAmount) * 0.92;
+    snowMat.opacity = Math.min(1, snowAmount) * 0.92 * wxSnowFallMul();
     for (var i = 0; i < SNOW_COUNT; i++) {
       var f = snowFlakes[i];
       f.y -= f.speed * dt;
@@ -6342,6 +6374,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       case 'splash': noiseHit(0.34, 0.10, 1600, 0.6); tone(520, 0.22, 'sine', 0.05, 220); break;
       case 'leaf': noiseHit(0.26, 0.045, 3600, 0.7); break;
       case 'chime': tone(1568, 0.9, 'sine', 0.05); tone(2093, 0.7, 'sine', 0.028); break;
+      case 'thunder': noiseHit(1.7, 0.13, 110, 0.7); tone(66, 1.5, 'sine', 0.10, 44); break;
       case 'bird': tone(1800, 0.10, 'sine', 0.05, 2600); tone(2400, 0.09, 'sine', 0.03, 1700); break;
       case 'soft': noiseHit(0.14, 0.04, 600, 0.8); break;
       default: tone(660, 0.12, 'sine', 0.04);
@@ -6364,7 +6397,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     amb.master = ac.createGain();
     amb.master.gain.value = 0.0001;
     amb.master.connect(masterGain || ac.destination);
-    ['cricket', 'bell', 'frog', 'wind', 'fall'].forEach(function (k) {
+    ['cricket', 'bell', 'frog', 'wind', 'fall', 'rain'].forEach(function (k) {
       var g = ac.createGain(); g.gain.value = 0.0001; g.connect(amb.master); amb.gains[k] = g;
     });
 
@@ -6382,6 +6415,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     amb.beds.fall = bed('bandpass', 1150, 0.45, 0.95, amb.gains.fall);
     amb.beds.fallLow = bed('lowpass', 320, 0.7, 0.55, amb.gains.fall);
     amb.beds.wind = bed('lowpass', 430, 0.8, 0.9, amb.gains.wind);
+    amb.beds.rain = bed('bandpass', 2800, 0.30, 0.85, amb.gains.rain);
+    amb.beds.rainLow = bed('lowpass', 620, 0.55, 0.45, amb.gains.rain);
     function lfo(rate, depth, target, base) {
       var o = ac.createOscillator(); o.frequency.value = rate;
       var g = ac.createGain(); g.gain.value = depth;
@@ -6529,6 +6564,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     ambRamp(amb.gains.frog.gain, (sp * 0.55 + sm * 0.85) * smoothstep(0.28, 0.85, n) * 0.55, 1.8);
     ambRamp(amb.gains.wind.gain, wi * smoothstep(0.20, 0.80, n) * 0.34, 2.2);
     ambRamp(amb.gains.fall.gain, 0.15 + n * 0.07, 1.2);
+    var wxRainAud = (WX && WX.ready) ? WX.rainI : 0;
+    ambRamp(amb.gains.rain.gain, Math.min(1, wxRainAud) * 0.62, 2.0);
   }
 
   function ambUnlock() {
@@ -7743,6 +7780,471 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   var gmLast = performance.now();
 
+  /* ============================================================
+     16.1 天候系统
+     季节只改变各天候的出现概率，不淘汰任何类型：
+     季节 × 天候 的列联相关强度 Cramér's V ≈ 0.34（中等）。
+     ============================================================ */
+  var WX_KEYS = ['clear', 'cloudy', 'overcast', 'rain', 'storm', 'snow', 'fog'];
+  var WX_SEASON_NAMES = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' };
+
+  /* 每个季节的天候出现概率（%），每列合计 100 */
+  var WX_CLIMATE = {
+    spring: [33, 21, 10, 27, 2, 0, 7],
+    summer: [52, 20, 8, 13, 7, 0, 0],
+    autumn: [47, 18, 11, 6, 3, 0, 15],
+    winter: [29, 24, 19, 2, 0, 22, 4]
+  };
+
+  var WX_DEFS = {
+    clear: {
+      key: 'clear', name: '晴', jp: '晴れ', icon: '☀', tag: '天色明朗',
+      appeal: 1.14, comfort: 1.00, cap: 1.02, spawn: 0.86, spend: 1.08, sat: 7,
+      research: 1.00, build: 1.00, income: 1.05,
+      sun: 1.00, grey: 0.00, fogFar: 1.00, cloud: 0.95, rain: 0, snow: 0, snowFall: 0.45,
+      note: '光足风轻，樱影最清。客人愿意多走一圈，店前也排得起队。'
+    },
+    cloudy: {
+      key: 'cloudy', name: '多云', jp: '薄曇り', icon: '☁', tag: '云影浮动',
+      appeal: 1.03, comfort: 0.87, cap: 0.97, spawn: 1.00, spend: 1.00, sat: 2,
+      research: 1.00, build: 1.00, income: 1.00,
+      sun: 0.88, grey: 0.14, fogFar: 0.95, cloud: 1.06, rain: 0, snow: 0, snowFall: 0.55,
+      note: '光被云揉散，颜色反而温润。人不多不少，是个平稳的日子。'
+    },
+    overcast: {
+      key: 'overcast', name: '阴', jp: '曇り', icon: '☁', tag: '天光低沉',
+      appeal: 0.94, comfort: 0.74, cap: 0.93, spawn: 1.10, spend: 0.97, sat: -2,
+      research: 1.05, build: 0.95, income: 0.97,
+      sun: 0.58, grey: 0.32, fogFar: 0.90, cloud: 1.12, rain: 0, snow: 0, snowFall: 0.65,
+      note: '山色发灰，远景收进雾里。客人来得慢，坐得久。'
+    },
+    rain: {
+      key: 'rain', name: '雨', jp: '雨', icon: '☂', tag: '细雨湿庭',
+      appeal: 0.86, comfort: 0.52, cap: 0.80, spawn: 1.50, spend: 0.86, sat: -7,
+      research: 1.22, build: 0.72, income: 0.94,
+      sun: 0.32, grey: 0.50, fogFar: 0.72, cloud: 1.18, rain: 1.0, snow: 0, snowFall: 0.25,
+      note: '石径发亮，苔色变深。茶屋与宿坊成了避雨处，翻书的人比看花的人多。'
+    },
+    storm: {
+      key: 'storm', name: '暴雨', jp: '雷雨', icon: '⛈', tag: '雷雨过境',
+      appeal: 0.72, comfort: 0.24, cap: 0.52, spawn: 2.40, spend: 0.70, sat: -15,
+      research: 1.38, build: 0.45, income: 0.88,
+      sun: 0.18, grey: 0.68, fogFar: 0.60, cloud: 1.26, rain: 1.7, snow: 0, snowFall: 0.12,
+      note: '檐水成线，庭中无人久留。工期受阻，只有灯下还亮着一盏茶。'
+    },
+    snow: {
+      key: 'snow', name: '雪', jp: '雪', icon: '❄', tag: '雪覆庭石',
+      appeal: 1.12, comfort: 0.48, cap: 0.64, spawn: 1.95, spend: 0.78, sat: -6,
+      research: 1.12, build: 0.55, income: 0.90,
+      sun: 0.52, grey: 0.34, fogFar: 0.80, cloud: 1.14, rain: 0, snow: 1.0, snowFall: 1.25,
+      note: '雪把庭园压成一张白纸，石与树只剩轮廓。雪见客踏雪而来，关东煮最暖。'
+    },
+    fog: {
+      key: 'fog', name: '雾', jp: '霧', icon: '≋', tag: '雾锁山谷',
+      appeal: 1.07, comfort: 0.64, cap: 0.86, spawn: 1.30, spend: 0.95, sat: -3,
+      research: 1.10, build: 0.88, income: 0.98,
+      sun: 0.45, grey: 0.42, fogFar: 0.45, cloud: 1.10, rain: 0, snow: 0, snowFall: 0.6,
+      note: '五步外的鸟居只剩影子。雾里的灯像浮着，反倒比晴天更入画。'
+    }
+  };
+  var WX_DUR = {
+    clear: [10, 18], cloudy: [6, 13], overcast: [5, 10], rain: [4, 9],
+    storm: [2, 5], snow: [6, 14], fog: [3, 7]
+  };
+
+  var WX = {
+    ready: false, key: 'clear', def: WX_DEFS.clear, prev: WX_DEFS.clear,
+    clock: 0, nextAt: 0, tone: 1, queue: [], seen: {},
+    rainI: 0, snowI: 0, flash: 0
+  };
+
+  function wxClock() { return GM.day * 24 + GM.hour; }
+  function wxSeasonKey() { return gmSeason(gmDate(GM.doy).m); }
+  function wxDur(k) {
+    var d = WX_DUR[k] || [5, 10];
+    return d[0] + Math.random() * (d[1] - d[0]);
+  }
+  function wxClimateText(sk) {
+    var tbl = WX_CLIMATE[sk] || WX_CLIMATE.spring;
+    var arr = [], i;
+    for (i = 0; i < WX_KEYS.length; i++) if (tbl[i] > 0) arr.push({ n: WX_DEFS[WX_KEYS[i]].name, p: tbl[i] });
+    arr.sort(function (a, b) { return b.p - a.p; });
+    var out = [];
+    for (i = 0; i < Math.min(3, arr.length); i++) out.push(arr[i].n + ' ' + arr[i].p + '%');
+    return out.join(' · ');
+  }
+  function wxPick(avoid) {
+    var tbl = WX_CLIMATE[wxSeasonKey()] || WX_CLIMATE.spring;
+    var total = 0, i;
+    for (i = 0; i < WX_KEYS.length; i++) total += tbl[i];
+    var r = Math.random() * total, acc = 0;
+    for (i = 0; i < WX_KEYS.length; i++) {
+      acc += tbl[i];
+      if (r <= acc && tbl[i] > 0) {
+        if (avoid && WX_KEYS[i] === avoid && tbl[i] < 20) continue;
+        return WX_KEYS[i];
+      }
+    }
+    return 'clear';
+  }
+  function wxPlan(n) {
+    for (var i = 0; i < n; i++) {
+      var last = WX.queue.length ? WX.queue[WX.queue.length - 1] : null;
+      var prevKey = last ? last.key : WX.key;
+      var at = last ? last.at + last.dur : (WX.nextAt || WX.clock + 4);
+      var key = wxPick(prevKey);
+      WX.queue.push({ key: key, at: at, dur: wxDur(key) });
+    }
+    if (WX.queue.length) WX.nextAt = WX.queue[0].at;
+  }
+  function wxApply(key, silent) {
+    if (!WX_DEFS[key]) key = 'clear';
+    WX.prev = WX.def;
+    WX.key = key;
+    WX.def = WX_DEFS[key];
+    WX.tone = 0;
+    if (!silent) {
+      var seenKey = wxSeasonKey() + ':' + key;
+      if (!WX.seen[seenKey]) {
+        WX.seen[seenKey] = true;
+        var msg = {
+          rain: '落雨 · 檐下开始有人躲雨',
+          storm: '雷雨过境 · 客流骤减，工期受阻',
+          snow: '落雪 · 雪见客踏雪而来',
+          fog: '起雾 · 山谷只剩轮廓',
+          clear: '放晴 · 庭园亮起来了',
+          cloudy: '云影 · 光线柔和',
+          overcast: '转阴 · 山色发灰'
+        };
+        if (msg[key] && (key === 'rain' || key === 'storm' || key === 'snow' || key === 'fog' || key === 'clear')) {
+          gmToast(msg[key]);
+        }
+      }
+    }
+  }
+  function wxAdvance(dh) {
+    if (!WX.ready || dh <= 0) return;
+    WX.clock += dh;
+    var d = WX.def;
+    GM.wxHours = (GM.wxHours || 0) + dh;
+    GM.wxIncomeAcc = (GM.wxIncomeAcc || 0) + d.income * dh;
+    GM.wxComfortAcc = (GM.wxComfortAcc || 0) + d.comfort * dh;
+    GM.wxResAcc = (GM.wxResAcc || 0) + Math.max(0, d.research - 1) * 0.55 * dh;
+    GM.wxRainHours = (GM.wxRainHours || 0) + (d.rain > 0 ? dh : 0);
+    GM.wxHist = GM.wxHist || {};
+    GM.wxHist[d.key] = (GM.wxHist[d.key] || 0) + dh;
+    for (var i = 0; i < GM.construction.length; i++) {
+      GM.construction[i].ready += (1 - d.build) * 0.30 * dh;
+    }
+    var guard = 0;
+    while (WX.queue.length && WX.clock >= WX.queue[0].at && guard++ < 8) {
+      var ev = WX.queue.shift();
+      wxApply(ev.key, false);
+      wxPlan(1);
+    }
+  }
+  function wxInit() {
+    WX.ready = true;
+    WX.clock = wxClock();
+    if (GM.wxKey && WX_DEFS[GM.wxKey]) {
+      WX.key = GM.wxKey;
+      WX.def = WX_DEFS[WX.key];
+      WX.prev = WX.def;
+      WX.tone = 1;
+      WX.nextAt = GM.wxNext || (WX.clock + 5 + Math.random() * 4);
+      if (WX.nextAt <= WX.clock - 2) WX.nextAt = WX.clock + 3 + Math.random() * 4;
+    } else {
+      WX.nextAt = WX.clock + 3 + Math.random() * 3;
+      wxApply(wxPick(), true);
+      WX.tone = 1;
+    }
+    WX.queue = [];
+    wxPlan(3);
+    if (gmEl.gWx) wxHudText();
+  }
+
+  /* ---------- 天候对经营的影响 ---------- */
+  function wxShelter() {
+    return gmCountBuilt('tea') > 0 || gmCountBuilt('inn') > 0;
+  }
+  function wxAppealMul() {
+    if (!WX.ready) return 1;
+    var d = WX.def, m = d.appeal;
+    if ((d.rain > 0 || d.key === 'fog') && GM.unlocked.night && (hour < 6 || hour >= 18)) m *= 1.06;
+    if (d.key === 'snow' && gmCountBuilt('lantern') > 0) m *= 1.04;
+    return m;
+  }
+  function wxCapMul() {
+    if (!WX.ready) return 1;
+    var m = WX.def.cap;
+    if (WX.def.rain > 0 && wxShelter()) m += 0.12;
+    if (WX.def.key === 'snow' && gmCountBuilt('inn') > 0) m += 0.10;
+    return Math.max(0.30, m);
+  }
+  function wxSpawnMul() { return WX.ready ? WX.def.spawn : 1; }
+  function wxSatAdd(v) {
+    if (!WX.ready) return 0;
+    var d = WX.def, s = d.sat;
+    if (d.rain > 0) {
+      if (wxShelter()) s += 8;
+      if (v && v.kind && v.kind.wx === 'rain') s += 3;
+    }
+    if (d.key === 'snow') {
+      if (gmCountBuilt('oden') > 0) s += 5;
+      if (v && v.kind && v.kind.wx === 'snow') s += 3;
+    }
+    if (d.key === 'fog' && gmCountBuilt('lantern') > 0) s += 2;
+    return s;
+  }
+  function wxSpendMul(key) {
+    if (!WX.ready) return 1;
+    var d = WX.def, m = d.spend;
+    if (d.rain > 0) {
+      if (key === 'tea' || key === 'inn') m *= 1.25;
+      else if (key === 'dango' || key === 'kakigori' || key === 'kuri') m *= 0.90;
+    }
+    if (d.key === 'snow' && key === 'oden') m *= 1.35;
+    if (d.key === 'snow' && key === 'kakigori') m *= 0.60;
+    if (d.key === 'clear' && key === 'kakigori') m *= 1.10;
+    return m;
+  }
+  function wxRatingAdj() {
+    if (!WX.ready) return 0;
+    return Math.max(-0.15, Math.min(0.15, (WX.def.comfort - 0.68) * 0.30));
+  }
+  function wxHudText() {
+    if (!WX.ready || !gmEl.gWx) return;
+    var d = WX.def, n = WX.queue && WX.queue[0];
+    var ap = Math.round(d.appeal * 100), sp = Math.round(100 / d.spawn);
+    var sTxt = '天候';
+    if (n) sTxt = Math.max(1, Math.round(n.at - WX.clock)) + 'h后' + WX_DEFS[n.key].name;
+    gmEl.gWx.innerHTML = '<i>' + d.icon + '</i><b>' + d.name + '</b><em>景 ' + ap + '% · 客 ' + sp + '%</em><s>' + sTxt + '</s>';
+    gmEl.gWx.title = '天候 · 点击查看预报与季节气候';
+  }
+
+  /* ---------- 天候视觉 ---------- */
+  var WX_GREY_TOP = new THREE.Color('#8d99a4');
+  var WX_GREY_MID = new THREE.Color('#b4bcc2');
+  var WX_GREY_BOT = new THREE.Color('#cdd2d2');
+  var WX_GREY_FOG = new THREE.Color('#adb3b4');
+  function wxTint() {
+    if (!WX || !WX.ready) return;
+    var a = WX.prev || WX.def, b = WX.def, t = WX.tone;
+    var grey = a.grey + (b.grey - a.grey) * t;
+    var sun = a.sun + (b.sun - a.sun) * t;
+    var fogFar = a.fogFar + (b.fogFar - a.fogFar) * t;
+    var cloud = a.cloud + (b.cloud - a.cloud) * t;
+    if (grey > 0.002) {
+      skyUniforms.uTop.value.lerp(WX_GREY_TOP, grey * 0.72);
+      skyUniforms.uMid.value.lerp(WX_GREY_MID, grey * 0.80);
+      skyUniforms.uBottom.value.lerp(WX_GREY_BOT, grey * 0.84);
+      scene.fog.color.lerp(WX_GREY_FOG, grey * 0.55);
+      waterUniforms.uSky.value.lerp(WX_GREY_MID, grey * 0.45);
+    }
+    scene.fog.far *= fogFar;
+    scene.fog.near *= (0.80 + 0.20 * fogFar);
+    sunLight.intensity *= sun;
+    fillLight.intensity *= (0.82 + 0.18 * sun);
+    hemi.intensity *= (0.88 + 0.12 * sun);
+    sunSprite.material.opacity *= sun;
+    moonHalo.material.opacity *= (0.55 + 0.45 * sun);
+    moonGlow.material.opacity *= (0.55 + 0.45 * sun);
+    if (typeof moonLight !== 'undefined' && moonLight) moonLight.intensity *= (0.55 + 0.45 * sun);
+    cloudMat.opacity = Math.min(1, cloudMat.opacity * (1 + 0.55 * grey));
+    birdMat.opacity *= (1 - 0.80 * grey);
+    motes.mesh.material.opacity *= (1 - 0.60 * grey);
+    renderer.toneMappingExposure *= (1 - 0.12 * grey);
+  }
+  function wxSnowFallMul() {
+    if (!WX || !WX.ready) return 1;
+    var a = WX.prev || WX.def, b = WX.def, t = WX.tone;
+    return a.snowFall + (b.snowFall - a.snowFall) * t;
+  }
+
+  /* ---------- 雨 / 雪 粒子 ---------- */
+  var wxRain = null, wxSnowPts = null, wxFlashEl = null;
+  var wxRainN = 520, wxSnowN = 380;
+  var wxRainDrops = [], wxSnowFlakes = [];
+  var wxRainGeo, wxRainPos, wxSnowGeo, wxSnowPos;
+  var wxSnowT0 = 0;
+  function wxSnowTexture() {
+    var c = document.createElement('canvas');
+    c.width = c.height = 48;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(24, 24, 1, 24, 24, 22);
+    grd.addColorStop(0, 'rgba(255,255,255,1)');
+    grd.addColorStop(0.45, 'rgba(255,255,255,.82)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 48, 48);
+    var tx = new THREE.CanvasTexture(c);
+    tx.needsUpdate = true;
+    return tx;
+  }
+  (function wxBuildParticles() {
+    wxFlashEl = document.getElementById('wxFlash');
+    wxRainGeo = new THREE.BufferGeometry();
+    wxRainPos = new Float32Array(wxRainN * 6);
+    for (var i = 0; i < wxRainN; i++) {
+      wxRainDrops.push({
+        x: (Math.random() - 0.5) * 66, y: (Math.random() - 0.5) * 34, z: (Math.random() - 0.5) * 66,
+        v: 15 + Math.random() * 11, l: 0.32 + Math.random() * 0.42
+      });
+    }
+    wxRainGeo.setAttribute('position', new THREE.BufferAttribute(wxRainPos, 3));
+    wxRain = new THREE.LineSegments(wxRainGeo, new THREE.LineBasicMaterial({
+      color: 0xcadbe6, transparent: true, opacity: 0.42, depthWrite: false, fog: false
+    }));
+    wxRain.frustumCulled = false;
+    wxRain.visible = false;
+    wxRain.renderOrder = 2;
+    scene.add(wxRain);
+
+    wxSnowGeo = new THREE.BufferGeometry();
+    wxSnowPos = new Float32Array(wxSnowN * 3);
+    for (var j = 0; j < wxSnowN; j++) {
+      wxSnowFlakes.push({
+        x: (Math.random() - 0.5) * 62, y: (Math.random() - 0.5) * 32, z: (Math.random() - 0.5) * 62,
+        v: 0.52 + Math.random() * 0.55, ph: Math.random() * 6.28, sw: 0.25 + Math.random() * 0.45
+      });
+    }
+    wxSnowGeo.setAttribute('position', new THREE.BufferAttribute(wxSnowPos, 3));
+    wxSnowPts = new THREE.Points(wxSnowGeo, new THREE.PointsMaterial({
+      size: 0.42, map: wxSnowTexture(), transparent: true, opacity: 0.86,
+      depthWrite: false, sizeAttenuation: true, fog: true
+    }));
+    wxSnowPts.frustumCulled = false;
+    wxSnowPts.visible = false;
+    wxSnowPts.renderOrder = 2;
+    scene.add(wxSnowPts);
+    wxRain.name = 'wx-rain';
+    wxSnowPts.name = 'wx-snow';
+  })();
+
+  function wxUpdateRain(dt) {
+    var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+    for (var i = 0; i < wxRainN; i++) {
+      var d = wxRainDrops[i];
+      d.y -= d.v * dt * (1 + WX.rainI * 0.35);
+      if (d.y < -17) {
+        d.y += 36;
+        d.x = (Math.random() - 0.5) * 66;
+        d.z = (Math.random() - 0.5) * 66;
+      }
+      var x = cx + d.x, y = cy + d.y, z = cz + d.z;
+      wxRainPos[i * 6] = x;
+      wxRainPos[i * 6 + 1] = y;
+      wxRainPos[i * 6 + 2] = z;
+      wxRainPos[i * 6 + 3] = x + 0.10 * d.l;
+      wxRainPos[i * 6 + 4] = y + d.l;
+      wxRainPos[i * 6 + 5] = z + 0.03 * d.l;
+    }
+    wxRainGeo.attributes.position.needsUpdate = true;
+  }
+  function wxUpdateSnow(dt) {
+    var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+    wxSnowT0 += dt;
+    for (var i = 0; i < wxSnowN; i++) {
+      var f = wxSnowFlakes[i];
+      f.y -= f.v * dt;
+      f.x += Math.sin(wxSnowT0 * 0.42 + f.ph) * f.sw * dt;
+      f.z += Math.cos(wxSnowT0 * 0.34 + f.ph) * f.sw * 0.8 * dt;
+      if (f.y < -16 || Math.abs(f.x) > 34 || Math.abs(f.z) > 34) {
+        f.x = (Math.random() - 0.5) * 62;
+        f.z = (Math.random() - 0.5) * 62;
+        f.y = 18 + Math.random() * 14;
+      }
+      wxSnowPos[i * 3] = cx + f.x;
+      wxSnowPos[i * 3 + 1] = cy + f.y;
+      wxSnowPos[i * 3 + 2] = cz + f.z;
+    }
+    wxSnowGeo.attributes.position.needsUpdate = true;
+  }
+  function wxUpdate(dt) {
+    if (!WX.ready) return;
+    WX.tone = Math.min(1, WX.tone + dt * 0.16);
+    var td = WX.def;
+    WX.rainI += (td.rain - WX.rainI) * Math.min(1, dt * 1.6);
+    WX.snowI += (td.snow - WX.snowI) * Math.min(1, dt * 1.4);
+    if (wxRain) {
+      wxRain.visible = WX.rainI > 0.05;
+      wxRain.material.opacity = Math.min(0.62, 0.24 + WX.rainI * 0.26);
+      var nf = typeof nightF === 'number' ? nightF : 0;
+      wxRain.material.color.setRGB(0.74 - 0.42 * nf, 0.82 - 0.44 * nf, 0.88 - 0.40 * nf);
+      if (wxRain.visible) wxUpdateRain(dt);
+    }
+    if (wxSnowPts) {
+      wxSnowPts.visible = WX.snowI > 0.05;
+      if (wxSnowPts.visible) wxUpdateSnow(dt);
+    }
+    if (td.rain >= 1.4 && Math.random() < dt * 0.055) {
+      WX.flash = 1;
+      if (Math.random() < 0.7) sfx('thunder');
+    }
+    if (WX.flash > 0.001) WX.flash = Math.max(0, WX.flash - dt * 4.2);
+    if (wxFlashEl) wxFlashEl.style.opacity = (WX.flash * 0.5).toFixed(3);
+    if (amb && amb.ready && performance.now() - (WX.audT || 0) > 2400) {
+      WX.audT = performance.now();
+      ambUpdate();
+    }
+  }
+
+  /* ---------- 天候面板 ---------- */
+  function wxChip(label, val, good, fmt) {
+    var cls = good ? ' good' : ' bad';
+    return '<span class="' + cls.trim() + '">' + label + ' ' + fmt + '</span>';
+  }
+  function wxEffectChips() {
+    var d = WX.def;
+    var out = [];
+    out.push(wxChip('景致', d.appeal, d.appeal >= 1, '×' + d.appeal.toFixed(2)));
+    out.push(wxChip('客流', 1 / d.spawn, d.spawn <= 1, '×' + (1 / d.spawn).toFixed(2)));
+    out.push(wxChip('承载', d.cap, d.cap >= 1, '×' + d.cap.toFixed(2)));
+    out.push(wxChip('消费', d.spend, d.spend >= 1, '×' + d.spend.toFixed(2)));
+    out.push(wxChip('满意', d.sat, d.sat >= 0, (d.sat >= 0 ? '+' : '') + d.sat));
+    out.push(wxChip('研究', d.research, d.research >= 1, '×' + d.research.toFixed(2)));
+    out.push(wxChip('工期', d.build, d.build >= 1, '×' + d.build.toFixed(2)));
+    out.push(wxChip('收入', d.income, d.income >= 1, '×' + d.income.toFixed(2)));
+    if (d.rain > 0 && wxShelter()) out.push('<span class="good">避雨处 满意 +8</span>');
+    if (d.key === 'snow' && gmCountBuilt('oden') > 0) out.push('<span class="good">关东煮 满意 +5</span>');
+    if ((d.rain > 0 || d.key === 'fog') && GM.unlocked.night) out.push('<span class="good">夜灯 景致 +6%</span>');
+    return '<div class="wx-effect">' + out.join('') + '</div>';
+  }
+  function gmWeatherPanel() {
+    if (!WX.ready) { gmToast('天候尚未生成'); return; }
+    var d = WX.def, sk = wxSeasonKey();
+    var hh = Math.max(1, Math.round(WX.nextAt - WX.clock));
+    var fc = '';
+    var list = WX.queue.slice(0, 3);
+    for (var i = 0; i < list.length; i++) {
+      var k = list[i].key, dd = WX_DEFS[k];
+      var when = Math.max(1, Math.round(list[i].at - WX.clock)) + 'h 后';
+      fc += '<div><b>' + dd.icon + ' ' + dd.name + '</b>' + when + '</div>';
+    }
+    var tbl = '<div class="wx-tbl"><span class="hd nm">天候</span>';
+    var seasonCols = ['spring', 'summer', 'autumn', 'winter'];
+    for (var s = 0; s < 4; s++) tbl += '<span class="hd' + (seasonCols[s] === sk ? ' cur' : '') + '">' + WX_SEASON_NAMES[seasonCols[s]] + '</span>';
+    for (var w = 0; w < WX_KEYS.length; w++) {
+      var kk = WX_KEYS[w], wd = WX_DEFS[kk];
+      tbl += '<span class="nm">' + wd.icon + ' ' + wd.name + '</span>';
+      for (var c = 0; c < 4; c++) {
+        var pc = WX_CLIMATE[seasonCols[c]][w];
+        tbl += '<span class="' + (pc === 0 ? 'zero' : '') + (seasonCols[c] === sk && pc > 0 ? ' cur' : '') + '">' + (pc ? pc + '%' : '—') + '</span>';
+      }
+    }
+    tbl += '</div>';
+    var nameTxt = d.name + (d.jp && d.jp !== d.name ? '（' + d.jp + '）' : '');
+    var html = '<div class="rt"><b>天候 · ' + nameTxt + '</b><span class="num">体感 ' + Math.round(d.comfort * 100) + '</span></div>' +
+      '<p style="margin:2px 0 0;opacity:.72">' + d.tag + ' · ' + d.note + '</p>' +
+      wxEffectChips() +
+      '<div class="rt" style="margin-top:8px"><b>接下来</b><span style="opacity:.5">' + hh + ' 小时后变化</span></div>' +
+      '<div class="wx-fc">' + fc + '</div>' +
+      '<div class="rt" style="margin-top:10px"><b>季节气候分布</b><span style="opacity:.5">每季合计 100%</span></div>' +
+      tbl +
+      '<p style="opacity:.55;margin-top:6px">季节与天候为中等强度相关（Cramér\'s V ≈ 0.34）：季节只改变各天候的出现概率。雨与雾四季皆可，雪限冬季，雷雨限夏秋——类型集合由气候常识约束，概率由季节调节。</p>';
+    gmShowModal('天候 · ' + d.name, html, [{ t: '合上' }]);
+  }
+
   function gmDate(doy) {
     var d = Math.floor(doy), m = 0;
     while (m < 12 && d > GM_MONTH[m]) { d -= GM_MONTH[m]; m++; }
@@ -7820,7 +8322,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* ---------- HUD ---------- */
   var gmEl = {};
   function gmDom() {
-    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn', 'gShopBtn'].forEach(function (id) {
+    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gWx', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn', 'gShopBtn'].forEach(function (id) {
       gmEl[id] = document.getElementById(id);
     });
   }
@@ -7852,6 +8354,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     gmEl.gMoon.textContent = '月相 ' + GM.moonName + ' ' + Math.round(GM.moonIllum * 100) + '% · 正午日高 ' + Math.round(SUN.maxElev * 180 / Math.PI) + '°';
     var cmb = gmComboInfo();
     gmEl.gCrowd.textContent = '在园 ' + GM.visitors + ' 人 · 容 ' + gmCap() + ' 人 · 景 ' + gmAppeal() + ' · ★ ' + GM.rating.toFixed(1) + (cmb.names.length ? ' · 相 ' + cmb.names.length : '');
+    wxHudText();
     gmCheckGoalReady();
   }
 
@@ -7895,6 +8398,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var polA = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
     a *= polA.appeal;
     a += gmItemBuff('appeal');
+    a *= wxAppealMul();
     return Math.round(a);
   }
   function gmSalary() {
@@ -7905,7 +8409,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function gmCap() {
     var c = 5 + Math.floor(GM.renown / 22) + (GM.unlocked.path ? 6 : 0) + (GM.unlocked.tour ? 4 : 0) + (GM.staff.miko ? 3 : 0);
     c += Math.round(gmItemBuff('traffic'));
-    return Math.min(32, c);
+    c = Math.max(1, Math.floor(Math.min(32, c) * wxCapMul()));
+    return c;
   }
 
   /* ---------- 空地 ---------- */
@@ -9331,7 +9836,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       purpose: '休憩', prefs: ['ema', 'lantern', 'sakura'], hat: 'none', accessory: 'ema',
       cloth: [0xf0ece3, 0xe8e3d8], cloth2: [0xa94943, 0xb35a4f], obi: 0xa94943, accent: 0xf4eee2,
       budget: [24, 40], desc: '在神社帮忙，难得有空来庭园走走。',
-      quotes: ['风铃的声音，今天格外清。', '祈愿的人比去年多了。', '等会儿还要回去点灯。'] }
+      quotes: ['风铃的声音，今天格外清。', '祈愿的人比去年多了。', '等会儿还要回去点灯。'] },
+    { key: 'rainGuest', title: '雨宿客', jp: '雨宿り', gender: 'any', weight: 0.30, wx: 'rain',
+      purpose: '避雨', prefs: ['tea', 'inn', 'lantern'], hat: 'kasa', accessory: 'fan',
+      cloth: [0x4f5a63, 0x5c666d], cloth2: [0x3c464e, 0x47515a], obi: 0x9a8570, accent: 0xe6dcc8, hatColor: 0xb7a27a,
+      budget: [30, 52], desc: '被雨留住了脚步，索性在檐下坐一会儿。',
+      quotes: ['雨声比人声好听。', '檐下的茶，格外暖。', '等雨小了再走也不迟。'] },
+    { key: 'snowGuest', title: '雪见客', jp: '雪見客', gender: 'f', weight: 0.30, wx: 'snow',
+      purpose: '赏雪', prefs: ['lantern', 'oden', 'tea'], hat: 'kasa', accessory: 'parasol', party: 'partner',
+      cloth: [0x6a6f86, 0x7a7f96], cloth2: [0x4e5368, 0x5c6178], obi: 0xc2a887, accent: 0xf0e6d6, hatColor: 0x9aa3b8,
+      budget: [38, 62], desc: '听说雪后的庭园最好看，特意赶来。',
+      quotes: ['雪把声音都吸走了。', '灯下的雪是暖色的。', '这一趟，值了。'] }
   ];
 
   function gmVRand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -9344,6 +9859,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var k = GM_VISITOR_KINDS[i], w = k.weight || 1;
       if (k.key === 'foreign') w *= GM.rating >= 3.4 ? 1.1 : 0.3;
       if (k.key === 'couple' && GM.rating < 3.0) w *= 0.6;
+      if (k.wx) {
+        var hit = WX.ready && (k.wx === 'rain' ? WX.def.rain > 0 : WX.def.key === k.wx);
+        w *= hit ? 4.2 : 0.10;
+      }
       total += w; pool.push({ k: k, w: w });
     }
     var r = Math.random() * total;
@@ -9503,6 +10022,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (v.kind.key === 'foreign' && GM.renown > 40) base += 4;
     if (v.invited) base += 6;
     base += gmItemBuff('sat');
+    base += wxSatAdd(v);
     return Math.round(clamp(base, 20, 98));
   }
   function gmVisitorMatched(v) {
@@ -9518,14 +10038,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var shops = [];
     for (var i = 0; i < GM.built.length; i++) {
       var b = GM.built[i], it = GM_ITEMS[b.key];
-      if (it && it.income > 0 && b.key !== 'inn') shops.push(it);
+      if (it && it.income > 0 && b.key !== 'inn') shops.push({ it: it, key: b.key });
     }
     if (!shops.length || v.spent >= v.budget - 3) return;
     var pick = shops[Math.floor(Math.random() * shops.length)];
-    var price = Math.min(v.budget - v.spent, Math.round((4 + pick.income * 0.18 + v.sat * 0.07 + Math.random() * 3) * (1 + gmItemBuff('spend'))));
+    var price = Math.min(v.budget - v.spent, Math.round((4 + pick.it.income * 0.18 + v.sat * 0.07 + Math.random() * 3) * (1 + gmItemBuff('spend')) * wxSpendMul(pick.key)));
     if (price < 3) return;
     v.spent += price;
-    v.log.push({ name: pick.name, amount: price });
+    v.log.push({ name: pick.it.name, amount: price });
     if (v.log.length > 7) v.log.splice(1, v.log.length - 7);
     v.sat = Math.min(100, v.sat + 2.2);
   }
@@ -9567,7 +10087,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       nextSpendU: 0.18 + Math.random() * 0.1,
       entryHour: Math.floor(GM.hour), gone: false, invited: !!invited
     };
-    v.spent = Math.min(v.budget, Math.round(4 + GM.rating * 1.2 + Math.random() * 5));
+    v.spent = Math.min(v.budget, Math.round((4 + GM.rating * 1.2 + Math.random() * 5) * wxSpendMul('entry')));
     v.log.push({ name: '入园寄付', amount: v.spent });
     g.userData.visitor = v;
     g.traverse(function (o) { o.userData.kind = 'visitor'; o.userData.visitor = v; });
@@ -9581,7 +10101,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var cap = gmCap();
     if (GM.visList.length < cap && performance.now() > GM.nextSpawn) {
       gmSpawnVisitor();
-      GM.nextSpawn = performance.now() + Math.max(2400, 5000 + Math.random() * 6000 - (GM.rating - 3) * 900);
+      var gap = Math.max(2200, 5000 + Math.random() * 6200 - (GM.rating - 3) * 900);
+      GM.nextSpawn = performance.now() + gap * wxSpawnMul();
     }
     for (var i = GM.visList.length - 1; i >= 0; i--) {
       var v = GM.visList[i];
@@ -10112,33 +10633,48 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     var combo = gmComboInfo();
     var polW = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
+    var wxAvgInc = GM.wxHours > 0 ? (GM.wxIncomeAcc || 0) / GM.wxHours : 1;
+    var wxAvgComfort = GM.wxHours > 0 ? (GM.wxComfortAcc || 0) / GM.wxHours : 0.72;
+    var wxRes = Math.round(GM.wxResAcc || 0);
     income = income * (1 + combo.income) * (0.6 + Math.min(1.2, GM.weekVisitors / 10)) *
-      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income * (1 + gmItemBuff('income'));
+      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income * (1 + gmItemBuff('income')) * wxAvgInc;
     var maint = built * 2 + gmSalary();
     var net = Math.round(income + GM.spent - maint);
     GM.money += net;
     GM.stats.incomeTotal = (GM.stats.incomeTotal || 0) + Math.round(income + GM.spent);
     var rGain = Math.round((4 + research + GM.weekVisitors * 1.2 + (GM.staff.steward ? 3 : 0) +
-      (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0)) * polW.research);
+      (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0)) * polW.research) + wxRes;
     GM.research += rGain;
     var gain = 1.5 + gmAppeal() / 18 + GM.weekVisitors / 2 - 0.5 + (GM.staff.miko ? 1 : 0) + gmItemBuff('renown');
     GM.renown = Math.max(0, GM.renown + gain);
     var openedZones = gmCheckZones(true);
-    GM.rating = Math.round((GM.rating * 0.7 + gmRatingCalc() * 0.3) * 10) / 10;
+    var ratingBase = gmRatingCalc() - wxRatingAdj();
+    GM.rating = Math.round((GM.rating * 0.7 + (ratingBase + (wxAvgComfort - 0.68) * 0.30) * 0.3) * 10) / 10;
     GM.review = gmMakeReview(GM.rating);
+    var wxKeyTop = 'clear', wxTopH = -1;
+    for (var wk in (GM.wxHist || {})) {
+      if ((GM.wxHist[wk] || 0) > wxTopH) { wxTopH = GM.wxHist[wk]; wxKeyTop = wk; }
+    }
     var gross = Math.round(income + GM.spent);
     GM.weekLog = {
       week: GM.week, income: Math.round(income), spend: Math.round(GM.spent), maint: maint, gross: gross,
       net: net, visitors: GM.weekVisitors, research: rGain,
       combo: combo.names, salary: gmSalary(), stars: GM.rating, review: GM.review, cash: Math.round(GM.money),
-      renown: gain, money: GM.money
+      renown: gain, money: GM.money,
+      wx: {
+        key: wxKeyTop, name: WX_DEFS[wxKeyTop] ? WX_DEFS[wxKeyTop].name : '晴',
+        rainy: Math.round(GM.wxRainHours || 0), research: wxRes,
+        comfort: Math.round(wxAvgComfort * 100), income: Math.round(wxAvgInc * 100)
+      }
     };
-    GM.history.push({ week: GM.week, net: net, gross: gross, visitors: GM.weekVisitors, stars: GM.rating, cash: Math.round(GM.money) });
+    GM.history.push({ week: GM.week, net: net, gross: gross, visitors: GM.weekVisitors, stars: GM.rating, cash: Math.round(GM.money), wx: wxKeyTop });
     while (GM.history.length > 12) GM.history.shift();
     gmToast('第 ' + GM.week + ' 周结算 ' + (net >= 0 ? '+' : '') + net + ' 銭 · 客 ' + GM.weekVisitors + ' · 誉 ' + (gain >= 0 ? '+' : '') + gain.toFixed(1) + ' · ★ ' + GM.rating.toFixed(1)
+      + ' · 天候 ' + (WX_DEFS[wxKeyTop] ? WX_DEFS[wxKeyTop].name : '晴')
       + (openedZones.length ? ' · 新域 ' + openedZones.map(function (d) { return d.name; }).join('/') : ''));
     if (openedZones.length) sfx('chime');
     GM.weekVisitors = 0; GM.spent = 0; GM.weekBuilt = 0; GM.weekDiscover = 0;
+    GM.wxHours = 0; GM.wxIncomeAcc = 0; GM.wxComfortAcc = 0; GM.wxResAcc = 0; GM.wxRainHours = 0; GM.wxHist = {};
     gmNewWeekly();
     gmSave();
   }
@@ -10253,7 +10789,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var score = 2.0 + Math.min(2.0, gmAppeal() / 95) + Math.min(0.8, GM.built.length / 22) +
       Math.min(0.25, gmComboInfo().names.length * 0.05) +
       (GM.staff.gardener ? 0.1 : 0) + (GM.zones.pine ? 0.08 : 0) +
-      (GM.zones.river ? 0.08 : 0) + (GM.zones.foothill ? 0.12 : 0);
+      (GM.zones.river ? 0.08 : 0) + (GM.zones.foothill ? 0.12 : 0) +
+      wxRatingAdj();
     return Math.max(1, Math.min(5, Math.round(score * 10) / 10));
   }
   function gmMakeReview(stars) {
@@ -10329,7 +10866,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       '<div class="rt"><b>季评 · ' + GM_SEASON_NAME[key] + '</b><span class="num">' + g + ' 级</span></div>' +
       '<p>庭园景致 <span class="num">' + gmAppeal() + '</span> · 誉 <span class="num">' + Math.round(GM.renown) + '</span></p>' +
       '<p>季末扶持 <span class="up">+' + bonus + ' 銭</span> · 研究 <span class="up">+8</span></p>' +
-      '<p style="opacity:.6">下一季的庭园会换上新装，季货也会更替。</p>';
+      '<p>本季天候 <span class="num">' + wxClimateText(key) + '</span></p>' +
+      '<p style="opacity:.6">下一季的庭园会换上新装，季货与天候概率也会更替。</p>';
     GM.money += bonus; GM.research += 8;
     gmShowModal('季评 · ' + GM_SEASON_JP[key], body, [{ t: '进入下一季' }]);
     gmSave();
@@ -10373,6 +10911,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       '<p>维护支出 <span class="down">-' + w.maint + '</span>' + (w.salary ? '（其中俸禄 ' + w.salary + '）' : '') + '</p>' +
       '<p>本周净利 <span class="' + (w.net >= 0 ? 'up' : 'down') + '">' + (w.net >= 0 ? '+' : '') + w.net + '</span> · 现金 <span class="num">' + cash + '</span></p>' +
       '<p>访客 <span class="num">' + w.visitors + '</span> 位 · 研究 <span class="up">+' + w.research + '</span> · 誉 <span class="' + (w.renown >= 0 ? 'up' : 'down') + '">' + (w.renown >= 0 ? '+' : '') + w.renown.toFixed(1) + '</span></p>' +
+      (w.wx ? '<p>天候以 <span class="num">' + w.wx.name + '</span> 为主 · 雨时 <span class="num">' + w.wx.rainy + '</span> h · 体感 <span class="num">' + w.wx.comfort + '%</span> · 营业系数 <span class="num">' + w.wx.income + '%</span>' + (w.wx.research ? ' · 雨窗读书 <span class="up">+' + w.wx.research + '</span>' : '') + '</p>' : '') +
       (w.combo && w.combo.length ? '<p>相性 <span class="up">' + w.combo.join(' / ') + '</span> · 收入已加成</p>' : '') +
       '<div class="rt" style="margin-top:8px"><b>近几周</b><span style="opacity:.5">现金 / 口碑</span></div>';
     var hist = GM.history.slice(-6);
@@ -10391,6 +10930,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var done = 0;
     if (GM.weekly && GM.weekly.tasks) for (var t = 0; t < GM.weekly.tasks.length; t++) if (GM.weekly.tasks[t].claimed) done++;
     body += '<p style="opacity:.55;margin-top:8px">本周委托已完成 ' + done + '/' + (GM.weekly ? GM.weekly.tasks.length : 0) + ' · 每周一 0:00 自动结算，一周 = 24 游戏小时。</p>';
+    if (WX.ready) {
+      body += '<div class="rt" style="margin-top:8px"><b>此刻天候</b><span class="num">' + WX.def.icon + ' ' + WX.def.name + '</span></div>' +
+        '<p>' + WX.def.tag + ' · 景致 ×' + WX.def.appeal.toFixed(2) + ' · 客流 ×' + (1 / WX.def.spawn).toFixed(2) +
+        ' · 满意 ' + (WX.def.sat >= 0 ? '+' : '') + WX.def.sat + ' · 工期 ×' + WX.def.build.toFixed(2) + '</p>' +
+        '<p style="opacity:.55">点主面板的天候一行可查看预报与季节气候分布。</p>';
+    }
     gmShowModal('周报', body, [{ t: '关闭' }]);
   }
 
@@ -10414,7 +10959,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       html += '</div></div>';
     }
     html += '</div><div class="gcal-foot">今日 ' + today.m + '月' + today.d + '日（' + GM_WEEK_JP[gmWeekdayIndex(GM.day)] + '）· 第 ' + GM.week + ' 周 · ' + GM_SEASON_JP[seasonKey] +
-      ' · 昼 ' + Math.floor(SUN.daylight) + 'h' + Math.round((SUN.daylight % 1) * 60) + 'm · 月相 ' + GM.moonName + '</div>';
+      ' · 昼 ' + Math.floor(SUN.daylight) + 'h' + Math.round((SUN.daylight % 1) * 60) + 'm · 月相 ' + GM.moonName +
+      (WX.ready ? ' · 天候 ' + WX.def.name + ' ' + Math.max(1, Math.round(WX.nextAt - WX.clock)) + 'h后转' + (WX.queue[0] ? WX_DEFS[WX.queue[0].key].name : '晴') : '') + '</div>';
     gmShowModal('岁历 · 365 日', html, [{ t: '合上' }]);
   }
 
@@ -10703,6 +11249,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         codexPaid: GM.codexPaid, stats: GM.stats, goalsClaimed: GM.goalsClaimed, goalNotified: GM.goalNotified,
         weekly: GM.weekly, weekVisitors: GM.weekVisitors, spent: GM.spent, weekBuilt: GM.weekBuilt,
         weekDiscover: GM.weekDiscover, rating: GM.rating, review: GM.review, history: GM.history, policy: GM.policy,
+        wxKey: (WX && WX.ready) ? WX.key : 'clear', wxNext: (WX && WX.ready) ? WX.nextAt : 0,
         codex: Object.keys(discovered).filter(function (k) { return discovered[k]; }),
         items: GM.items, itemBuffs: GM.itemBuffs,
         built: GM.built.map(function (b) { return [b.plot, b.key, b.level || 1]; }),
@@ -10736,6 +11283,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       GM.rating = Math.max(1, Math.min(5, d.rating || 3.0));
       GM.review = d.review || null;
       GM.history = d.history || [];
+      GM.wxKey = d.wxKey || null;
+      GM.wxNext = d.wxNext || 0;
       if (d.codex && d.codex.length) {
         discovered = {};
         discoveredCount = 0;
@@ -10842,11 +11391,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       GM.lastAutoSave = now;
       gmSave();
     }
+    var wxDh = 0;
     if (GM.running && !GM.ended) {
-      GM.hour += rdt * 0.2 * GM.speed;
+      wxDh = rdt * 0.2 * GM.speed;
+      GM.hour += wxDh;
       GM.day += rdt * (7 / 120) * GM.speed;
-      while (GM.hour >= 24) GM.hour -= 24;
+      while (GM.hour >= 24) { GM.hour -= 24; }
+      while (GM.hour < 0) { GM.hour += 24; }
     }
+    if (wxDh > 0) wxAdvance(wxDh);
     GM.doy = ((59 + Math.floor(GM.day - 1)) % 365) + 1;
     hour = GM.hour;
     gmSun();
@@ -10897,6 +11450,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       var sk = gmSeason(gmDate(GM.doy).m);
       if (sk !== seasonKey) applySeason(sk, true);
     }
+    wxInit();
     gmSun();
     gmMoon();
     hour = GM.hour;
@@ -10922,6 +11476,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       gmSetBuildMode(!GM.buildMode);
     };
     document.getElementById('gCalBtn').onclick = function () { gmCalendarPanel(); };
+    if (gmEl.gWx) gmEl.gWx.onclick = function () { gmWeatherPanel(); };
     document.getElementById('gGoalsBtn').onclick = function () { gmGoalsPanel(); };
     document.getElementById('settingsBtn').onclick = function () { gmSettingsPanel(); };
     document.getElementById('gStaffBtn').onclick = function () { gmStaffPanel(); };
@@ -10941,6 +11496,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     setTimeout(function () { var h = document.getElementById('hint'); if (h) h.style.opacity = '0'; }, 6500);
 
     window.__game = GM;
+    window.__wx = WX;
     window.__gameSettings = GAME_SETTINGS;
     window.gmShopPanel = gmShopPanel; window.gmShopBuy = gmShopBuy; window.gmUseItem = gmUseItem; window.gmShopInvite = gmShopInvite;
     window.__itemApi = { panel: gmShopPanel, buy: gmShopBuy, use: gmUseItemNow, invite: gmShopInvite, stock: gmShopStock, find: gmMaybeFind, gift: gmVisitorGift, buff: gmItemBuff, bag: function(){return GM.items;}, buffs: function(){return GM.itemBuffs;} };
@@ -10948,7 +11504,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       build: gmBuild, week: gmWeek, report: gmReport, research: gmResearchPanel,
       addMoney: function (n) { GM.money += n; gmHud(performance.now()); gmSave(); },
       skipDays: function (n) { GM.day += n; GM.hour = 7; gmHud(performance.now()); gmSave(); },
-      state: function () { return { day: GM.day, hour: GM.hour, money: GM.money, research: GM.research, renown: GM.renown, built: GM.built.length, visitors: GM.visitors, season: seasonKey }; },
+      state: function () { return { day: GM.day, hour: GM.hour, money: GM.money, research: GM.research, renown: GM.renown, built: GM.built.length, visitors: GM.visitors, season: seasonKey, weather: WX.ready ? WX.key : null }; },
       appeal: gmAppeal, cap: gmCap, buff: gmItemBuff, combo: gmComboInfo, upgrade: gmUpgrade, staffPanel: gmStaffPanel,
       closeModal: gmCloseModal, reset: gmReset, goals: gmGoalsPanel, settings: gmSettingsPanel,
       settingsState: function () { return JSON.parse(JSON.stringify(GAME_SETTINGS)); }
@@ -11016,6 +11572,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     updateCamera(dt);
     updateProps(dt);
     updateFX(dt);
+    wxUpdate(dt);
     if (summerGroup.visible) {
       for (var di2 = 0; di2 < dragonflies.length; di2++) {
         var df = dragonflies[di2], tt = elapsed * df.sp + df.ph;
