@@ -21041,6 +21041,198 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   sceneBuildFlowers();
   sceneFlowerCodex();
   sceneRebuildLandmarks();
+  if (window.location && (window.location.search.indexOf('admin=1') >= 0 || window.location.hash === '#admin' || window.location.hash === '#admin-panel')) {
+  /* ============================================================
+     ADMIN PANEL — 仅「管理员测试版」注入，正常版不含此块
+     ============================================================ */
+  (function () {
+    var A_SHA = 'ONLINE';
+    var d = document;
+
+    var css = d.createElement('style');
+    css.textContent = [
+      '#admBadge{position:fixed;left:8px;top:8px;z-index:9998;background:#c0392b;color:#fff;',
+      'font:600 11px/1.6 -apple-system,BlinkMacSystemFont,"Noto Sans SC",sans-serif;padding:2px 8px;border-radius:4px;letter-spacing:.5px;pointer-events:none;opacity:.9}',
+      '#admToggle{position:fixed;left:8px;top:34px;z-index:9998;background:rgba(20,16,14,.92);color:#ffd9a0;',
+      'border:1px solid rgba(255,210,150,.45);border-radius:8px;padding:7px 10px;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Noto Sans SC",sans-serif;cursor:pointer}',
+      '#admPanel{position:fixed;inset:0;z-index:9999;background:rgba(16,13,11,.94);color:#f2e8da;overflow:auto;',
+      'padding:14px 14px 40px;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Noto Sans SC",sans-serif;backdrop-filter:blur(6px)}',
+      '#admPanel[hidden]{display:none}',
+      '#admPanel .adm-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}',
+      '#admPanel .adm-h1{font-size:15px;font-weight:700;color:#ffd9a0}',
+      '#admPanel .adm-sub{font-size:11px;color:#a99a89;margin-bottom:10px}',
+      '#admPanel .adm-sec{margin:10px 0 14px}',
+      '#admPanel .adm-title{font-size:12px;color:#c9b79f;letter-spacing:.08em;margin:0 0 6px}',
+      '#admPanel .adm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}',
+      '#admPanel .adm-btn{background:#2a2320;color:#f2e8da;border:1px solid #4a3d35;border-radius:7px;',
+      'padding:9px 6px;font:12px/1.2 inherit;cursor:pointer}',
+      '#admPanel .adm-btn:active{background:#3a302a}',
+      '#admPanel .adm-btn.warn{border-color:#8a4b3f;color:#ffb9a6}',
+      '#admPanel .adm-state{white-space:pre-wrap;background:#241d1a;border:1px solid #3d332c;border-radius:7px;',
+      'padding:8px;font:11px/1.6 ui-monospace,Menlo,monospace;color:#bfae99;margin-top:8px}',
+      '#admPanel .adm-close{background:#3a2a22;color:#ffd9a0;border:1px solid #6a4d38;border-radius:7px;padding:7px 12px;font:600 12px inherit;cursor:pointer}',
+      '#admPanel .adm-note{font-size:11px;color:#8e7f6f;margin-top:10px}',
+      '#admPanel .adm-input{width:64px;background:#1e1815;color:#fff;border:1px solid #4a3d35;border-radius:6px;padding:6px;font:12px inherit}'
+    ].join('');
+    d.head.appendChild(css);
+
+    var badge = d.createElement('div');
+    badge.id = 'admBadge'; badge.textContent = 'ADMIN ' + A_SHA;
+    d.body.appendChild(badge);
+
+    var toggle = d.createElement('button');
+    toggle.id = 'admToggle'; toggle.type = 'button'; toggle.textContent = '管理员';
+    d.body.appendChild(toggle);
+
+    /* 启动页期间先收起管理员徽标和入口，避免破坏进入界面的留白 */
+    var gate = d.getElementById('enterGate');
+    function syncAdmGate() {
+      var up = gate && !gate.hidden && !gate.classList.contains('leave');
+      badge.style.display = up ? 'none' : '';
+      toggle.style.display = up ? 'none' : '';
+    }
+    if (gate && window.MutationObserver) {
+      new MutationObserver(syncAdmGate).observe(gate, { attributes: true, attributeFilter: ['hidden', 'class'] });
+      syncAdmGate();
+    }
+
+    var panel = d.createElement('div');
+    panel.id = 'admPanel'; panel.hidden = true;
+    d.body.appendChild(panel);
+
+    function el(tag, cls, text) {
+      var n = d.createElement(tag);
+      if (cls) n.className = cls;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    }
+    function admToast(msg) {
+      if (typeof gmToast === 'function') gmToast(msg);
+    }
+    function admRefresh() {
+      try {
+        var st = window.__gameApi.state();
+        stateBox.textContent = '第 ' + st.day + ' 日 · ' + st.hour + '时 · ' +
+          (WX_SEASON_NAMES[st.season] || st.season) + ' · ' + (WX.ready ? WX.def.name : '—') +
+          '\n銭 ' + Math.round(st.money) + ' · 研究 ' + Math.round(st.research) + ' · 誉 ' + Math.round(st.renown) +
+          '\n设施 ' + st.built + ' · 在建 ' + GM.construction.length + ' · 图鉴 ' + discoveredCount + '/' + totalKinds;
+      } catch (e) { stateBox.textContent = '状态读取失败：' + e.message; }
+    }
+    function sec(title, items) {
+      var s = el('div', 'adm-sec');
+      s.appendChild(el('div', 'adm-title', title));
+      var g = el('div', 'adm-grid');
+      for (var i = 0; i < items.length; i++) {
+        (function (it) {
+          var b = el('button', 'adm-btn' + (it.warn ? ' warn' : ''), it.label);
+          b.type = 'button';
+          b.addEventListener('click', function () { it.fn(); admRefresh(); });
+          g.appendChild(b);
+        })(items[i]);
+      }
+      s.appendChild(g);
+      panel.appendChild(s);
+    }
+    function money(n) { GM.money += n; gmHud(performance.now()); gmSave(true); admToast('銭 +' + n); }
+    function research(n) { GM.research += n; gmHud(performance.now()); gmSave(true); admToast('研究 +' + n); }
+    function renown(n) { GM.renown += n; gmHud(performance.now()); gmSave(true); admToast('誉 +' + n); }
+    function addDays(n) { GM.day += n; GM.hour = 7; gmHud(performance.now()); gmSave(true); admToast('跳到第 ' + Math.ceil(GM.day) + ' 日'); }
+    function setSeason(k) { var DAY = { spring: 32, summer: 123, autumn: 215, winter: 307 }; if (!DAY[k]) return; GM.day = DAY[k]; GM.doy = ((59 + Math.floor(GM.day - 1)) % 365) + 1; GM.week = Math.min(52, Math.floor((GM.day - 1) / 7) + 1); GM.hour = 7; applySeason(k, true); gmHud(performance.now()); gmSave(true); admToast('跳到' + (WX_SEASON_NAMES[k] || k) + '季 · 第 ' + Math.ceil(GM.day) + ' 日'); }
+    function setWeather(k) { if (window.__wxApi && window.__wxApi.force) { window.__wxApi.force(k); admToast('天候 · ' + (WX_DEFS[k] ? WX_DEFS[k].name : k)); } }
+    function unlockZones() { ['core','pine','river','foothill','snow'].forEach(function (k) { GM.zones[k] = true; }); gmHud(performance.now()); gmSave(true); admToast('区域全开'); }
+    function unlockResearch() { for (var i = 0; i < GM_RESEARCH.length; i++) GM.unlocked[GM_RESEARCH[i].key] = true; gmHud(performance.now()); gmSave(true); admToast('研究全解锁'); }
+    function unlockCodex() {
+      var n = 0;
+      for (var k in CODEX_INFO) { if (cxAvailable(k) && !discovered[k]) { discovered[k] = true; n++; } }
+      cxRefresh(); gmSave(true); admToast('图鉴解锁 ' + n + ' 类');
+    }
+    function unlockItems() { for (var i = 0; i < GM_ITEM_DEFS.length; i++) GM.items[GM_ITEM_DEFS[i].key] = 9; gmSave(true); admToast('道具每种 9 个'); }
+    function unlockStaff() { for (var i = 0; i < GM_STAFF.length; i++) GM.staff[GM_STAFF[i].key] = true; gmHud(performance.now()); gmSave(true); admToast('员工全雇'); }
+    function finishSites() {
+      if (!GM.construction.length) { admToast('没有在建工地'); return; }
+      for (var i = 0; i < GM.construction.length; i++) GM.construction[i].ready = GM.day - 0.001;
+      gmConstruction(); gmHud(performance.now()); gmSave(true); admToast('工地全部完工');
+    }
+    function toggleRun() { GM.running = !GM.running; admToast(GM.running ? '继续' : '暂停'); }
+    function setSpeed(n) { GM.speed = n; admToast('速度 x' + n); }
+    function saveNow() { gmSave(true); admToast('已存档'); }
+    function resetGame() { if (confirm('清空管理员存档并重开？')) gmReset(); }
+    function copyOfficial() {
+      var raw = null;
+      try { raw = localStorage.getItem('sakuraGarden_p1'); } catch (e) {}
+      if (!raw) { admToast('没有正式存档可复制'); return; }
+      try { localStorage.setItem('sakuraGarden_p1_admin', raw); } catch (e) { admToast('复制失败'); return; }
+      location.reload();
+    }
+    function openCodex() { if (typeof codexBtn !== 'undefined' && codexBtn) codexBtn.click(); }
+
+    var head = el('div', 'adm-head');
+    head.appendChild(el('div', 'adm-h1', '管理员测试版'));
+    var close = el('button', 'adm-close', '关闭'); close.type = 'button';
+    close.addEventListener('click', function () { panel.hidden = true; });
+    head.appendChild(close);
+    panel.appendChild(head);
+    panel.appendChild(el('div', 'adm-sub', '提交 ' + A_SHA + ' · 仅用于测试，不要发布'));
+
+    var stateBox = el('div', 'adm-state', '读取中…');
+    panel.appendChild(stateBox);
+
+    sec('资源', [
+      { label: '銭 +1万', fn: function () { money(10000); } },
+      { label: '研究 +1000', fn: function () { research(1000); } },
+      { label: '誉 +1000', fn: function () { renown(1000); } },
+      { label: '銭拉满', fn: function () { GM.money = 999999; gmHud(performance.now()); gmSave(true); } },
+      { label: '研究全解锁', fn: unlockResearch },
+      { label: '区域全开', fn: unlockZones }
+    ]);
+
+    sec('时间 / 季节 / 天候', [
+      { label: '+1 天', fn: function () { addDays(1); } },
+      { label: '+7 天', fn: function () { addDays(7); } },
+      { label: '+30 天', fn: function () { addDays(30); } },
+      { label: '春', fn: function () { setSeason('spring'); } },
+      { label: '夏', fn: function () { setSeason('summer'); } },
+      { label: '秋', fn: function () { setSeason('autumn'); } },
+      { label: '冬', fn: function () { setSeason('winter'); } },
+      { label: '晴', fn: function () { setWeather('clear'); } },
+      { label: '雨', fn: function () { setWeather('rain'); } },
+      { label: '雪', fn: function () { setWeather('snow'); } },
+      { label: '雾', fn: function () { setWeather('fog'); } },
+      { label: '雷雨', fn: function () { setWeather('storm'); } },
+      { label: '暂停/继续', fn: toggleRun },
+      { label: 'x1', fn: function () { setSpeed(1); } },
+      { label: 'x2', fn: function () { setSpeed(2); } },
+      { label: 'x4', fn: function () { setSpeed(4); } }
+    ]);
+
+    sec('解锁 / 建造', [
+      { label: '图鉴全解锁', fn: unlockCodex },
+      { label: '道具全给', fn: unlockItems },
+      { label: '员工全雇', fn: unlockStaff },
+      { label: '工地全完工', fn: finishSites },
+      { label: '打开图鉴', fn: openCodex },
+      { label: '打开商店', fn: function () { gmShopPanel(); } },
+      { label: '打开员工', fn: function () { gmStaffPanel(); } },
+      { label: '打开研究', fn: function () { gmResearchPanel(); } },
+      { label: '打开目标', fn: function () { gmGoalsPanel(); } },
+      { label: '打开设置', fn: function () { gmSettingsPanel(); } },
+      { label: '打开日历', fn: function () { gmCalendarPanel(); } },
+      { label: '打开工地', fn: function () { gmSitePanel(); } }
+    ]);
+
+    sec('存档', [
+      { label: '立即存档', fn: saveNow },
+      { label: '复制正式存档', fn: copyOfficial },
+      { label: '清档重开', fn: resetGame, warn: true }
+    ]);
+
+    panel.appendChild(el('div', 'adm-note', '提示：面板只在管理员版里；测试完请以正常版为准。'));
+
+    toggle.addEventListener('click', function () { panel.hidden = false; admRefresh(); });
+    setInterval(function () { if (!panel.hidden) admRefresh(); }, 500);
+    admRefresh();
+  })();
+  }
   animate();
 
   /* ============================================================
