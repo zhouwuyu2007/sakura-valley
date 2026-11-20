@@ -592,12 +592,82 @@
   .gm-body .gquote{ margin:8px 0 0; padding:8px 10px; border-left:2px solid rgba(232,192,138,.5);
     background:rgba(247,239,228,.05); font-size:10px; line-height:1.8; color:rgba(244,233,218,.78); }
 
+
+  /* 道具袋 / 道具屋 / 邀客 */
+  .gm-body .gi-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 8px; flex-wrap:wrap; }
+  .gm-body .gi-tabs{ display:flex; gap:4px; flex-wrap:wrap; }
+  .gm-body .gi-tab{ appearance:none; cursor:pointer; padding:5px 10px; font-family:inherit; font-size:9px;
+    letter-spacing:.1em; color:rgba(244,233,218,.56); background:rgba(247,239,228,.05);
+    border:1px solid rgba(247,239,228,.16); }
+  .gm-body .gi-tab.on{ color:#fff8ee; background:#9c4a4a; border-color:#9c4a4a; }
+  .gm-body .gi-wallet{ font-size:9px; letter-spacing:.08em; color:rgba(244,233,218,.48); }
+  .gm-body .gi-wallet b{ color:#e8c08a; font-size:14px; font-weight:500; }
+  .gm-body .gi-sub{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:9px 0 5px; padding-bottom:4px; border-bottom:1px solid rgba(247,239,228,.1); }
+  .gm-body .gi-sub b{ font-size:10px; letter-spacing:.16em; color:#e8c08a; font-weight:500; }
+  .gm-body .gi-sub span{ font-size:8px; color:rgba(244,233,218,.4); }
+  .gm-body .gi-active{ display:grid; gap:4px; margin-bottom:8px; }
+  .gm-body .gi-act{ display:grid; grid-template-columns:28px 1fr auto; grid-template-rows:auto auto; align-items:center;
+    column-gap:8px; row-gap:1px; padding:5px 8px; background:rgba(232,192,138,.06); border:1px solid rgba(232,192,138,.16); }
+  .gm-body .gi-act .gi-mini{ grid-column:1; grid-row:1/3; width:28px; height:28px; }
+  .gm-body .gi-act .gi-mini svg{ display:block; width:100%; height:100%; }
+  .gm-body .gi-act b{ grid-column:2; grid-row:1; font-size:10px; color:#f4e9da; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gm-body .gi-act em{ grid-column:3; grid-row:1; font-style:normal; font-size:8px; color:#e8c08a; white-space:nowrap; }
+  .gm-body .gi-act p{ grid-column:2/4; grid-row:2; margin:0; font-size:8px; color:rgba(244,233,218,.45); white-space:normal; }
+  .gm-body .gi-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .gm-body .gi-card{ display:flex; gap:7px; padding:7px; border:1px solid rgba(247,239,228,.1); background:rgba(247,239,228,.035); min-width:0; }
+  .gm-body .gi-art{ flex:0 0 50px; width:50px; height:50px; display:flex; align-items:center; justify-content:center;
+    background:rgba(26,22,19,.5); border:1px solid rgba(247,239,228,.1); overflow:hidden; }
+  .gm-body .gi-art svg{ display:block; width:100%; height:100%; }
+  .gm-body .gi-info{ flex:1; min-width:0; }
+  .gm-body .gi-name{ display:flex; align-items:baseline; gap:4px; min-width:0; }
+  .gm-body .gi-name b{ font-size:11px; line-height:1.3; font-weight:500; color:#f8efe2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gm-body .gi-jp{ font-size:7px; letter-spacing:.05em; color:rgba(244,233,218,.36); white-space:nowrap; }
+  .gm-body .gi-fx{ margin:2px 0 0; font-size:8px; line-height:1.45; color:#cbe4b9; }
+  .gm-body .gi-meta{ margin:2px 0 0; font-size:7.5px; line-height:1.4; color:rgba(244,233,218,.38); }
+  .gm-body .gi-foot{ display:flex; align-items:center; justify-content:space-between; gap:5px; margin-top:5px; }
+  .gm-body .gi-foot span{ font-size:8px; color:rgba(244,233,218,.52); white-space:nowrap; }
+  .gm-body .gi-btn{ appearance:none; cursor:pointer; padding:4px 8px; font-family:inherit; font-size:8px;
+    letter-spacing:.06em; color:#f8efe2; background:rgba(156,74,74,.7); border:1px solid rgba(156,74,74,.85); white-space:nowrap; }
+  .gm-body .gi-btn:hover{ background:#9c4a4a; }
+  .gm-body .gi-btn.alt{ background:rgba(247,239,228,.08); border-color:rgba(247,239,228,.2); }
+  .gm-body .gi-btn.alt:hover{ background:rgba(247,239,228,.15); }
+  .gm-body .gi-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .gm-body .gi-empty{ padding:14px 10px; border:1px dashed rgba(247,239,228,.14); font-size:9px; line-height:1.7; color:rgba(244,233,218,.42); text-align:center; }
+  .gm-body .gi-note{ margin:6px 0 0; font-size:8px; line-height:1.65; color:rgba(244,233,218,.38); }
+  .gm-body .gi-invite{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .gm-body .gi-iv{ padding:7px; border:1px solid rgba(247,239,228,.1); background:rgba(247,239,228,.035); }
+  .gm-body .gi-iv-top{ display:flex; align-items:baseline; justify-content:space-between; gap:5px; }
+  .gm-body .gi-iv b{ font-size:11px; color:#f8efe2; font-weight:500; }
+  .gm-body .gi-iv i{ font-size:7px; font-style:normal; color:rgba(244,233,218,.34); }
+  .gm-body .gi-iv p{ margin:3px 0 5px; font-size:8px; line-height:1.5; color:rgba(244,233,218,.48); }
+  .gm-body .gi-iv .gi-foot{ margin-top:0; }
+  .gm-body .gi-found{ display:flex; gap:12px; align-items:flex-start; padding:4px 0 2px; }
+  .gm-body .gi-found-art{ flex:0 0 96px; width:96px; height:96px; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 40% 35%, rgba(232,192,138,.15), rgba(26,22,19,.5)); border:1px solid rgba(232,192,138,.25); }
+  .gm-body .gi-found-art svg{ display:block; width:100%; height:100%; }
+  .gm-body .gi-found-info{ flex:1; min-width:0; }
+  .gm-body .gi-found-info span{ display:inline-block; padding:2px 6px; font-size:8px; letter-spacing:.16em; color:#e8c08a; border:1px solid rgba(232,192,138,.3); }
+  .gm-body .gi-found-info b{ display:block; margin:4px 0 1px; font-size:17px; color:#fff8ee; font-weight:500; letter-spacing:.1em; }
+  .gm-body .gi-found-info i{ display:block; font-style:normal; font-size:8px; color:rgba(244,233,218,.4); }
+  .gm-body .gi-found-info p{ margin:7px 0 4px; font-size:9px; line-height:1.7; color:rgba(244,233,218,.6); }
+  .gm-body .gi-found-info .gi-fx{ font-size:10px; }
+  .gm-body .gi-found-info em{ display:block; margin-top:4px; font-style:normal; font-size:8px; color:rgba(244,233,218,.4); }
+
   @media (max-width:760px){
     .gp{ width:196px; right:10px; top:calc(clamp(12px,3vh,26px) + 42px); padding:8px 10px 7px; }
     .gp-clock b{ font-size:18px; }
     .gp-line{ font-size:8px; }
     .gdock{ left:12px; right:118px; bottom:12px; transform:none; justify-content:space-between; }
-    .gdock button{ flex:1; padding:9px 4px; font-size:10px; letter-spacing:.1em; }
+    .gdock button{ flex:1; padding:9px 3px; font-size:9.5px; letter-spacing:.06em; }
+    .gm-body .gi-grid{ grid-template-columns:1fr; }
+    .gm-body .gi-invite{ grid-template-columns:1fr; }
+    .gm-body .gi-art{ flex-basis:48px; width:48px; height:48px; }
+    .gm-body .gi-btn{ padding:7px 13px; font-size:9.5px; }
+    .gm-body .gi-tab{ padding:7px 11px; font-size:9.5px; }
+    .gm-body .gi-iv p{ font-size:9px; line-height:1.6; }
+    .gm-body .gi-iv b{ font-size:12px; }
+    .gm-body .gi-found{ gap:9px; }
+    .gm-body .gi-found-art{ flex-basis:78px; width:78px; height:78px; }
     .gsheet{ bottom:62px; max-height:66vh; }
     .gcal{ grid-template-columns:repeat(2,1fr); }
     .gs-grid{ grid-template-columns:1fr 1fr; gap:6px; }
@@ -697,6 +767,7 @@
     <button id="gResearchBtn" type="button">研究</button>
     <button id="gReportBtn" type="button">周报</button>
     <button id="gStaffBtn" type="button">人事</button>
+    <button id="gShopBtn" type="button">商店</button>
   </div>
   <div class="gsheet" id="gSheet" hidden>
     <div class="gs-head"><span id="gSheetTitle">空地</span><button id="gSheetClose" type="button">关闭</button></div>
@@ -7053,6 +7124,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         ringAt(pt, n, '#ffe9c8', 0.3, 2.4, 0.7);
         sfx('soft');
     }
+    gmMaybeFind(pt);
   }
 
   /* ---------- 指针事件 ---------- */
@@ -7665,7 +7737,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     stats: { builtTotal: 0, visitorsTotal: 0, incomeTotal: 0, upgrades: 0, codexTotal: 0 },
     goalsClaimed: [], goalNotified: {}, weekly: null, weekBuilt: 0, weekDiscover: 0,
     rating: 3.0, review: null, history: [], policy: 'balanced',
-    staff: {}, nextSpawn: 0, hudT: 0, toastT: 0, wasRunning: true, loaded: false, lastAutoSave: 0
+    staff: {}, nextSpawn: 0, hudT: 0, toastT: 0, wasRunning: true, loaded: false, lastAutoSave: 0,
+    items: {}, itemBuffs: [], lastFindAt: 0
   };
 
   var gmLast = performance.now();
@@ -7747,7 +7820,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* ---------- HUD ---------- */
   var gmEl = {};
   function gmDom() {
-    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn'].forEach(function (id) {
+    ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn', 'gShopBtn'].forEach(function (id) {
       gmEl[id] = document.getElementById(id);
     });
   }
@@ -7821,6 +7894,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (GM.unlocked.night && (hour < 6 || hour >= 18)) a *= 1.12;
     var polA = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
     a *= polA.appeal;
+    a += gmItemBuff('appeal');
     return Math.round(a);
   }
   function gmSalary() {
@@ -7830,7 +7904,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
   function gmCap() {
     var c = 5 + Math.floor(GM.renown / 22) + (GM.unlocked.path ? 6 : 0) + (GM.unlocked.tour ? 4 : 0) + (GM.staff.miko ? 3 : 0);
-    return Math.min(26, c);
+    c += Math.round(gmItemBuff('traffic'));
+    return Math.min(32, c);
   }
 
   /* ---------- 空地 ---------- */
@@ -9426,6 +9501,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (GM.visList.length / Math.max(1, gmCap()) > 0.78) base -= 5;
     if (v.kind.key === 'poet' && (hour < 6 || hour >= 18)) base += 4;
     if (v.kind.key === 'foreign' && GM.renown > 40) base += 4;
+    if (v.invited) base += 6;
+    base += gmItemBuff('sat');
     return Math.round(clamp(base, 20, 98));
   }
   function gmVisitorMatched(v) {
@@ -9445,7 +9522,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     if (!shops.length || v.spent >= v.budget - 3) return;
     var pick = shops[Math.floor(Math.random() * shops.length)];
-    var price = Math.min(v.budget - v.spent, Math.round(4 + pick.income * 0.18 + v.sat * 0.07 + Math.random() * 3));
+    var price = Math.min(v.budget - v.spent, Math.round((4 + pick.income * 0.18 + v.sat * 0.07 + Math.random() * 3) * (1 + gmItemBuff('spend'))));
     if (price < 3) return;
     v.spent += price;
     v.log.push({ name: pick.name, amount: price });
@@ -9453,7 +9530,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     v.sat = Math.min(100, v.sat + 2.2);
   }
 
-  function gmSpawnVisitor(kindOverride) {
+  function gmSpawnVisitor(kindOverride, invited) {
     var kind = kindOverride || gmVisitorPickKind();
     var look = gmVisitorLook(kind);
     var person = gmVisitorPerson(look, { female: look.female });
@@ -9485,10 +9562,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       prefs: kind.prefs.slice(), party: kind.party === 'child' ? 2 : kind.party === 'partner' ? 2 : 1,
       u: Math.random() * 0.02, sp: 0.9 + Math.random() * 0.35, ph: Math.random() * 6,
       walkPhase: Math.random() * 6, compPhase: Math.random() * 6,
-      budget: Math.round(gmVRand(kind.budget)),
+      budget: Math.round(gmVRand(kind.budget) * (invited ? 1.35 : 1)),
       spent: 0, log: [], sat: 0, satTarget: 0,
       nextSpendU: 0.18 + Math.random() * 0.1,
-      entryHour: Math.floor(GM.hour), gone: false
+      entryHour: Math.floor(GM.hour), gone: false, invited: !!invited
     };
     v.spent = Math.min(v.budget, Math.round(4 + GM.rating * 1.2 + Math.random() * 5));
     v.log.push({ name: '入园寄付', amount: v.spent });
@@ -9496,7 +9573,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     g.traverse(function (o) { o.userData.kind = 'visitor'; o.userData.visitor = v; });
     GM.visList.push(v);
     v.satTarget = gmVisitorSatTarget(v);
-    v.sat = Math.max(28, v.satTarget - 4);
+    v.sat = Math.max(invited ? 52 : 28, v.satTarget - 4);
     GM.visitors = GM.visList.length;
   }
 
@@ -9514,6 +9591,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         GM.spent += Math.round(v.spent);
         GM.weekVisitors++;
         GM.stats.visitorsTotal = (GM.stats.visitorsTotal || 0) + 1;
+        var giftChance = v.invited ? 0.42 : (v.sat >= 82 ? 0.28 : v.sat >= 68 ? 0.18 : 0.07);
+        if (Math.random() < giftChance) gmVisitorGift(v);
         scene.remove(v.g);
         v.g.traverse(function (o) {
           if (o.isMesh) {
@@ -9622,7 +9701,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       logs += '<div><span>' + gmEsc(v.log[j].name) + '</span><em>+' + v.log[j].amount + ' 銭</em></div>';
     }
     var hh = v.entryHour < 10 ? '0' + v.entryHour : String(v.entryHour);
-    var roleText = v.identity + (v.jp && v.jp !== v.identity ? ' · ' + v.jp : '');
+    var roleText = v.identity + (v.jp && v.jp !== v.identity ? ' · ' + v.jp : '') + (v.invited ? ' · 受邀' : '');
     var body = '<div class="gv-top">' + gmVisitorPortrait(v) +
       '<div class="gv-id"><span class="gv-role">' + gmEsc(roleText) + '</span>' +
       '<b>' + gmEsc(v.name) + '</b><i>' + gmEsc(v.origin) + ' · 为' + gmEsc(v.purpose) + '而来 · ' + partyText + '</i>' +
@@ -9643,6 +9722,382 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     gmShowModal('访客 · ' + v.name, body, [{ t: '收起' }]);
   }
 
+
+  /* ---------- 道具 / 道具屋 / 邀客 ---------- */
+  var GM_SHOP_POOL_COMMON = ['ramen', 'ramune', 'dango', 'taiyaki', 'onigiri', 'hojicha', 'uchiwa', 'oshibori', 'hanabiStick', 'kendama'];
+  var GM_SHOP_POOL_RARE = ['matcha', 'hamaya', 'omamori', 'daruma', 'temari', 'furin', 'yukimi', 'kuzumochi', 'geta', 'yukata', 'kiseru', 'shumai', 'sakuraTea', 'koiCharm', 'hanabi', 'mikoshi', 'shishimai', 'hotaru', 'tanuki'];
+  var GM_ITEM_DEFS = [
+    { key: 'ramen', name: '酱油拉面', jp: '醤油ラーメン', rarity: 1, price: 34, duration: 1,
+      fx: { traffic: 2, sat: 2 }, desc: '一碗热汤面，把远道的胃也留了下来。' },
+    { key: 'ramune', name: '波子汽水', jp: 'ラムネ', rarity: 1, price: 28, duration: 1,
+      fx: { sat: 3, spend: 0.12 }, desc: '玻璃瓶里的弹珠一响，夏天就来了。' },
+    { key: 'dango', name: '三色团子', jp: '三色団子', rarity: 1, price: 26, duration: 1,
+      fx: { appeal: 3, sat: 2 }, desc: '樱、白、绿三色串在一根竹签上。' },
+    { key: 'taiyaki', name: '鲷鱼烧', jp: 'たい焼き', rarity: 1, price: 30, duration: 1,
+      fx: { spend: 0.15 }, desc: '外皮焦香，红豆馅还烫着嘴。' },
+    { key: 'onigiri', name: '梅干饭团', jp: '梅おにぎり', rarity: 1, price: 24, duration: 1,
+      fx: { traffic: 2 }, desc: '海苔包住的朴素滋味，赶路人也肯停一停。' },
+    { key: 'hojicha', name: '焙茶', jp: 'ほうじ茶', rarity: 1, price: 30, duration: 1,
+      fx: { sat: 4 }, desc: '焙火香沉稳，配点心正好。' },
+    { key: 'uchiwa', name: '团扇', jp: '団扇', rarity: 1, price: 22, duration: 1,
+      fx: { traffic: 2, sat: 2 }, desc: '扇面上画着金鱼，摇一摇就凉快。' },
+    { key: 'oshibori', name: '热手巾', jp: 'おしぼり', rarity: 1, price: 26, duration: 1,
+      fx: { sat: 6 }, desc: '入园先递一条热手巾，风尘就落了。' },
+    { key: 'hanabiStick', name: '线香花火', jp: '線香花火', rarity: 1, price: 36, duration: 1,
+      fx: { traffic: 3, sat: 3 }, desc: '掌心一点小小的火树银花。' },
+    { key: 'kendama', name: '剑玉', jp: 'けん玉', rarity: 1, price: 34, duration: 1,
+      fx: { sat: 4, spend: 0.1 }, desc: '孩子和大人排着队，试着把球接进杯里。' },
+    { key: 'yukimi', name: '雪见大福', jp: '雪見だいふく', rarity: 2, price: 32, duration: 3,
+      fx: { appeal: 5 }, desc: '软糯外皮裹着冰凉的芯，像一小团雪。' },
+    { key: 'kuzumochi', name: '葛饼', jp: 'くず餅', rarity: 2, price: 36, duration: 1,
+      fx: { spend: 0.18 }, desc: '撒满黄豆粉的透明凉糕，口感柔韧。' },
+    { key: 'matcha', name: '抹茶菓子', jp: '抹茶菓子', rarity: 2, price: 44, duration: 3,
+      fx: { appeal: 4, sat: 3 }, desc: '苦味回甘，配茶屋的缘侧最好。' },
+    { key: 'hamaya', name: '破魔矢', jp: '破魔矢', rarity: 2, price: 48, duration: 3,
+      fx: { renown: 3 }, desc: '神社授予的除厄之箭，挂在门楣上。' },
+    { key: 'omamori', name: '御守', jp: 'お守り', rarity: 2, price: 40, duration: 3,
+      fx: { sat: 5 }, desc: '绣着“合格”二字的小锦袋，访客愿意带走。' },
+    { key: 'daruma', name: '达摩', jp: 'だるま', rarity: 2, price: 60, duration: 5,
+      fx: { renown: 5 }, desc: '圆滚滚的不倒翁，一只眼还空着等愿。' },
+    { key: 'temari', name: '手鞠球', jp: '手鞠', rarity: 2, price: 42, duration: 3,
+      fx: { appeal: 4, sat: 3 }, desc: '彩色丝线缠出的花球，滚过廊下。' },
+    { key: 'furin', name: '风铃', jp: '風鈴', rarity: 2, price: 55, duration: 5,
+      fx: { appeal: 6, sat: 4 }, desc: '檐下叮咚，风一来整座庭园都轻了。' },
+    { key: 'geta', name: '木屐', jp: '下駄', rarity: 2, price: 38, duration: 3,
+      fx: { appeal: 3 }, desc: '在石径上敲出清脆的声响。' },
+    { key: 'yukata', name: '浴衣', jp: '浴衣', rarity: 2, price: 65, duration: 3,
+      fx: { appeal: 6, spend: 0.12 }, desc: '租一身夏衣逛园子，拍照的人排起队。' },
+    { key: 'kiseru', name: '烟管', jp: '煙管', rarity: 2, price: 46, duration: 3,
+      fx: { renown: 3, spend: 0.1 }, desc: '老茶客的随身物，慢条斯理地敲一敲。' },
+    { key: 'shumai', name: '烧卖', jp: '焼売', rarity: 2, price: 44, duration: 1,
+      fx: { traffic: 3, spend: 0.1 }, desc: '蒸笼一开，热气把半条街都引来了。' },
+    { key: 'sakuraTea', name: '樱汤', jp: '桜湯', rarity: 2, price: 52, duration: 3,
+      fx: { appeal: 5, sat: 3 }, desc: '盐渍樱花在热水里慢慢舒展开。' },
+    { key: 'koiCharm', name: '锦鲤护符', jp: '鯉のお守り', rarity: 3, price: 68, duration: 5,
+      fx: { appeal: 7, renown: 2 }, desc: '池中锦鲤化作一枚小小的缘起物。' },
+    { key: 'hanabi', name: '烟火大会', jp: '花火大会', rarity: 3, price: 120, duration: 1,
+      fx: { appeal: 10, renown: 6 }, desc: '入夜后放一场小型花火，整座山谷都亮起来。' },
+    { key: 'mikoshi', name: '神舆巡游', jp: '神輿', rarity: 3, price: 150, duration: 3,
+      fx: { traffic: 4, renown: 6 }, desc: '抬着神舆绕园一周，鼓声传得很远。' },
+    { key: 'shishimai', name: '狮子舞', jp: '獅子舞', rarity: 3, price: 110, duration: 1,
+      fx: { traffic: 5, appeal: 4 }, desc: '狮头一张一合，孩子追着跑。' },
+    { key: 'hotaru', name: '萤火虫笼', jp: '蛍籠', rarity: 3, price: 90, duration: 5,
+      fx: { appeal: 8, sat: 5 }, desc: '竹笼里养着几点夏夜的光。' },
+    { key: 'tanuki', name: '狸猫摆件', jp: '狸の置物', rarity: 3, price: 75, duration: 5,
+      fx: { appeal: 5, income: 0.12 }, desc: '挺着肚子的陶狸，据说能招财。' }
+  ];
+  var GM_ITEM_MAP = {};
+  for (var gii = 0; gii < GM_ITEM_DEFS.length; gii++) GM_ITEM_MAP[GM_ITEM_DEFS[gii].key] = GM_ITEM_DEFS[gii];
+  var GM_SHOP_STOCK = null;
+  var GM_INVITE_DEFS = [
+    { key: 'miko', fee: 320, why: '神社巫女入园祈福，客流与景气短时上扬。' },
+    { key: 'tea', fee: 280, why: '茶道宗匠设一席点茶，茶屋生意更旺。' },
+    { key: 'foreign', fee: 360, why: '远客带来异国游记，誉望涨得最快。' },
+    { key: 'scholar', fee: 260, why: '学者在园中讲学，研究声望双收。' },
+    { key: 'poet', fee: 240, why: '歌人夜坐吟咏，庭园的夜色值钱了。' },
+    { key: 'family', fee: 220, why: '亲子客成群而来，点心铺先忙起来。' },
+    { key: 'couple', fee: 240, why: '情侣在樱下合影，消费大方。' },
+    { key: 'pilgrim', fee: 180, why: '参拜客沿路寄付，细水长流。' }
+  ];
+  function gmItemById(k) { return GM_ITEM_MAP[k] || null; }
+  function gmVisitorKindByKey(k) {
+    for (var i = 0; i < GM_VISITOR_KINDS.length; i++) if (GM_VISITOR_KINDS[i].key === k) return GM_VISITOR_KINDS[i];
+    return null;
+  }
+  function gmRarityStars(r) { return r >= 3 ? '★★★' : r === 2 ? '★★' : '★'; }
+  function gmItemFx(it) {
+    var a = [], f = it.fx || {};
+    if (f.traffic) a.push('客流上限 +' + f.traffic);
+    if (f.appeal) a.push('人气 +' + f.appeal);
+    if (f.sat) a.push('满意度 +' + f.sat);
+    if (f.spend) a.push('消费 +' + Math.round(f.spend * 100) + '%');
+    if (f.income) a.push('周营收 +' + Math.round(f.income * 100) + '%');
+    if (f.renown) a.push('周誉望 +' + f.renown);
+    return a.join(' · ');
+  }
+  function gmItemBuff(type) {
+    gmItemPrune();
+    var v = 0;
+    for (var i = 0; i < GM.itemBuffs.length; i++) {
+      var it = gmItemById(GM.itemBuffs[i].key);
+      if (it && it.fx && it.fx[type]) v += it.fx[type];
+    }
+    return v;
+  }
+  function gmItemPrune() {
+    if (!GM.itemBuffs || !GM.itemBuffs.length) return;
+    var now = GM.day;
+    for (var i = GM.itemBuffs.length - 1; i >= 0; i--) {
+      if (!GM.itemBuffs[i] || GM.itemBuffs[i].until <= now) GM.itemBuffs.splice(i, 1);
+    }
+  }
+  function gmItemCount(key) {
+    return (GM.items && GM.items[key]) ? GM.items[key] : 0;
+  }
+  function gmAddItem(key, n) {
+    if (!GM_ITEM_MAP[key]) return;
+    GM.items[key] = gmItemCount(key) + (n || 1);
+    gmHud(performance.now());
+  }
+  function gmAddBuff(key) {
+    var it = gmItemById(key);
+    if (!it) return;
+    gmItemPrune();
+    GM.itemBuffs.push({ key: key, until: GM.day + it.duration });
+    if (GM.itemBuffs.length > 16) GM.itemBuffs.shift();
+  }
+  function gmUseItemNow(key) {
+    var it = gmItemById(key);
+    if (!it || gmItemCount(key) <= 0) { gmToast('道具袋里没有这件东西'); return; }
+    GM.items[key]--;
+    if (GM.items[key] <= 0) delete GM.items[key];
+    gmAddBuff(key);
+    sfx('chime');
+    gmToast('用了「' + it.name + '」 · ' + gmItemFx(it) + ' · ' + it.duration + ' 天');
+  }
+  function gmUseItem(key) {
+    var it = gmItemById(key);
+    if (!it || gmItemCount(key) <= 0) return;
+    var body = '<div class="gi-found"><div class="gi-found-art">' + gmItemArt(key) + '</div>' +
+      '<div class="gi-found-info"><span>' + gmRarityStars(it.rarity) + ' · ' + it.jp + '</span>' +
+      '<b>' + gmEsc(it.name) + '</b><i>' + gmEsc(it.desc) + '</i>' +
+      '<p class="gi-fx">' + gmItemFx(it) + '</p>' +
+      '<em>持续 ' + it.duration + ' 天 · 现有 ' + gmItemCount(key) + ' 个</em></div></div>' +
+      '<p class="gi-note">使用后从道具袋扣除一个，效果立即生效并开始计时。</p>';
+    gmShowModal('使用 · ' + it.name, body, [
+      { t: '使用', fn: function () { gmUseItemNow(key); } },
+      { t: '取消' }
+    ]);
+  }
+  function gmShopStock() {
+    var day = Math.floor(GM.day);
+    if (GM_SHOP_STOCK && GM_SHOP_STOCK.day === day) return GM_SHOP_STOCK;
+    var keys = [];
+    var pool = GM_SHOP_POOL_COMMON.slice();
+    for (var i = 0; i < 5 && pool.length; i++) {
+      var idx = Math.floor(Math.random() * pool.length);
+      keys.push(pool[idx]); pool.splice(idx, 1);
+    }
+    if (GM.renown >= 8) {
+      keys.push(GM_SHOP_POOL_RARE[Math.floor(Math.random() * GM_SHOP_POOL_RARE.length)]);
+    } else {
+      var p2 = GM_SHOP_POOL_COMMON.slice();
+      var r = Math.floor(Math.random() * p2.length);
+      if (keys.indexOf(p2[r]) < 0) keys.push(p2[r]);
+    }
+    var deal = keys[Math.floor(Math.random() * keys.length)];
+    GM_SHOP_STOCK = { day: day, keys: keys, sold: {}, deal: deal };
+    return GM_SHOP_STOCK;
+  }
+  function gmShopPrice(it) {
+    var st = gmShopStock();
+    var p = it.price * (1 + Math.min(0.18, GM.renown / 500));
+    if (st.deal === it.key) p *= 0.85;
+    return Math.max(1, Math.round(p));
+  }
+  function gmShopTabBar(tab) {
+    var html = '<div class="gi-top"><div class="gi-tabs">';
+    html += '<button type="button" class="gi-tab' + (tab === 'items' ? ' on' : '') + '" onclick="gmShopPanel(\'items\')">道具屋</button>';
+    html += '<button type="button" class="gi-tab' + (tab === 'invite' ? ' on' : '') + '" onclick="gmShopPanel(\'invite\')">邀客</button>';
+    html += '<button type="button" class="gi-tab' + (tab === 'bag' ? ' on' : '') + '" onclick="gmShopPanel(\'bag\')">道具袋 ' + gmBagTotal() + '</button>';
+    html += '</div><div class="gi-wallet">所持 <b>' + gmFmt(GM.money) + '</b> 銭</div></div>';
+    return html;
+  }
+  function gmBagTotal() {
+    var n = 0;
+    for (var k in GM.items) if (GM.items.hasOwnProperty(k)) n += GM.items[k];
+    return n;
+  }
+  function gmActiveBuffHtml() {
+    gmItemPrune();
+    var html = '<div class="gi-sub"><b>生效中的道具</b><span>按游戏日计时</span></div>';
+    if (!GM.itemBuffs.length) {
+      return html + '<div class="gi-empty">还没有生效中的道具。去道具屋买一件，或者等访客相赠。</div>';
+    }
+    html += '<div class="gi-active">';
+    for (var i = 0; i < GM.itemBuffs.length; i++) {
+      var b = GM.itemBuffs[i], it = gmItemById(b.key);
+      if (!it) continue;
+      var left = Math.max(0, b.until - GM.day);
+      var days = left < 1 ? left.toFixed(1) : Math.ceil(left);
+      html += '<div class="gi-act"><span class="gi-mini">' + gmItemArt(it.key) + '</span>' +
+        '<b>' + gmEsc(it.name) + '</b><p>' + gmItemFx(it) + '</p><em>余 ' + days + ' 天</em></div>';
+    }
+    return html + '</div>';
+  }
+  function gmItemCard(it, mode) {
+    var price = gmShopPrice(it);
+    var stock = gmShopStock();
+    var left = 3 - (stock.sold[it.key] || 0);
+    var count = gmItemCount(it.key);
+    var soldOut = left <= 0;
+    var canBuy = GM.money >= price && !soldOut;
+    var foot = '';
+    if (mode === 'shop') {
+      foot = '<div class="gi-foot"><span>' + (stock.deal === it.key ? '特价 ' : '') + price + ' 銭 · 余 ' + Math.max(0, left) + '</span>' +
+        '<button type="button" class="gi-btn" ' + (canBuy ? '' : 'disabled ') + 'onclick="gmShopBuy(\'' + it.key + '\')">购买</button></div>';
+    } else {
+      foot = '<div class="gi-foot"><span>持有 ' + count + ' 个 · ' + it.duration + ' 天</span>' +
+        '<button type="button" class="gi-btn" ' + (count > 0 ? '' : 'disabled ') + 'onclick="gmUseItem(\'' + it.key + '\')">使用</button></div>';
+    }
+    return '<div class="gi-card"><div class="gi-art">' + gmItemArt(it.key) + '</div>' +
+      '<div class="gi-info"><div class="gi-name"><b>' + gmEsc(it.name) + '</b><span class="gi-jp">' + gmEsc(it.jp) + '</span></div>' +
+      '<p class="gi-fx">' + gmItemFx(it) + '</p>' +
+      '<p class="gi-meta">' + gmRarityStars(it.rarity) + ' · ' + it.duration + ' 天</p>' + foot + '</div></div>';
+  }
+  function gmInviteCard(d) {
+    var k = gmVisitorKindByKey(d.key);
+    if (!k) return '';
+    var full = GM.visList.length >= gmCap();
+    var can = GM.money >= d.fee && !full;
+    return '<div class="gi-iv"><div class="gi-iv-top"><b>' + gmEsc(k.title) + '</b><i>' + gmEsc(k.jp) + '</i></div>' +
+      '<p>' + gmEsc(d.why) + '</p><div class="gi-foot"><span>' + d.fee + ' 銭' + (full ? ' · 客满' : '') + '</span>' +
+      '<button type="button" class="gi-btn alt" ' + (can ? '' : 'disabled ') + 'onclick="gmShopInvite(\'' + d.key + '\')">邀请</button></div></div>';
+  }
+  function gmShopPanel(tab) {
+    if (!tab) tab = GM.shopTab || 'items';
+    GM.shopTab = tab;
+    var body = gmShopTabBar(tab) + gmActiveBuffHtml();
+    if (tab === 'items') {
+      var st = gmShopStock(), cards = '';
+      for (var i = 0; i < st.keys.length; i++) {
+        var it = gmItemById(st.keys[i]);
+        if (it) cards += gmItemCard(it, 'shop');
+      }
+      body += '<div class="gi-sub"><b>今日货架</b><span>每日换货 · 每件限购 3 个</span></div><div class="gi-grid">' + cards + '</div>' +
+        '<p class="gi-note">道具效果按游戏日计时，限时 1、3 或 5 天；再次使用同一件道具会叠加并延长生效时间。货架随誉望提高进货价，也会出现更稀有的东西。</p>';
+    } else if (tab === 'invite') {
+      var iv = '';
+      for (var j = 0; j < GM_INVITE_DEFS.length; j++) iv += gmInviteCard(GM_INVITE_DEFS[j]);
+      body += '<div class="gi-sub"><b>邀请来园</b><span>受邀客消费更高，离园时更容易赠礼</span></div>' +
+        '<div class="gi-invite">' + iv + '</div>' +
+        '<p class="gi-note">邀请费一次付清；若庭园已满，先等现有访客离园。受邀客的预算与满意度都更高。</p>';
+    } else {
+      var bag = '';
+      for (var key in GM.items) {
+        if (!GM.items.hasOwnProperty(key) || GM.items[key] <= 0) continue;
+        var bit = gmItemById(key);
+        if (bit) bag += gmItemCard(bit, 'bag');
+      }
+      body += '<div class="gi-sub"><b>道具袋</b><span>共 ' + gmBagTotal() + ' 件</span></div>' +
+        (bag ? '<div class="gi-grid">' + bag + '</div>' : '<div class="gi-empty">道具袋还是空的。点击庭园里的地面，偶尔能捡到访客落下的东西；访客满意离园时也会赠礼。</div>') +
+        '<p class="gi-note">在道具袋里点“使用”即可生效。再次使用同一件道具，数值叠加、持续时间延长。</p>';
+    }
+    gmShowModal('道具屋 · 花见庵', body, [{ t: '关闭' }]);
+  }
+  function gmShopBuy(key) {
+    var it = gmItemById(key);
+    if (!it) return;
+    var price = gmShopPrice(it), st = gmShopStock();
+    var left = 3 - (st.sold[key] || 0);
+    if (left <= 0) { gmToast('今天这件已经卖完了'); return; }
+    if (GM.money < price) { gmToast('銭不够，先做几周生意吧'); return; }
+    var shopBox = gmEl.gMask.querySelector('.gmodal');
+    var shopScroll = shopBox ? shopBox.scrollTop : 0;
+    GM.money -= price;
+    st.sold[key] = (st.sold[key] || 0) + 1;
+    gmAddItem(key, 1);
+    sfx('chime');
+    gmToast('买到「' + it.name + '」 · 花 ' + price + ' 銭');
+    gmShopPanel('items');
+    if (shopBox) shopBox.scrollTop = shopScroll;
+  }
+  function gmShopInvite(kindKey) {
+    var d = null;
+    for (var i = 0; i < GM_INVITE_DEFS.length; i++) if (GM_INVITE_DEFS[i].key === kindKey) d = GM_INVITE_DEFS[i];
+    if (!d) return;
+    if (GM.visList.length >= gmCap()) { gmToast('庭园客满，等一会儿再邀'); return; }
+    if (GM.money < d.fee) { gmToast('邀请费不够'); return; }
+    var kd = gmVisitorKindByKey(kindKey);
+    if (!kd) return;
+    GM.money -= d.fee;
+    gmSpawnVisitor(kd, true);
+    GM.nextSpawn = Math.max(GM.nextSpawn, performance.now() + 1800);
+    sfx('chime');
+    gmToast('已邀「' + kd.title + '」入园');
+    gmCloseModal();
+  }
+  function gmVisitorGift(v) {
+    var pool = [];
+    for (var i = 0; i < GM_ITEM_DEFS.length; i++) {
+      var it = GM_ITEM_DEFS[i];
+      var w = it.rarity === 1 ? 8 : it.rarity === 2 ? 3 : 1;
+      for (var j = 0; j < w; j++) pool.push(it.key);
+    }
+    var key = pool[Math.floor(Math.random() * pool.length)];
+    var gift = gmItemById(key);
+    if (!gift) return;
+    gmAddItem(key, 1);
+    GM.giftLog = GM.giftLog || [];
+    GM.giftLog.push({ day: GM.day, name: v.name, key: key });
+    gmToast(v.name + ' 离园时赠你「' + gift.name + '」');
+  }
+  function gmMaybeFind(pt) {
+    var now = performance.now();
+    if (now - GM.lastFindAt < 10000) return;
+    if (Math.random() > 0.12) return;
+    GM.lastFindAt = now;
+    var pool = [];
+    for (var i = 0; i < GM_ITEM_DEFS.length; i++) {
+      var it = GM_ITEM_DEFS[i];
+      var w = it.rarity === 1 ? 10 : it.rarity === 2 ? 3 : 1;
+      for (var j = 0; j < w; j++) pool.push(it.key);
+    }
+    var key = pool[Math.floor(Math.random() * pool.length)];
+    var found = gmItemById(key);
+    if (!found) return;
+    gmAddItem(key, 1);
+    if (pt) {
+      burst(pt.clone().add(new THREE.Vector3(0, 0.5, 0)), '#f3d69a', 20, { speed: 1.2, up: 1.8, life: 1.0 });
+      ringAt(pt, new THREE.Vector3(0, 1, 0), '#f3d69a', 0.25, 1.8, 0.8);
+    }
+    sfx('chime');
+    var body = '<div class="gi-found"><div class="gi-found-art">' + gmItemArt(key) + '</div>' +
+      '<div class="gi-found-info"><span>拾得 · ' + gmRarityStars(found.rarity) + '</span>' +
+      '<b>' + gmEsc(found.name) + '</b><i>' + gmEsc(found.jp) + ' · ' + gmEsc(found.desc) + '</i>' +
+      '<p class="gi-fx">' + gmItemFx(found) + '</p><em>已收进道具袋 · 持续 ' + found.duration + ' 天</em></div></div>' +
+      '<p class="gi-note">庭园的地上偶尔会有访客落下的东西。道具袋里点“使用”即可生效。</p>';
+    gmShowModal('拾得 · ' + found.name, body, [{ t: '收下' }]);
+  }
+  function gmItemArt(key) {
+    var inner = '';
+    if (key === 'ramen') inner = '<path d="M12 31 Q32 43 52 31 L52 34 Q32 49 12 34Z" fill="#e6d4b6"/><ellipse cx="32" cy="31" rx="20" ry="7" fill="#f2e3c5"/><ellipse cx="32" cy="30" rx="17" ry="5.4" fill="#c98a45"/><path d="M18 29 Q26 26 32 28 T46 29" stroke="#f5e6c2" stroke-width="2" fill="none"/><ellipse cx="46" cy="27" rx="5" ry="4" fill="#f7edda"/><circle cx="46" cy="27" r="2.4" fill="#e9a63c"/><rect x="18" y="24" width="8" height="8" fill="#3b4a3b" transform="rotate(-12 22 28)"/><circle cx="27" cy="24" r="3" fill="#f3c9c8"/><path d="M22 18 Q20 13 24 11 M30 17 Q28 12 32 9 M38 18 Q36 13 40 11" stroke="#efe7d8" stroke-width="1.4" fill="none" opacity=".5"/>';
+    else if (key === 'ramune') inner = '<path d="M26 14 L26 19 Q22 22 22 28 L22 51 Q22 55 26 55 L38 55 Q42 55 42 51 L42 28 Q42 22 38 19 L38 14Z" fill="#9fd8db" opacity=".85"/><rect x="24" y="12" width="16" height="4" rx="2" fill="#4d7c84"/><path d="M26 34 Q32 30 38 34 L38 49 Q32 52 26 49Z" fill="#d9f4f2" opacity=".75"/><circle cx="33" cy="35" r="4.2" fill="#f8faf7"/><circle cx="31.6" cy="33.6" r="1.5" fill="#ffffff"/><path d="M25 48 Q32 45 39 48" stroke="#6aa9ad" stroke-width="1.4" fill="none"/><text x="32" y="46" font-size="6" fill="#3d6b70" text-anchor="middle">ラムネ</text>';
+    else if (key === 'dango') inner = '<line x1="15" y1="48" x2="48" y2="16" stroke="#b99a6a" stroke-width="2.2"/><circle cx="20" cy="43" r="8" fill="#df9aa8"/><circle cx="32" cy="31" r="8" fill="#f2ead7"/><circle cx="43" cy="20" r="8" fill="#a8c48b"/><circle cx="17.5" cy="40.5" r="2" fill="#f5d7dc" opacity=".7"/><circle cx="40.5" cy="17.5" r="2" fill="#d7e4c5" opacity=".7"/>';
+    else if (key === 'taiyaki') inner = '<path d="M12 34 Q18 22 32 24 Q46 20 53 30 Q56 35 50 39 Q42 48 28 44 Q16 44 12 34Z" fill="#c98743"/><path d="M46 30 L56 24 L54 34 L58 40 L50 39Z" fill="#b97634"/><circle cx="26" cy="32" r="2" fill="#543421"/><path d="M20 30 Q26 26 33 30 M20 37 Q28 42 41 39" stroke="#8d5a2c" stroke-width="1.4" fill="none"/><circle cx="22" cy="31" r="1.2" fill="#f2d9a8"/>';
+    else if (key === 'onigiri') inner = '<path d="M32 12 Q35 12 38 18 L50 43 Q53 50 45 51 L19 51 Q11 50 15 42 L26 18 Q29 12 32 12Z" fill="#f6f1e3"/><rect x="23" y="37" width="18" height="13" fill="#3f5341"/><circle cx="30" cy="28" r="1.5" fill="#e6dcc6"/><circle cx="36" cy="24" r="1.2" fill="#e6dcc6"/><circle cx="34" cy="31" r="1" fill="#e6dcc6"/>';
+    else if (key === 'hojicha') inner = '<path d="M18 26 Q18 46 30 47 Q42 46 42 26Z" fill="#7d8f6e"/><ellipse cx="30" cy="26" rx="12" ry="3.6" fill="#5e7255"/><ellipse cx="30" cy="26" rx="9" ry="2.4" fill="#b58a52"/><path d="M24 22 Q26 16 30 13 M32 21 Q34 15 37 12" stroke="#efe7d8" stroke-width="1.3" fill="none" opacity=".45"/><path d="M42 31 Q52 30 54 37 Q54 43 45 43" stroke="#6b7e60" stroke-width="3" fill="none"/><ellipse cx="48" cy="49" rx="9" ry="2" fill="#3f5341" opacity=".3"/>';
+    else if (key === 'uchiwa') inner = '<path d="M14 22 Q32 4 50 22 L44 40 Q32 50 20 40Z" fill="#f0dfc6"/><path d="M20 25 Q32 11 44 25" stroke="#b26a62" stroke-width="1.4" fill="none"/><circle cx="32" cy="31" r="5" fill="#cf7368"/><path d="M27 31 Q32 24 37 31 Q32 38 27 31Z" fill="#e8b6a8"/><circle cx="30" cy="30" r=".9" fill="#3d2b25"/><rect x="30" y="43" width="4" height="13" rx="1.5" fill="#a98154"/>';
+    else if (key === 'oshibori') inner = '<rect x="14" y="24" width="36" height="10" rx="5" fill="#f2eee4"/><rect x="16" y="30" width="32" height="9" rx="4" fill="#e4ddce"/><rect x="18" y="36" width="28" height="8" rx="3.5" fill="#f6f2e7"/><path d="M20 26 Q26 20 32 26 Q38 20 44 26" stroke="#d8cfbe" stroke-width="1.2" fill="none"/><circle cx="45" cy="35" r="1.5" fill="#c7d8cd"/><path d="M26 17 Q28 12 32 11 M36 18 Q38 13 41 12" stroke="#efe7d8" stroke-width="1.3" fill="none" opacity=".4"/>';
+    else if (key === 'hanabiStick') inner = '<line x1="32" y1="42" x2="32" y2="57" stroke="#8b6b45" stroke-width="2"/><circle cx="32" cy="40" r="2.4" fill="#e6b45f"/><path d="M32 38 L32 24 M32 38 L20 30 M32 38 L44 30 M32 38 L24 20 M32 38 L40 20 M32 38 L18 40 M32 38 L46 40" stroke="#f3cf76" stroke-width="1.2"/><circle cx="32" cy="24" r="1.6" fill="#f8e39a"/><circle cx="20" cy="30" r="1.4" fill="#f2c768"/><circle cx="44" cy="30" r="1.4" fill="#f2c768"/><circle cx="24" cy="20" r="1.2" fill="#f8e39a"/><circle cx="40" cy="20" r="1.2" fill="#f8e39a"/><circle cx="18" cy="40" r="1.2" fill="#e8b35e"/><circle cx="46" cy="40" r="1.2" fill="#e8b35e"/>';
+    else if (key === 'kendama') inner = '<line x1="30" y1="14" x2="30" y2="35" stroke="#9d7a4e" stroke-width="3"/><path d="M22 35 Q30 42 38 35 L36 50 L24 50Z" fill="#b8874f"/><ellipse cx="30" cy="16" rx="9" ry="3" fill="#c69a62"/><circle cx="30" cy="26" r="7" fill="#d3544e"/><path d="M24 23 Q30 18 36 23" stroke="#f0cbc0" stroke-width="1.4" fill="none"/><line x1="30" y1="35" x2="30" y2="44" stroke="#8b6b45" stroke-width="1"/>';
+    else if (key === 'yukimi') inner = '<ellipse cx="32" cy="47" rx="15" ry="4" fill="#b9c8bd" opacity=".5"/><path d="M20 38 Q14 30 20 23 Q27 16 36 21 Q46 24 44 34 Q42 42 34 43 Q26 44 20 38Z" fill="#f7f3e9"/><path d="M23 35 Q22 29 28 27 Q35 26 38 31" stroke="#ddd4c3" stroke-width="1.2" fill="none"/><path d="M20 41 Q26 38 33 41 Q39 44 43 41" stroke="#e8e0d0" stroke-width="2" fill="none"/><circle cx="39" cy="25" r="2" fill="#f0b7c0" opacity=".65"/>';
+    else if (key === 'kuzumochi') inner = '<rect x="16" y="30" width="14" height="14" rx="3" fill="#d9e5cd" opacity=".9"/><rect x="31" y="28" width="15" height="15" rx="3" fill="#e4eed8" opacity=".9"/><path d="M16 35 Q24 31 30 35 M31 34 Q39 30 46 34" stroke="#b6c9a6" stroke-width="2" fill="none"/><circle cx="22" cy="38" r="1.2" fill="#8f6b41"/><circle cx="36" cy="36" r="1.2" fill="#8f6b41"/><circle cx="26" cy="41" r="1" fill="#8f6b41"/><rect x="15" y="47" width="36" height="4" rx="2" fill="#b8874f"/><path d="M20 25 Q22 20 27 19" stroke="#efe7d8" stroke-width="1.2" fill="none" opacity=".4"/>';
+    else if (key === 'matcha') inner = '<path d="M14 31 Q14 49 32 50 Q50 49 50 31Z" fill="#6e8b63"/><ellipse cx="32" cy="31" rx="18" ry="5.5" fill="#f0ead8"/><ellipse cx="32" cy="31" rx="14" ry="4" fill="#86a668"/><path d="M20 31 Q26 28 32 31 T44 31" stroke="#cfe0b7" stroke-width="1.2" fill="none"/><path d="M24 21 Q26 14 32 12 M32 20 Q35 13 40 12 M40 21 Q43 16 48 16" stroke="#efe7d8" stroke-width="1.3" fill="none" opacity=".4"/><rect x="47" y="20" width="5" height="12" rx="2" fill="#a98154"/>';
+    else if (key === 'hamaya') inner = '<line x1="18" y1="49" x2="48" y2="14" stroke="#b8874f" stroke-width="2.2"/><path d="M44 12 L50 18 L45 20 L49 26 L42 22 L44 12Z" fill="#c9d2c1"/><path d="M14 52 Q20 47 24 51 Q27 54 21 56 Q16 56 14 52Z" fill="#e8d9b8"/><path d="M16 46 L20 52 M18 45 L22 50" stroke="#7d8f6e" stroke-width="1.4"/><rect x="26" y="36" width="9" height="5" fill="#f4eee0" transform="rotate(-40 30 38)"/>';
+    else if (key === 'omamori') inner = '<path d="M25 16 Q32 9 39 16 L41 44 Q32 55 23 44Z" fill="#b64f52"/><path d="M27 14 Q32 11 37 14" stroke="#e2c478" stroke-width="2" fill="none"/><rect x="27" y="28" width="10" height="12" fill="#f2e5c3" opacity=".9"/><path d="M29 32 L35 32 M29 35 L33 35" stroke="#a34b46" stroke-width="1" fill="none"/><path d="M33 10 L36 5 L38 10 L44 10 L40 14 L42 20 L36 17 L30 20 L32 14 L28 10Z" stroke="#d9b768" stroke-width="1.2" fill="none"/><path d="M25 42 Q32 47 39 42" stroke="#8d373e" stroke-width="1.4" fill="none"/>';
+    else if (key === 'daruma') inner = '<path d="M24 12 Q32 7 40 12 Q50 20 48 36 Q46 51 32 53 Q18 51 16 36 Q14 20 24 12Z" fill="#c94f4a"/><circle cx="32" cy="29" r="13" fill="#f3e6cf"/><circle cx="27" cy="27" r="2" fill="#2f2a26"/><path d="M33 24 Q38 26 37 32" stroke="#2f2a26" stroke-width="1.4" fill="none"/><path d="M24 39 Q32 41 41 38" stroke="#8f2f31" stroke-width="1.6" fill="none"/><path d="M35 33 Q40 35 38 39" stroke="#2f2a26" stroke-width="1" fill="none"/><path d="M21 18 Q32 12 44 19" stroke="#f1d9bd" stroke-width="2" fill="none" opacity=".5"/>';
+    else if (key === 'temari') inner = '<circle cx="32" cy="34" r="18" fill="#e7d8e0"/><path d="M16 27 Q32 36 48 27 M16 41 Q32 32 48 41" stroke="#b57186" stroke-width="2.2" fill="none"/><path d="M24 18 Q32 34 24 50 M40 18 Q32 34 40 50" stroke="#7e9a86" stroke-width="2" fill="none"/><circle cx="32" cy="34" r="3" fill="#e6b45f"/><circle cx="24" cy="24" r="1.4" fill="#f3e7d2"/><circle cx="41" cy="43" r="1.4" fill="#f3e7d2"/>';
+    else if (key === 'furin') inner = '<path d="M26 12 Q32 7 38 12 L38 22 Q32 27 26 22Z" fill="#cfe4e2" opacity=".9"/><path d="M20 24 Q32 18 44 24 L40 40 Q32 47 24 40Z" fill="#b7d8d7" opacity=".8"/><path d="M24 26 Q32 21 40 26" stroke="#f5f1e4" stroke-width="1.2" fill="none"/><line x1="32" y1="44" x2="32" y2="53" stroke="#8a6b55" stroke-width="1"/><rect x="27" y="51" width="10" height="5" fill="#f2e5c3"/><text x="32" y="55" font-size="3.6" fill="#a34b46" text-anchor="middle">風</text><path d="M18 17 Q14 22 18 26 M46 17 Q50 22 46 26" stroke="#f0e6d0" stroke-width="1.2" fill="none" opacity=".4"/>';
+    else if (key === 'geta') inner = '<path d="M14 40 Q16 32 34 33 L54 34 Q56 37 54 40 L48 41 L46 47 Q42 49 40 45 L38 41 L22 41 L20 47 Q16 49 15 44Z" fill="#b8874f"/><rect x="16" y="43" width="4" height="10" fill="#8a6036"/><rect x="44" y="43" width="4" height="10" fill="#8a6036"/><path d="M18 36 Q30 30 50 35" stroke="#d9b47a" stroke-width="1.4" fill="none"/><path d="M22 34 Q28 28 34 34" stroke="#e8d6b4" stroke-width="1.6" fill="none"/>';
+    else if (key === 'yukata') inner = '<path d="M20 14 L30 12 L32 20 L34 12 L44 14 L52 26 L45 31 L42 24 L42 52 L22 52 L22 24 L19 31 L12 26Z" fill="#9db6cf"/><path d="M30 12 L32 20 L34 12" stroke="#f3ede1" stroke-width="1.2" fill="none"/><rect x="22" y="34" width="20" height="5" fill="#cf6e72"/><path d="M26 40 L24 52 M38 40 L40 52" stroke="#d8e2ec" stroke-width="1.2" fill="none"/><circle cx="28" cy="24" r="3" fill="#f0c8c8"/><circle cx="37" cy="20" r="2.4" fill="#f0c8c8"/><circle cx="40" cy="27" r="2" fill="#f0c8c8"/>';
+    else if (key === 'kiseru') inner = '<line x1="14" y1="46" x2="43" y2="31" stroke="#7c6a52" stroke-width="3"/><rect x="40" y="26" width="8" height="8" rx="2" fill="#c39a5d"/><ellipse cx="51" cy="25" rx="4" ry="2.4" fill="#8a6036"/><path d="M12 47 Q8 49 11 53 Q16 54 17 49" stroke="#b7a68e" stroke-width="1.4" fill="none"/><path d="M52 20 Q50 15 54 12 M56 22 Q55 17 58 15" stroke="#efe7d8" stroke-width="1.1" fill="none" opacity=".35"/><rect x="28" y="35" width="10" height="3" fill="#b64f52" transform="rotate(-28 33 37)"/>';
+    else if (key === 'shumai') inner = '<path d="M20 35 Q20 23 32 22 Q44 23 44 35 Q46 43 32 45 Q18 43 20 35Z" fill="#f0e4c8"/><path d="M22 34 Q26 26 32 25 Q38 26 42 34 Q37 30 32 30 Q27 30 22 34Z" fill="#e7d4ac"/><circle cx="28" cy="28" r="2" fill="#e0b45f"/><circle cx="36" cy="29" r="2" fill="#d7a34f"/><path d="M26 36 Q32 40 38 36" stroke="#c79a55" stroke-width="1" fill="none"/><rect x="17" y="44" width="30" height="5" rx="2" fill="#b8874f"/><path d="M24 18 Q26 12 30 11 M34 19 Q36 13 41 12" stroke="#efe7d8" stroke-width="1.2" fill="none" opacity=".35"/>';
+    else if (key === 'sakuraTea') inner = '<path d="M18 30 Q18 48 32 49 Q46 48 46 30Z" fill="#e7ebe4"/><ellipse cx="32" cy="30" rx="14" ry="4.4" fill="#d7e4dd"/><ellipse cx="32" cy="30" rx="11" ry="3.2" fill="#f2d6da"/><path d="M25 29 Q28 25 32 29 Q35 32 30 33 Q26 32 25 29Z" fill="#e6a8b6"/><path d="M37 28 Q39 25 42 28 Q44 31 40 32 Q37 31 37 28Z" fill="#efc4cd"/><path d="M25 22 Q27 16 31 14 M36 22 Q38 16 42 15" stroke="#efe7d8" stroke-width="1.2" fill="none" opacity=".4"/><path d="M46 34 Q54 33 55 39 Q54 44 47 44" stroke="#d6ded8" stroke-width="2.4" fill="none"/>';
+    else if (key === 'koiCharm') inner = '<circle cx="32" cy="32" r="21" fill="#2f3d3a"/><path d="M18 34 Q26 24 38 26 Q47 28 50 34 Q47 38 40 38 Q30 39 22 36Z" fill="#e8ece0"/><path d="M40 30 Q47 26 49 33 Q46 37 40 35Z" fill="#cf6e5a"/><circle cx="24" cy="32" r="1.6" fill="#2c2a25"/><path d="M26 38 Q32 42 39 38" stroke="#b9c7b8" stroke-width="1.4" fill="none"/><circle cx="45" cy="34" r="1.6" fill="#f0c26a"/><path d="M28 28 Q32 22 37 27" stroke="#f3f1e6" stroke-width="1.2" fill="none"/><path d="M12 14 Q16 9 22 12" stroke="#c9a875" stroke-width="1.4" fill="none"/>';
+    else if (key === 'hanabi') inner = '<circle cx="32" cy="32" r="4" fill="#f8e6a8"/><path d="M32 32 L32 10 M32 32 L32 54 M32 32 L10 32 M32 32 L54 32 M32 32 L17 17 M32 32 L47 47 M32 32 L17 47 M32 32 L47 17" stroke="#f0c05e" stroke-width="1.6"/><circle cx="32" cy="10" r="2" fill="#f6d98a"/><circle cx="32" cy="54" r="2" fill="#f6d98a"/><circle cx="10" cy="32" r="2" fill="#f6d98a"/><circle cx="54" cy="32" r="2" fill="#f6d98a"/><circle cx="17" cy="17" r="1.8" fill="#d9775b"/><circle cx="47" cy="47" r="1.8" fill="#d9775b"/><circle cx="17" cy="47" r="1.8" fill="#8fb7c6"/><circle cx="47" cy="17" r="1.8" fill="#8fb7c6"/><circle cx="32" cy="32" r="14" stroke="#f3cf76" stroke-width=".8" fill="none" opacity=".5"/>';
+    else if (key === 'mikoshi') inner = '<path d="M14 30 L32 16 L50 30Z" fill="#8d5a43"/><rect x="18" y="30" width="28" height="18" fill="#b64f52"/><rect x="21" y="33" width="6" height="15" fill="#e2c478"/><rect x="37" y="33" width="6" height="15" fill="#e2c478"/><rect x="29" y="33" width="6" height="9" fill="#3c2c26"/><path d="M14 48 L50 48" stroke="#8a6036" stroke-width="3"/><path d="M18 52 L14 58 M46 52 L50 58" stroke="#8a6036" stroke-width="2.4"/><circle cx="32" cy="13" r="3" fill="#e2c478"/><path d="M20 24 Q32 19 44 24" stroke="#f0d9a0" stroke-width="1.2" fill="none"/>';
+    else if (key === 'shishimai') inner = '<path d="M17 34 Q16 17 32 15 Q49 16 48 33 Q49 43 40 47 Q32 51 24 47 Q15 42 17 34Z" fill="#d06a4f"/><path d="M20 31 Q23 20 32 19 Q41 20 44 31 Q39 27 32 27 Q25 27 20 31Z" fill="#f0d9a0"/><circle cx="25" cy="34" r="3.2" fill="#f3e6cf"/><circle cx="25" cy="34" r="1.5" fill="#2d2925"/><circle cx="38" cy="33" r="3" fill="#f3e6cf"/><circle cx="38" cy="33" r="1.4" fill="#2d2925"/><path d="M25 42 Q32 39 39 42 Q36 47 32 47 Q28 47 25 42Z" fill="#8f2f31"/><path d="M26 43 L26 46 M32 42 L32 47 M38 43 L38 46" stroke="#f3e6cf" stroke-width="1" fill="none"/><path d="M17 28 Q12 24 14 18 M47 28 Q52 23 50 17" stroke="#e2c478" stroke-width="1.6" fill="none"/>';
+    else if (key === 'hotaru') inner = '<rect x="18" y="24" width="28" height="28" rx="5" fill="#b9c9b5" opacity=".22"/><path d="M20 24 Q20 17 25 16 Q28 17 28 24 M36 24 Q36 15 41 14 Q46 17 44 24" stroke="#8a9b83" stroke-width="1.2" fill="none"/><circle cx="26" cy="37" r="2" fill="#e9f2a6"/><circle cx="37" cy="34" r="1.6" fill="#f3e78a"/><circle cx="33" cy="44" r="1.4" fill="#f3e78a"/><circle cx="26" cy="37" r="6" fill="#e8f2a0" opacity=".18"/><circle cx="37" cy="34" r="5" fill="#f3e78a" opacity=".16"/><ellipse cx="32" cy="55" rx="15" ry="2" fill="#7d8f6e" opacity=".35"/>';
+    else if (key === 'tanuki') inner = '<path d="M20 24 Q22 16 30 17 Q32 12 35 17 Q44 17 45 25 Q51 29 50 39 Q49 50 39 52 L26 52 Q17 49 16 39 Q15 31 20 24Z" fill="#a98458"/><circle cx="26" cy="29" r="1.8" fill="#302821"/><circle cx="38" cy="29" r="1.8" fill="#302821"/><ellipse cx="32" cy="34" rx="4" ry="3" fill="#f0e4c8"/><ellipse cx="32" cy="33" rx="1.4" ry="1" fill="#3a2d23"/><path d="M28 42 Q32 45 36 42" stroke="#5e4730" stroke-width="1" fill="none"/><ellipse cx="31" cy="44" rx="8" ry="9" fill="#e7dcc4" opacity=".55"/><path d="M26 17 Q22 12 19 16 Q18 21 23 21 M36 17 Q40 11 44 15 Q45 20 40 21" stroke="#7b5d3b" stroke-width="1.6" fill="none"/><path d="M14 35 Q11 41 15 44 M49 35 Q53 40 50 44" stroke="#8a6036" stroke-width="1.2" fill="none"/>';
+    else inner = '<rect x="18" y="18" width="28" height="28" fill="#4b4038"/><text x="32" y="36" font-size="10" fill="#e8c08a" text-anchor="middle">?</text>';
+    return '<svg viewBox="0 0 64 64" preserveAspectRatio="xMidYMid meet">' +
+      '<rect width="64" height="64" fill="#26221f"/>' +
+      '<circle cx="32" cy="30" r="26" fill="#e8c08a" opacity=".08"/>' +
+      '<ellipse cx="32" cy="55" rx="22" ry="3.6" fill="#e8c08a" opacity=".12"/>' +
+      inner + '</svg>';
+  }
+
   /* ---------- 周结 ---------- */
   function gmWeek() {
     var income = 0, research = 0, built = GM.built.length;
@@ -9658,7 +10113,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var combo = gmComboInfo();
     var polW = GM_POLICIES[GM.policy] || GM_POLICIES.balanced;
     income = income * (1 + combo.income) * (0.6 + Math.min(1.2, GM.weekVisitors / 10)) *
-      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income;
+      (GM.unlocked.shop ? 1.2 : 1) * (0.78 + GM.rating * 0.075) * polW.income * (1 + gmItemBuff('income'));
     var maint = built * 2 + gmSalary();
     var net = Math.round(income + GM.spent - maint);
     GM.money += net;
@@ -9666,7 +10121,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     var rGain = Math.round((4 + research + GM.weekVisitors * 1.2 + (GM.staff.steward ? 3 : 0) +
       (GM.unlocked.tea ? 2 : 0) + (GM.unlocked.inn ? 3 : 0)) * polW.research);
     GM.research += rGain;
-    var gain = 1.5 + gmAppeal() / 18 + GM.weekVisitors / 2 - 0.5 + (GM.staff.miko ? 1 : 0);
+    var gain = 1.5 + gmAppeal() / 18 + GM.weekVisitors / 2 - 0.5 + (GM.staff.miko ? 1 : 0) + gmItemBuff('renown');
     GM.renown = Math.max(0, GM.renown + gain);
     var openedZones = gmCheckZones(true);
     GM.rating = Math.round((GM.rating * 0.7 + gmRatingCalc() * 0.3) * 10) / 10;
@@ -10249,6 +10704,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         weekly: GM.weekly, weekVisitors: GM.weekVisitors, spent: GM.spent, weekBuilt: GM.weekBuilt,
         weekDiscover: GM.weekDiscover, rating: GM.rating, review: GM.review, history: GM.history, policy: GM.policy,
         codex: Object.keys(discovered).filter(function (k) { return discovered[k]; }),
+        items: GM.items, itemBuffs: GM.itemBuffs,
         built: GM.built.map(function (b) { return [b.plot, b.key, b.level || 1]; }),
         construction: GM.construction.map(function (c) { return [c.plot, c.key, c.ready]; })
       }));
@@ -10289,6 +10745,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       GM.codexPaid = d.codexPaid;
       if (GM.codexPaid === undefined) GM.codexPaid = discoveredCount;
+      GM.items = {};
+      if (d.items && typeof d.items === 'object') {
+        for (var ik in d.items) if (GM_ITEM_MAP[ik] && d.items[ik] > 0) GM.items[ik] = Math.min(99, Math.floor(d.items[ik]));
+      }
+      GM.itemBuffs = [];
+      if (d.itemBuffs && d.itemBuffs.length) {
+        for (var ib = 0; ib < d.itemBuffs.length; ib++) {
+          var bf = d.itemBuffs[ib];
+          if (bf && GM_ITEM_MAP[bf.key] && bf.until > GM.day) GM.itemBuffs.push({ key: bf.key, until: bf.until });
+        }
+      }
+      gmItemPrune();
       GM.loaded = true;
       GM.week = Math.min(52, Math.floor((GM.day - 1) / 7) + 1);
       for (var i = 0; i < (d.built || []).length; i++) {
@@ -10457,6 +10925,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     document.getElementById('gGoalsBtn').onclick = function () { gmGoalsPanel(); };
     document.getElementById('settingsBtn').onclick = function () { gmSettingsPanel(); };
     document.getElementById('gStaffBtn').onclick = function () { gmStaffPanel(); };
+    document.getElementById('gShopBtn').onclick = function () {
+      if (gmEl.gMask.hidden === false) return;
+      gmSetBuildMode(false);
+      gmShopPanel();
+    };
     document.getElementById('gResearchBtn').onclick = function () { gmResearchPanel(); };
     document.getElementById('gReportBtn').onclick = function () { gmReport(); };
     document.getElementById('gSheetClose').onclick = function () { gmEl.gSheet.hidden = true; gmSetBuildMode(false); };
@@ -10469,12 +10942,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     window.__game = GM;
     window.__gameSettings = GAME_SETTINGS;
+    window.gmShopPanel = gmShopPanel; window.gmShopBuy = gmShopBuy; window.gmUseItem = gmUseItem; window.gmShopInvite = gmShopInvite;
+    window.__itemApi = { panel: gmShopPanel, buy: gmShopBuy, use: gmUseItemNow, invite: gmShopInvite, stock: gmShopStock, find: gmMaybeFind, gift: gmVisitorGift, buff: gmItemBuff, bag: function(){return GM.items;}, buffs: function(){return GM.itemBuffs;} };
     window.__gameApi = {
       build: gmBuild, week: gmWeek, report: gmReport, research: gmResearchPanel,
       addMoney: function (n) { GM.money += n; gmHud(performance.now()); gmSave(); },
       skipDays: function (n) { GM.day += n; GM.hour = 7; gmHud(performance.now()); gmSave(); },
       state: function () { return { day: GM.day, hour: GM.hour, money: GM.money, research: GM.research, renown: GM.renown, built: GM.built.length, visitors: GM.visitors, season: seasonKey }; },
-      appeal: gmAppeal, combo: gmComboInfo, upgrade: gmUpgrade, staffPanel: gmStaffPanel,
+      appeal: gmAppeal, cap: gmCap, buff: gmItemBuff, combo: gmComboInfo, upgrade: gmUpgrade, staffPanel: gmStaffPanel,
       closeModal: gmCloseModal, reset: gmReset, goals: gmGoalsPanel, settings: gmSettingsPanel,
       settingsState: function () { return JSON.parse(JSON.stringify(GAME_SETTINGS)); }
     };
