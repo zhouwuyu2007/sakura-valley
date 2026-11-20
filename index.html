@@ -11635,10 +11635,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* 启动页：点击/触摸/回车进入时，直接在手势里起播；不等用户再找音效按钮 */
   var enterGateEl = document.getElementById('enterGate');
   var enterGateDone = false;
-  function gmEnterGarden() {
+  var enterGateTimer = null;
+  function gmEnterGarden(silent) {
     if (enterGateDone) return;
     enterGateDone = true;
-    try { ambUnlock(); } catch (e) {}
+    if (enterGateTimer) { clearTimeout(enterGateTimer); enterGateTimer = null; }
+    if (!silent) { try { ambUnlock(); } catch (e) {} }
     if (!enterGateEl) return;
     enterGateEl.classList.add('leave');
     setTimeout(function () { if (enterGateEl) enterGateEl.hidden = true; }, 750);
@@ -11658,6 +11660,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         e.preventDefault(); e.stopPropagation(); gmEnterGarden();
       }
     });
+  }
+
+  /* 防卡死：6 秒内没有任何有效进入手势时，先静默进游戏，声音等下一次触摸再起播。
+     正常点击/touchend 会清掉这个定时器。 */
+  if (enterGateEl) {
+    enterGateTimer = setTimeout(function () { gmEnterGarden(true); }, 6000);
   }
 
   window.addEventListener('pointerdown', ambUnlock, { passive: true });
