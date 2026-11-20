@@ -930,6 +930,31 @@
   </div>
 </div>
 
+<script>
+/* 启动页极小引导：在主脚本（约 4.5MB）解析完成前也能响应一次轻触，
+   避免 HTML 还在下载/解析时点击被吞掉，看起来像“一直卡在加载页”。 */
+(function () {
+  var g = document.getElementById('enterGate');
+  if (!g) return;
+  var engaged = false;
+  function ack() {
+    if (engaged) return;
+    engaged = true;
+    var hint = g.querySelector('.eg-hint');
+    if (hint) hint.textContent = '正在进入庭园…';
+    setTimeout(function () {
+      g.classList.add('leave');
+      setTimeout(function () { g.hidden = true; }, 500);
+    }, 120);
+  }
+  g.addEventListener('touchend', ack, { passive: true });
+  g.addEventListener('click', ack);
+  g.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') ack();
+  });
+})();
+</script>
+
 
 <header class="brand">
   <div class="rule"></div>
