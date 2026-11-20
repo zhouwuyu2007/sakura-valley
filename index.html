@@ -11092,26 +11092,40 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* 切后台/锁屏时停 BGM，回到前台再续；用户主动关掉声音时不复播 */
   var bgmPausedByHide = false;
   function bgmHandleHide(hidden) {
-    var a = bgmActive >= 0 ? BGM_AUDIO[bgmActive] : null;
-    if (!a) return;
     if (hidden) {
-      if (!a.paused) { try { a.pause(); bgmPausedByHide = true; } catch (e) {} }
+      bgmCancelFade();
+      var any = false;
+      for (var i = 0; i < BGM_AUDIO.length; i++) {
+        if (BGM_AUDIO[i] && !BGM_AUDIO[i].paused) {
+          try { BGM_AUDIO[i].pause(); any = true; } catch (e) {}
+        }
+      }
+      if (any) bgmPausedByHide = true;
     } else if (bgmPausedByHide) {
       bgmPausedByHide = false;
-      if (!bgmUserOff && sfxOn) { try { a.play(); } catch (e) {} }
+      var a = bgmActive >= 0 ? BGM_AUDIO[bgmActive] : null;
+      if (a && !bgmUserOff && sfxOn) {
+        try { a.volume = bgmTargetVol(); a.play(); } catch (e) {}
+      }
     }
   }
   /* 总开关关掉时 BGM 跟着停，重新打开再续，用户自己按过暂停则不动 */
   var bgmPausedBySwitch = false;
   function bgmFollowSound() {
     if (!sfxOn) {
-      if (bgmActive >= 0 && BGM_AUDIO[bgmActive] && !BGM_AUDIO[bgmActive].paused) {
-        try { BGM_AUDIO[bgmActive].pause(); bgmPausedBySwitch = true; } catch (e) {}
+      bgmCancelFade();
+      var anyPlaying = false;
+      for (var i = 0; i < BGM_AUDIO.length; i++) {
+        if (BGM_AUDIO[i] && !BGM_AUDIO[i].paused) {
+          try { BGM_AUDIO[i].pause(); anyPlaying = true; } catch (e) {}
+        }
       }
+      if (anyPlaying) bgmPausedBySwitch = true;
       return;
     }
     if (bgmPausedBySwitch && bgmActive >= 0 && BGM_AUDIO[bgmActive]) {
       bgmPausedBySwitch = false;
+      try { BGM_AUDIO[bgmActive].volume = bgmTargetVol(); } catch (e) {}
       try { BGM_AUDIO[bgmActive].play(); } catch (e) {}
     }
   }
@@ -11125,42 +11139,133 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!BGM_AUDIO[i]) {
       BGM_AUDIO[i] = PLATFORM.createAudio(src);
       if (!BGM_AUDIO[i]) return null;
-      try { BGM_AUDIO[i].loop = true; } catch (e) {}
+      // 两首轮播：不用 <audio> 自身 loop，播完切下一首，否则永远只有第一首在转
+      try { BGM_AUDIO[i].loop = false; } catch (e) {}
+      BGM_AUDIO[i].onended = (function (k) { return function () { bgmOnTrackEnd(k); }; })(i);
     }
     if (BGM_AUDIO[i].src !== src) {
       try { BGM_AUDIO[i].src = src; } catch (e) {}
     }
     return BGM_AUDIO[i];
   }
+  var BGM_FADE_MS = 900, BGM_FADE_LEAD = 0.9, bgmFading = null, bgmFadeTimer = null;
+  function bgmTargetVol() {
+    return Math.max(0, Math.min(1, GAME_SETTINGS.master * GAME_SETTINGS.bgmVol));
+  }
+  function bgmNow() {
+    return (window.performance && performance.now) ? performance.now() : Date.now();
+  }
   function gmBgmSync() {
-    var vol = Math.max(0, Math.min(1, GAME_SETTINGS.master * GAME_SETTINGS.bgmVol));
+    if (bgmFading) return;   // 交接期间音量交给调度器，别把它盖回去
+    var vol = bgmTargetVol();
     for (var i = 0; i < BGM_AUDIO.length; i++) {
       if (BGM_AUDIO[i]) { try { BGM_AUDIO[i].volume = vol; } catch (e) {} }
     }
   }
-  function gmBgmStop() {
-    for (var i = 0; i < BGM_AUDIO.length; i++) {
-      if (BGM_AUDIO[i]) { try { BGM_AUDIO[i].pause(); } catch (e) {} }
-    }
-    bgmActive = -1; bgmUserOff = true; bgmPausedBySwitch = false;
+  function bgmCancelFade() {
+    if (bgmFadeTimer) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; }
+    bgmFading = null;
   }
-  function gmBgmPlay(i) {
-    var a = gmBgmEnsure(i);
-    if (!a) { gmToast('先设置 BGM ' + (i + 1) + ' 的音源'); return; }
-    for (var j = 0; j < BGM_AUDIO.length; j++) {
-      if (j !== i && BGM_AUDIO[j]) { try { BGM_AUDIO[j].pause(); } catch (e) {} }
-    }
+  /* 交叉淡入淡出：旧曲从当前音量线性降到 0，新曲从 0 升到目标音量，0.9 秒，easeInOutQuad */
+  function bgmCrossfade(from, to) {
+    var a = from >= 0 ? BGM_AUDIO[from] : null;
+    var b = gmBgmEnsure(to);
+    if (!b) return false;
+    bgmCancelFade();
+    var tv = bgmTargetVol(), v0 = 0;
+    try { v0 = a ? a.volume : 0; } catch (e) {}
+    try { if (b.ended) b.currentTime = 0; } catch (e) {}
+    try { b.volume = 0; } catch (e) {}
     try {
-      var p = a.play();
-      if (p && p.catch) p.catch(function () { gmToast('浏览器阻止了自动播放，请再点一次播放'); });
-    } catch (e) { gmToast('BGM 无法播放，请检查音源 URL'); }
-    bgmActive = i; gmBgmSync();
+      var pr = b.play();
+      if (pr && pr.catch) pr.catch(function () {});
+    } catch (e) { try { b.volume = tv; } catch (e2) {} return false; }
+    bgmActive = to;
+    var t0 = bgmNow();
+    bgmFading = { from: from, to: to };
+    bgmFadeTimer = setInterval(function () {
+      var q = Math.min(1, (bgmNow() - t0) / BGM_FADE_MS);
+      var e = q < 0.5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2;
+      try { b.volume = tv * e; } catch (er) {}
+      if (a) { try { a.volume = v0 * (1 - e); } catch (er) {} }
+      if (q >= 1) {
+        bgmCancelFade();
+        if (a) { try { a.pause(); a.volume = tv; } catch (er) {} }
+        try { b.volume = tv; } catch (er) {}
+      }
+    }, 25);
+    return true;
+  }
+  function bgmAnnounce(i) {
     var bnm = GAME_SETTINGS.bgmSlots[i].name || (GAME_SETTINGS.bgmSlots[i].builtin != null ? bgmBuiltinName(GAME_SETTINGS.bgmSlots[i].builtin) : '') || ('槽位 ' + (i + 1));
     gmToast('BGM · ' + bnm);
   }
+  function gmBgmStop() {
+    bgmCancelFade();
+    for (var i = 0; i < BGM_AUDIO.length; i++) {
+      if (BGM_AUDIO[i]) { try { BGM_AUDIO[i].pause(); BGM_AUDIO[i].volume = bgmTargetVol(); } catch (e) {} }
+    }
+    bgmActive = -1; bgmUserOff = true; bgmPausedBySwitch = false; bgmPausedByHide = false;
+  }
+  function gmBgmStart(i, silent) {
+    var a = gmBgmEnsure(i);
+    if (!a) { if (!silent) gmToast('先设置 BGM ' + (i + 1) + ' 的音源'); return false; }
+    var prev = bgmActive;
+    if (prev >= 0 && prev !== i && BGM_AUDIO[prev] && !BGM_AUDIO[prev].paused) {
+      if (bgmCrossfade(prev, i)) { if (!silent) bgmAnnounce(i); return true; }
+    }
+    bgmCancelFade();
+    var tv = bgmTargetVol();
+    for (var j = 0; j < BGM_AUDIO.length; j++) {
+      if (j !== i && BGM_AUDIO[j]) { try { BGM_AUDIO[j].pause(); BGM_AUDIO[j].volume = tv; } catch (e) {} }
+    }
+    try { if (a.ended) a.currentTime = 0; } catch (e) {}
+    try { a.volume = tv; } catch (e) {}
+    try {
+      var p = a.play();
+      if (p && p.catch) p.catch(function () { if (!silent) gmToast('浏览器阻止了自动播放，请再点一次播放'); });
+    } catch (e) { if (!silent) gmToast('BGM 无法播放，请检查音源 URL'); }
+    bgmActive = i; gmBgmSync();
+    if (!silent) bgmAnnounce(i);
+    return true;
+  }
+  function gmBgmPlay(i) { gmBgmStart(i, false); }
+  function bgmNextIndex(i) {
+    var n = GAME_SETTINGS.bgmSlots.length;
+    for (var step = 1; step <= n; step++) {
+      var k = (i + step) % n, s = GAME_SETTINGS.bgmSlots[k];
+      if (!s) continue;
+      if (k === i) return -1;
+      if (!s.src && s.builtin == null) continue;
+      return k;
+    }
+    return -1;
+  }
+  /* 提前 0.9 秒交接，播完再接就已经晚了 */
+  function bgmWatchTick() {
+    if (bgmFading || bgmActive < 0 || bgmUserOff || !sfxOn) return;
+    var a = BGM_AUDIO[bgmActive];
+    if (!a || a.paused || !a.duration) return;
+    if (a.duration - a.currentTime <= BGM_FADE_LEAD) {
+      var next = bgmNextIndex(bgmActive);
+      if (next >= 0) bgmCrossfade(bgmActive, next);
+    }
+  }
+  setInterval(bgmWatchTick, 80);
+  /* 兜底：淡变没接上时仍按 ended 硬切，保证不会停在无声 */
+  function bgmOnTrackEnd(i) {
+    if (bgmActive !== i || bgmUserOff || !sfxOn) return;
+    var next = bgmNextIndex(i);
+    if (next >= 0) gmBgmStart(next, true);
+    else if (BGM_AUDIO[i]) { try { BGM_AUDIO[i].currentTime = 0; BGM_AUDIO[i].play(); } catch (e) {} }
+  }
   function gmBgmToggle(i) {
     var a = BGM_AUDIO[i];
-    if (bgmActive === i && a && !a.paused) { try { a.pause(); } catch (e) {} bgmActive = -1; gmToast('BGM 已暂停'); }
+    if (bgmActive === i && a && !a.paused) {
+      bgmCancelFade();
+      try { a.pause(); } catch (e) {}
+      bgmActive = -1; gmToast('BGM 已暂停');
+    }
     else gmBgmPlay(i);
   }
 
@@ -11265,8 +11370,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     amb.beds.fall = bed('bandpass', 1150, 0.45, 0.68, amb.gains.fall);
     amb.beds.fallLow = bed('lowpass', 320, 0.7, 0.34, amb.gains.fall);
     amb.beds.wind = bed('lowpass', 430, 0.8, 0.9, amb.gains.wind);
-    amb.beds.rain = bed('bandpass', 2800, 0.30, 0.85, amb.gains.rain);
-    amb.beds.rainLow = bed('lowpass', 620, 0.55, 0.45, amb.gains.rain);
+    /* 雨：0.85/0.45 叠在 0.62 总线上（满雨时 RMS 约 -21dBFS，比整片环境还响），压到 0.66/0.26 */
+    amb.beds.rain = bed('bandpass', 2800, 0.30, 0.66, amb.gains.rain);
+    amb.beds.rainLow = bed('lowpass', 620, 0.55, 0.26, amb.gains.rain);
     function lfo(rate, depth, target, base) {
       var o = ac.createOscillator(); o.frequency.value = rate;
       var g = ac.createGain(); g.gain.value = depth;
@@ -11416,7 +11522,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* 瀑布总线：0.15+n*0.07 → 0.075+n*0.038，全季节常开的底噪不再压过虫鸣和风 */
     ambRamp(amb.gains.fall.gain, 0.075 + n * 0.038, 1.2);
     var wxRainAud = (WX && WX.ready) ? WX.rainI : 0;
-    ambRamp(amb.gains.rain.gain, Math.min(1, wxRainAud) * 0.62, 2.0);
+    /* 雨声总线：0.62 → 0.20，大雨也不再压过虫鸣、水声和 BGM */
+    ambRamp(amb.gains.rain.gain, Math.min(1, wxRainAud) * 0.20, 2.0);
     bgmFollowSound();
   }
 
