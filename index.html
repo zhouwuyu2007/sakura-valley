@@ -19930,9 +19930,10 @@ window.__startSakuraGame = function () {
     var now = performance.now();
     var rdt = Math.min(1.5, Math.max(0, (now - gmLast) / 1000));
     gmLast = now;
-    if (GAME_SETTINGS.autosave && now - (GM.lastAutoSave || 0) > 60000) {
+    if (GAME_SETTINGS.autosave && now - (GM.lastAutoSave || 0) > 90000) {
       GM.lastAutoSave = now;
-      gmSave();
+      // 移出 rAF 回调：序列化+localStorage 同步写不在帧内执行，避免每 60s 一次的帧内卡顿
+      setTimeout(function () { try { gmSave(); } catch (e) {} }, 0);
     }
     if (now - gmCounterT > 1000) { gmCounterT = now; gmRefreshCounters(); }
     var wxDh = 0;
@@ -23447,26 +23448,30 @@ window.__startSakuraGame = function () {
     if (window.__safeMode || window.__perfPin) return;
     var f = PERF.fps;
     if (!f) return;
+    // 单向降档：连续两个 2s 窗口 <28fps 才降 low；本会话不再自动回滚。
+    // 旧版 f>45 持续 10s 就回滚 mid，会在边界帧率上来回切换像素比/阴影，
+    // 每次切换重分配 drawing buffer + 重渲阴影 = 周期性"突然卡住"（音乐不受影响）。
     if (f < 28 && !PERF.autoLow) {
-      PERF.autoLow = true;
-      PERF.prevQuality = GAME_SETTINGS.quality;
-      GAME_SETTINGS.quality = 'low';
-      gmApplyQuality();
-      PERF.lowAt = ts;
-      PERF.highSince = 0;
-    } else if (PERF.autoLow && f > 45) {
-      if (!PERF.highSince) { PERF.highSince = ts; return; }
-      if (ts - PERF.highSince >= 10000) {
-        PERF.autoLow = false;
-        GAME_SETTINGS.quality = PERF.prevQuality || 'mid';
+      PERF.lowStreak = (PERF.lowStreak || 0) + 1;
+      if (PERF.lowStreak >= 2) {
+        PERF.autoLow = true;
+        PERF.prevQuality = GAME_SETTINGS.quality;
+        GAME_SETTINGS.quality = 'low';
         gmApplyQuality();
-        PERF.highSince = 0;
+        PERF.lowAt = ts;
       }
-    } else if (PERF.autoLow) {
-      PERF.highSince = 0;
+    } else if (f >= 28) {
+      PERF.lowStreak = 0;
     }
   }
   function perfTick(ts) {
+    // 卡顿取证：帧间隔 >300ms 记一条（含当时画质/是否已降档），#admin 可导出
+    if (PERF.lastTs && ts - PERF.lastTs > 300) {
+      var st = window.__stall || (window.__stall = []);
+      st.push({ t: Math.round(ts), gap: Math.round(ts - PERF.lastTs), q: GAME_SETTINGS.quality, low: PERF.autoLow });
+      if (st.length > 60) st.shift();
+    }
+    PERF.lastTs = ts;
     if (!PERF.winStart) PERF.winStart = ts;
     PERF.frames++;
     var span = ts - PERF.winStart;
@@ -25404,6 +25409,17 @@ window.__startSakuraGame = function () {
     fb.textContent = '导出漏斗 JSON';
     fb.addEventListener('click', hbExport);
     document.body.appendChild(fb);
+    var sb = document.createElement('button');
+    sb.id = 'hbStallBtn'; sb.type = 'button';
+    sb.style.cssText = 'position:fixed;right:8px;bottom:96px;z-index:70;display:none;border:1px solid rgba(232,192,138,.5);background:rgba(22,17,12,.8);color:#e8c08a;border-radius:8px;font-size:10px;padding:3px 8px;';
+    sb.textContent = '导出卡顿记录';
+    sb.addEventListener('click', function () {
+      var txt = JSON.stringify({ stall: window.__stall || [], perf: window.__perfReport ? window.__perfReport() : null }, null, 1);
+      try { var blob = new Blob([txt], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sakura-stall.json'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); } catch (e) {}
+      try { if (navigator.clipboard) navigator.clipboard.writeText(txt); } catch (e) {}
+      gmToast('卡顿记录已导出（' + (window.__stall || []).length + ' 条）');
+    });
+    document.body.appendChild(sb);
     var mo = new MutationObserver(function () {
       var b = gmEl.gModalBody;
       if (b && b.textContent.indexOf('主线目标引导') >= 0 && !document.getElementById('hbChainResume')) {
@@ -25419,7 +25435,7 @@ window.__startSakuraGame = function () {
     window.addEventListener('hashchange', hbAdminVis);
     hbAdminVis();
   }
-  function hbAdminVis() { var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = /#admin/.test(location.hash) ? 'block' : 'none'; }
+  function hbAdminVis() { var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = /#admin/.test(location.hash) ? 'block' : 'none'; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = /#admin/.test(location.hash) ? 'block' : 'none'; }
   function hbExport() {
     var txt = window.__funnelDump();
     try { var blob = new Blob([txt], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sakura-funnel.json'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); } catch (e) {}
