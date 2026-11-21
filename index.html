@@ -1316,16 +1316,21 @@ window.__startSakuraGame = function () {
      1. 渲染器 / 场景 / 相机 / 灯光
      ============================================================ */
   var container = document.getElementById('scene');
+  var IS_MOBILE = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 760;
   var renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, alpha: false, powerPreference: 'high-performance' });
   } catch (e) {
     loaderErr.textContent = '当前设备不支持 WebGL，无法渲染三维场景。';
     return;
   }
-  renderer.setPixelRatio(window.__safeMode ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(window.__safeMode ? 1 : Math.min(window.devicePixelRatio || 1, IS_MOBILE ? 1.5 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = !window.__safeMode;
+  /* 阴影不每帧重渲：静态景物的阴影逐帧相同，autoUpdate 关掉后由主循环按 600ms 节流刷新，
+     移动物的阴影最多滞后 0.6s，换来移动端少一整遍 shadow pass */
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
   /* 内置 WebView 反复开合页面时 GPU 上下文可能被回收：
      丢失时阻止默认销毁并提示，恢复后自动继续渲染。 */
   renderer.domElement.addEventListener('webglcontextlost', function (ev) {
@@ -1338,7 +1343,7 @@ window.__startSakuraGame = function () {
     try { renderer.shadowMap.needsUpdate = true; } catch (e) {}
     if (window.gmToast) { try { gmToast('画面已恢复'); } catch (e) {} }
   }, false);
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = IS_MOBILE ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.07;
@@ -1355,7 +1360,7 @@ window.__startSakuraGame = function () {
   var sunLight = new THREE.DirectionalLight(0xffdfc0, 2.5);
   sunLight.position.copy(sunDir).multiplyScalar(120);
   sunLight.castShadow = true;
-  sunLight.shadow.mapSize.set(2048, 2048);
+  sunLight.shadow.mapSize.set(IS_MOBILE ? 1024 : 2048, IS_MOBILE ? 1024 : 2048);
   sunLight.shadow.camera.left = -56;
   sunLight.shadow.camera.right = 56;
   sunLight.shadow.camera.top = 62;
@@ -8024,7 +8029,7 @@ window.__startSakuraGame = function () {
   /* ---------- 游戏设置：音量 / 帧率 / 画质 ---------- */
   var GAME_SETTINGS = {
     master: 0.8, sfx: 0.8, ambient: 0.42, bgmVol: 0.65, mixV2: 1,
-    fps: 60, quality: 'mid', shadows: true, autosave: true, hudMode: 'brief',
+    fps: IS_MOBILE ? 30 : 60, fpsV2: 1, quality: 'mid', shadows: true, autosave: true, hudMode: 'brief',
     bgmSlots: [
       { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 0 },
       { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 1 }
@@ -8042,6 +8047,8 @@ window.__startSakuraGame = function () {
       if (!d.mixV2 && GAME_SETTINGS.ambient >= 0.75) GAME_SETTINGS.ambient = 0.42;
       if (typeof d.bgmVol === 'number') GAME_SETTINGS.bgmVol = Math.max(0, Math.min(1, d.bgmVol));
       if (d.fps === 0 || d.fps === 30 || d.fps === 60 || d.fps === 120) GAME_SETTINGS.fps = d.fps;
+      // 移动端老档默认 60 一次性迁到 30（用户后来手动选过的不再动）
+      if (!d.fpsV2 && IS_MOBILE && GAME_SETTINGS.fps === 60) GAME_SETTINGS.fps = 30;
       if (d.quality === 'low' || d.quality === 'mid' || d.quality === 'high') GAME_SETTINGS.quality = d.quality;
       if (d.hudMode === 'detail' || d.hudMode === 'brief') GAME_SETTINGS.hudMode = d.hudMode;
       GAME_SETTINGS.shadows = d.shadows !== false;
@@ -8080,12 +8087,13 @@ window.__startSakuraGame = function () {
   }
   function gmApplyQuality() {
     var dpr = window.devicePixelRatio || 1;
-    var pr = GAME_SETTINGS.quality === 'low' ? 0.75 : GAME_SETTINGS.quality === 'high' ? Math.min(2, Math.max(1.3, dpr)) : Math.min(1.4, dpr);
+    var pr = GAME_SETTINGS.quality === 'low' ? (IS_MOBILE ? 0.8 : 0.75) : GAME_SETTINGS.quality === 'high' ? Math.min(IS_MOBILE ? 1.5 : 2, Math.max(1.3, dpr)) : Math.min(IS_MOBILE ? 1.15 : 1.4, dpr);
     if (window.__safeMode) pr = Math.min(pr, 1);
     renderer.setPixelRatio(pr);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows && !window.__safeMode;
     renderer.shadowMap.needsUpdate = true;
+    window.__shadowDirty = true;
     if (window.__art && __art.applyQuality) __art.applyQuality(GAME_SETTINGS.quality);
   }
   function gmAudioSync() {
@@ -23266,9 +23274,11 @@ window.__startSakuraGame = function () {
   var clock = new THREE.Clock();
   var elapsed = 0;
   var tmpVec = new THREE.Vector3();
+  var tmpVec3 = new THREE.Vector3();
   var tmpVec2 = new THREE.Vector3();
   var upVec = new THREE.Vector3(0, 1, 0);
 
+  var animateShadowTs = 0;
   var animateLastTs = 0;
   /* ---------- 静态装饰合批：8x8 空间格 + 同材质 + attribute 兼容 ---------- */
   var BATCH = { merged: [], originals: [], on: true, mats: {}, stats: { buckets: 0, meshes: 0, cells: 0 } };
@@ -23457,6 +23467,7 @@ window.__startSakuraGame = function () {
         PERF.autoLow = true;
         PERF.prevQuality = GAME_SETTINGS.quality;
         GAME_SETTINGS.quality = 'low';
+        if (IS_MOBILE && GAME_SETTINGS.fps > 30) GAME_SETTINGS.fps = 30;
         gmApplyQuality();
         PERF.lowAt = ts;
       }
@@ -23497,6 +23508,20 @@ window.__startSakuraGame = function () {
       guests: guests,
       batch: BATCH.merged.length,
       batchOn: BATCH.on
+    };
+  };
+  // 渲染配置取证：移动端优化是否生效（像素比/MSAA/阴影节流/帧率上限），#admin 与探针可读
+  window.__renderInfo = function () {
+    return {
+      mobile: IS_MOBILE,
+      pixelRatio: renderer.getPixelRatio(),
+      antialias: renderer.getContext().getContextAttributes().antialias,
+      shadowAuto: renderer.shadowMap.autoUpdate,
+      shadowType: renderer.shadowMap.type === THREE.PCFSoftShadowMap ? 'soft' : 'pcf',
+      shadowMap: sunLight.shadow.mapSize.x,
+      fpsCap: GAME_SETTINGS.fps,
+      quality: GAME_SETTINGS.quality,
+      shadows: GAME_SETTINGS.shadows
     };
   };
 
@@ -23541,7 +23566,7 @@ window.__startSakuraGame = function () {
       koi.userData.curve.getTangentAt(koi.userData.u, tmpVec2);
       var bob = Math.sin(elapsed * 1.4 + koi.userData.phase) * 0.06;
       koi.position.set(tmpVec.x, 0.12 + bob, tmpVec.z);
-      var look = tmpVec.clone().add(tmpVec2);
+      var look = tmpVec3.copy(tmpVec).add(tmpVec2);
       look.y = koi.position.y;
       koi.lookAt(look);
       koi.rotateZ(Math.sin(elapsed * 4.2 + koi.userData.phase) * 0.07);
@@ -23664,6 +23689,11 @@ window.__startSakuraGame = function () {
     }
     mp.needsUpdate = true;
 
+    if (renderer.shadowMap.enabled && !window.__shadowPin && (window.__shadowDirty || nowTs - animateShadowTs > 600)) {
+      renderer.shadowMap.needsUpdate = true;
+      window.__shadowDirty = false;
+      animateShadowTs = nowTs;
+    }
     renderer.render(scene, camera);
     perfTick(nowTs);
     if (!window.__sceneReady) {
