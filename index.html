@@ -23863,8 +23863,11 @@ window.__startSakuraGame = function () {
   }
 
   function sceneFlowersApply(key) {
+    // 旧档读档会在花卉构建前触发 applySeason：此时 SCENE_FLOWERS 尚未赋值，直接返回，
+    // 待 sceneBuildFlowers() 完成后会再按当前 seasonKey 补一次应用。
+    if (!SCENE_FLOWERS || !FLOWER_MESHES) return;
     for (var k in FLOWER_MESHES) {
-      if (FLOWER_MESHES[k]) FLOWER_MESHES[k].visible = FLOWER_KINDS[k].season === key;
+      if (FLOWER_MESHES[k] && FLOWER_KINDS[k]) FLOWER_MESHES[k].visible = FLOWER_KINDS[k].season === key;
     }
     for (var i = 0; i < SCENE_FLOWERS.length; i++) {
       SCENE_FLOWERS[i].active = SCENE_FLOWERS[i].season === key;
@@ -23901,6 +23904,7 @@ window.__startSakuraGame = function () {
   }
 
   sceneBuildFlowers();
+  sceneFlowersApply(seasonKey);
   sceneFlowerCodex();
   sceneRebuildLandmarks();
   sceneTagRoles();
