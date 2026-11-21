@@ -906,6 +906,8 @@
   .eg-hint{
     margin-top:10px; font-size:12px; letter-spacing:.24em;
     color:rgba(243,226,214,.72); animation:breathe 3.4s ease-in-out infinite;
+    background:transparent; border:0; padding:7px 12px; font-family:inherit;
+    cursor:pointer; -webkit-appearance:none; appearance:none;
   }
   @media (max-width:720px){
     .eg-mark{ font-size:48px; }
@@ -926,7 +928,7 @@
     <div class="eg-mark" lang="ja">桜</div>
     <div class="eg-sub">Sakura Valley Garden</div>
     <div class="eg-bar"><i></i></div>
-    <div class="eg-hint">庭园生成中…</div>
+    <button id="egEnterBtn" class="eg-hint" type="button">庭园生成中…</button>
   </div>
 </div>
 
