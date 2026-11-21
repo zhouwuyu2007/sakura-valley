@@ -1057,6 +1057,7 @@
     if (window.__bootOK) return;
     var m = e && e.message ? e.message : '脚本错误';
     window.__lastBootError = m;
+    try { window.__bootStack = (e && e.error && e.error.stack) ? String(e.error.stack) : (m + ' @' + (e.filename || '') + ':' + (e.lineno || '')); localStorage.setItem('sakuraBootStack', window.__bootStack); } catch (err) {}
     if (Date.now() - T0 > 8000) window.__sakuraFail('启动出错：' + m);
   });
   window.addEventListener('unhandledrejection', function (e) {
@@ -1070,7 +1071,7 @@
     var cur = el('loaderErr');
     var keep = cur && cur.textContent ? cur.textContent : '';
     window.__sakuraFail(keep || (window.__lastBootError
-      ? ('启动失败：' + window.__lastBootError)
+      ? ('启动失败：' + window.__lastBootError + ' ｜ ' + String(window.__bootStack || '').split('\n').slice(1, 3).join(' ← ').slice(0, 220))
       : '加载超时。请点重新加载；若仍失败，点低画质重试。'));
   }, 45000);
   document.addEventListener('DOMContentLoaded', function () {
@@ -25461,7 +25462,8 @@ window.__startSakuraGame = function () {
       try { window.__startSakuraGame(); }
       catch (e) {
         var le = document.getElementById('loaderErr');
-        if (le) le.textContent = '启动失败：' + (e && e.message ? e.message : e);
+        if (le) le.textContent = '启动失败：' + (e && e.message ? e.message : e) + ' ｜ ' + String((e && e.stack) || '').split('\n').slice(1, 3).join(' ← ').slice(0, 220);
+        try { window.__bootStack = String((e && e.stack) || e); localStorage.setItem('sakuraBootStack', window.__bootStack); } catch (err) {}
       }
     }, 0);
   }
