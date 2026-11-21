@@ -804,6 +804,11 @@
   @media (max-width:430px){
     .gp{ width:auto; max-width:250px; right:8px; top:calc(clamp(12px,3vh,26px) + 40px); padding:6px 9px; }
     .gp-res, .gp-top, .gp-date, .gp-clock, #gWx, #gSun, #gMoon{ display:none !important; }
+  /* 状态栏详细模式：移动端恢复被简略模式隐藏的行（body.hud-detail 特异性更高，覆盖上面的 none） */
+  body.hud-detail .gp-res{ display:flex !important; }
+  body.hud-detail .gp-top, body.hud-detail .gp-date, body.hud-detail .gp-clock{ display:flex !important; }
+  body.hud-detail #gWx, body.hud-detail #gSun, body.hud-detail #gMoon{ display:block !important; }
+  body.hud-detail #gCrowd{ white-space:pre-line; font-size:9px; line-height:1.65; }
     .gp-line.dim{ margin-top:0; font-size:8px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .gp-line.wx em{ display:none; }
     .gp-line.dim{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:7.5px; margin-top:3px; }
@@ -8010,7 +8015,7 @@ window.__startSakuraGame = function () {
   /* ---------- 游戏设置：音量 / 帧率 / 画质 ---------- */
   var GAME_SETTINGS = {
     master: 0.8, sfx: 0.8, ambient: 0.42, bgmVol: 0.65, mixV2: 1,
-    fps: 60, quality: 'mid', shadows: true, autosave: true,
+    fps: 60, quality: 'mid', shadows: true, autosave: true, hudMode: 'brief',
     bgmSlots: [
       { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 0 },
       { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 1 }
@@ -8029,6 +8034,7 @@ window.__startSakuraGame = function () {
       if (typeof d.bgmVol === 'number') GAME_SETTINGS.bgmVol = Math.max(0, Math.min(1, d.bgmVol));
       if (d.fps === 0 || d.fps === 30 || d.fps === 60 || d.fps === 120) GAME_SETTINGS.fps = d.fps;
       if (d.quality === 'low' || d.quality === 'mid' || d.quality === 'high') GAME_SETTINGS.quality = d.quality;
+      if (d.hudMode === 'detail' || d.hudMode === 'brief') GAME_SETTINGS.hudMode = d.hudMode;
       GAME_SETTINGS.shadows = d.shadows !== false;
       GAME_SETTINGS.autosave = d.autosave !== false;
       if (Array.isArray(d.bgmSlots)) {
@@ -14820,14 +14826,34 @@ window.__startSakuraGame = function () {
     gmEl.gMoon.textContent = '月相 ' + GM.moonName + ' ' + Math.round(GM.moonIllum * 100) + '% · 正午日高 ' + Math.round(SUN.maxElev * 180 / Math.PI) + '°';
     var cmb = gmComboInfo();
     if (window.innerWidth <= 430) {
-      gmEl.gCrowd.textContent = '第' + Math.ceil(GM.day) + '日 ' + (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm +
-        ' · ' + Math.round(GM.money) + '銭 · 容' + gmCap() + ' · 在园' + GM.visitors + ' · ★' + GM.rating.toFixed(1) +
-        (cmb.names.length ? ' · 相' + cmb.names.length : '');
+      if (GAME_SETTINGS.hudMode === 'detail') {
+        var s4 = gmStats4();
+        gmEl.gCrowd.textContent = '第' + Math.ceil(GM.day) + '日 ' + (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm +
+          '\n銭 ' + Math.round(GM.money) + ' · 研究 ' + gmFmt(GM.research) + ' · 誉 ' + gmFmt(GM.renown) +
+          '\n容 ' + gmCap() + ' · 在园 ' + GM.visitors + ' · ★ ' + GM.rating.toFixed(1) +
+          '\n景 ' + Math.round(s4.scenery) + ' · 雅 ' + Math.round(s4.elegance) + ' · 便 ' + Math.round(s4.convenience) + ' · 静 ' + Math.round(s4.serenity) +
+          (cmb.names.length ? ' · 相 ' + cmb.names.length : '');
+      } else {
+        gmEl.gCrowd.textContent = '第' + Math.ceil(GM.day) + '日 ' + (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm +
+          ' · ' + Math.round(GM.money) + '銭 · 容' + gmCap() + ' · 在园' + GM.visitors + ' · ★' + GM.rating.toFixed(1) +
+          (cmb.names.length ? ' · 相' + cmb.names.length : '');
+      }
     } else {
       gmEl.gCrowd.textContent = '在园 ' + GM.visitors + ' 人 · 容 ' + gmCap() + ' 人 · 景 ' + gmAppeal() + ' · ★ ' + GM.rating.toFixed(1) + (cmb.names.length ? ' · 相 ' + cmb.names.length : '');
     }
     wxHudText();
     gmCheckGoalReady();
+  }
+  /* 状态栏双模式：brief=单行简略（默认），detail=恢复全部行+四维明细 */
+  function gmApplyHudMode() {
+    document.body.classList.toggle('hud-detail', GAME_SETTINGS.hudMode === 'detail');
+    gmHud();
+  }
+  function gmToggleHudMode() {
+    GAME_SETTINGS.hudMode = GAME_SETTINGS.hudMode === 'detail' ? 'brief' : 'detail';
+    gmApplyHudMode();
+    gmSaveSettings();
+    gmToast(GAME_SETTINGS.hudMode === 'detail' ? '状态栏：详细' : '状态栏：简略');
   }
 
   /* ---------- 值 ---------- */
@@ -19533,6 +19559,7 @@ window.__startSakuraGame = function () {
       '<p class="gset-note">帧率上限为 30 / 60 / 120 帧或不限制；实际帧率还受屏幕刷新率与设备性能影响。画质越高，像素比与阴影越精细。</p></div>' +
       '<div class="gset-sect"><b>触屏操作</b><p class="gset-note">单指拖动只旋转视角，不会改变远近；双指需同时张开或捏合才会缩放，另一根手指搭在屏幕上不会误触。需要单指平移时点「平移视角」。</p></div>' +
       '<div class="gset-sect"><b>存档与其他</b>' +
+      '<div class="gset-row"><span>状态栏</span><button type="button" class="gswitch ' + (GAME_SETTINGS.hudMode === 'detail' ? 'on' : '') + '" data-hudmode>' + (GAME_SETTINGS.hudMode === 'detail' ? '详细' : '简略') + '</button></div>' +
       '<div class="gset-row"><span>自动存档</span><button type="button" class="gswitch ' + (GAME_SETTINGS.autosave ? 'on' : '') + '" data-autosave>' + (GAME_SETTINGS.autosave ? '开' : '关') + '</button></div>' +
       '<div class="gset-acts"><button type="button" data-save>立即存档</button><button type="button" data-export>导出存档码</button><button type="button" data-import>导入存档码</button><button type="button" data-full>全屏</button><button type="button" data-reset>重置庭园</button></div>' +
       '<p class="gset-note">关闭自动存档后，仅在「立即存档」时写入本地。拖动旋转 · 滚轮缩放 · 平移视角 / WASD · Shift 或右键拖拽平移 · 双指缩放。</p></div>';
@@ -19591,6 +19618,12 @@ window.__startSakuraGame = function () {
       this.classList.toggle('on', GAME_SETTINGS.autosave);
       this.textContent = GAME_SETTINGS.autosave ? '开' : '关';
       gmSaveSettings();
+    };
+    var hudBtn = body.querySelector('[data-hudmode]');
+    if (hudBtn) hudBtn.onclick = function () {
+      gmToggleHudMode();
+      this.classList.toggle('on', GAME_SETTINGS.hudMode === 'detail');
+      this.textContent = GAME_SETTINGS.hudMode === 'detail' ? '详细' : '简略';
     };
     var bgmUrls = body.querySelectorAll('input[data-bgm-url]');
     for (var bu = 0; bu < bgmUrls.length; bu++) {
@@ -25389,7 +25422,7 @@ window.__startSakuraGame = function () {
       document.getElementById('hbChainT').textContent = '引导 ' + (i + 1) + '/5 · ' + HB_STEPS[i].t;
       document.getElementById('hbChainH').textContent = HB_STEPS[i].h;
     }
-    if (tg) tg.textContent = st.skipped ? '重看引导' : '引导';
+    if (tg) { tg.style.display = (st.skipped || st.finished) ? 'none' : 'block'; tg.textContent = '引导'; }
   }
   function hbPoll() {
     var st = hbChain();
@@ -25432,6 +25465,8 @@ window.__startSakuraGame = function () {
   function hbInit() {
     try {
       hbDom();
+      gmApplyHudMode();
+      if (gmEl.gCrowd) { gmEl.gCrowd.style.cursor = 'pointer'; gmEl.gCrowd.title = '点按切换 详细/简略'; gmEl.gCrowd.addEventListener('click', gmToggleHudMode); }
       var m = GM.mods;
       if (typeof m.funnelLastDay === 'number' && GM.day > m.funnelLastDay) hbFunnel('next_day_retention', { gap: GM.day - m.funnelLastDay });
       m.funnelLastDay = GM.day;
