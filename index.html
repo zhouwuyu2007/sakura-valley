@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>樱花山谷庭园 · Sakura Valley</title>
-
 <style>
   :root{
     --ink: #332b25;
@@ -307,6 +306,14 @@
   }
   #loader .err{
     font-size:12px; color:#e8b5b5; letter-spacing:.1em; max-width:80vw; text-align:center; line-height:1.7;
+  }
+
+  #loader .lbtns{ display:flex; gap:12px; margin-top:16px; }
+  #loader .lbtns[hidden]{ display:none; }
+  #loader .lbtns button{
+    padding:9px 16px; font-size:12px; letter-spacing:.14em; font-family:inherit;
+    color:#f3e2d6; background:transparent; border:1px solid rgba(244,207,220,.45);
+    border-radius:999px; cursor:pointer; -webkit-appearance:none; appearance:none;
   }
 
   @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
@@ -908,6 +915,14 @@
     background:transparent; border:0; padding:7px 12px; font-family:inherit;
     cursor:pointer; -webkit-appearance:none; appearance:none;
   }
+  .eg-retry{
+    margin-top:4px; padding:8px 16px; font-size:11px; letter-spacing:.16em;
+    font-family:inherit; color:#f3e2d6; background:transparent;
+    border:1px solid rgba(244,207,220,.4); border-radius:999px;
+    cursor:pointer; -webkit-appearance:none; appearance:none;
+  }
+  .eg-retry[hidden]{ display:none; }
+
   @media (max-width:720px){
     .eg-mark{ font-size:48px; }
     .eg-bar{ width:150px; }
@@ -918,6 +933,69 @@
 </style>
 </head>
 <body>
+<script>
+/* 启动看门狗（独立于主脚本）：
+   1) 记录本次启动，若上次没成功则本次自动降级画质；
+   2) 捕获全局错误并显示出来，不再静默卡住；
+   3) 超时给出可点的重试按钮，永远不会无限等待。 */
+(function () {
+  var T0 = Date.now();
+  var SAFE_KEY = 'sakuraBootFail';
+  var fails = 0;
+  try { fails = parseInt(localStorage.getItem(SAFE_KEY) || '0', 10) || 0; } catch (e) {}
+  window.__safeMode = fails > 0;
+  window.__bootFails = fails;
+  try { localStorage.setItem(SAFE_KEY, String(fails + 1)); } catch (e) {}
+  window.__bootOK = false;
+
+  function el(id) { return document.getElementById(id); }
+  window.__sakuraFail = function (msg) {
+    if (window.__bootOK) return;
+    var g = el('enterGate'), ld = el('loader'), er = el('loaderErr'), bt = el('loaderBtns');
+    if (g) { g.classList.add('leave'); g.hidden = true; }
+    if (ld) { ld.classList.remove('hide'); ld.hidden = false; }
+    if (er) er.textContent = msg;
+    if (bt) bt.hidden = false;
+  };
+  window.__sakuraSlow = function (msg) {
+    if (window.__bootOK) return;
+    var gh = document.querySelector('#enterGate .eg-hint');
+    if (gh) gh.textContent = msg;
+    var gr = el('egRetry');
+    if (gr) { gr.hidden = false; gr.addEventListener('click', function (ev) { ev.stopPropagation(); location.reload(); }); }
+    var bt = el('loaderBtns');
+    if (bt) bt.hidden = false;
+  };
+  window.addEventListener('error', function (e) {
+    if (window.__bootOK) return;
+    var m = e && e.message ? e.message : '脚本错误';
+    window.__lastBootError = m;
+    if (Date.now() - T0 > 8000) window.__sakuraFail('启动出错：' + m);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    if (window.__bootOK) return;
+    var r = e && e.reason;
+    window.__lastBootError = (r && r.message) ? r.message : String(r);
+  });
+  setTimeout(function () { window.__sakuraSlow('加载较慢，可点下方重试'); }, 15000);
+  setTimeout(function () {
+    if (window.__bootOK || window.__sceneReady) return;
+    var cur = el('loaderErr');
+    var keep = cur && cur.textContent ? cur.textContent : '';
+    window.__sakuraFail(keep || (window.__lastBootError
+      ? ('启动失败：' + window.__lastBootError)
+      : '加载超时。请点重新加载；若仍失败，点低画质重试。'));
+  }, 45000);
+  document.addEventListener('DOMContentLoaded', function () {
+    var r = el('loaderRetry'), sf = el('loaderSafe');
+    if (r) r.addEventListener('click', function () { location.reload(); });
+    if (sf) sf.addEventListener('click', function () {
+      try { localStorage.setItem(SAFE_KEY, '2'); } catch (e) {}
+      location.reload();
+    });
+  });
+})();
+</script>
 <div id="scene" aria-label="日式樱花山谷三维庭园"></div>
 <div id="wxFlash"></div>
 <div id="vignette"></div>
@@ -928,6 +1006,7 @@
     <div class="eg-sub">Sakura Valley Garden</div>
     <div class="eg-bar"><i></i></div>
     <button id="egEnterBtn" class="eg-hint" type="button">庭园生成中…</button>
+    <button id="egRetry" class="eg-retry" type="button" hidden>重新加载</button>
   </div>
 </div>
 
@@ -1071,6 +1150,10 @@
   <div class="sub">Sakura Valley Garden</div>
   <div class="bar"><i></i></div>
   <div class="err" id="loaderErr"></div>
+  <div class="lbtns" id="loaderBtns" hidden>
+    <button type="button" id="loaderRetry">重新加载</button>
+    <button type="button" id="loaderSafe">低画质重试</button>
+  </div>
 </div>
 
 <script>
@@ -1139,9 +1222,21 @@ window.__startSakuraGame = function () {
     loaderErr.textContent = '当前设备不支持 WebGL，无法渲染三维场景。';
     return;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(window.__safeMode ? 1 : Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !window.__safeMode;
+  /* 内置 WebView 反复开合页面时 GPU 上下文可能被回收：
+     丢失时阻止默认销毁并提示，恢复后自动继续渲染。 */
+  renderer.domElement.addEventListener('webglcontextlost', function (ev) {
+    ev.preventDefault();
+    window.__ctxLost = true;
+    if (window.gmToast) { try { gmToast('图形上下文丢失，正在恢复…'); } catch (e) {} }
+  }, false);
+  renderer.domElement.addEventListener('webglcontextrestored', function () {
+    window.__ctxLost = false;
+    try { renderer.shadowMap.needsUpdate = true; } catch (e) {}
+    if (window.gmToast) { try { gmToast('画面已恢复'); } catch (e) {} }
+  }, false);
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -7420,9 +7515,10 @@ window.__startSakuraGame = function () {
   function gmApplyQuality() {
     var dpr = window.devicePixelRatio || 1;
     var pr = GAME_SETTINGS.quality === 'low' ? 0.75 : GAME_SETTINGS.quality === 'high' ? Math.min(2, Math.max(1.3, dpr)) : Math.min(1.4, dpr);
+    if (window.__safeMode) pr = Math.min(pr, 1);
     renderer.setPixelRatio(pr);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows;
+    renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows && !window.__safeMode;
     renderer.shadowMap.needsUpdate = true;
     if (window.__art && __art.applyQuality) __art.applyQuality(GAME_SETTINGS.quality);
   }
@@ -20801,7 +20897,15 @@ window.__startSakuraGame = function () {
     mp.needsUpdate = true;
 
     renderer.render(scene, camera);
-    if (!window.__sceneReady) window.__sceneReady = true;
+    if (!window.__sceneReady) {
+      window.__sceneReady = true;
+      window.__bootOK = true;
+      try { localStorage.setItem('sakuraBootFail', '0'); } catch (e) {}
+      /* 首帧画出来就撤加载层：后面任何模块出错都不会再把画面盖住 */
+      if (loader) loader.classList.add('hide');
+      var lb = document.getElementById('loaderBtns');
+      if (lb) lb.hidden = true;
+    }
   }
 
   /* ============================================================
