@@ -7069,8 +7069,8 @@ window.__startSakuraGame = function () {
   var orbit = {
     theta: 0.42, phi: 0.95, radius: 120,
     tTheta: IS_PORTRAIT ? 0.40 : 0.22,
-    tPhi: IS_PORTRAIT ? 1.12 : 1.36,
-    tRadius: IS_PORTRAIT ? 128 : 70,
+    tPhi: IS_PORTRAIT ? 1.20 : 1.36,
+    tRadius: IS_PORTRAIT ? 116 : 70,
     target: new THREE.Vector3(IS_PORTRAIT ? 4 : 0, IS_PORTRAIT ? 5.4 : 4.8, IS_PORTRAIT ? 6 : 8)
   };
   // 用户是否自己定过机位：定过以后，横竖屏切换不再强行换构图
@@ -7088,8 +7088,8 @@ window.__startSakuraGame = function () {
     userFramed = false;
     sceneStopSpin();
     orbit.tTheta = p ? 0.40 : 0.22;
-    orbit.tPhi = p ? 1.12 : 1.36;
-    orbit.tRadius = p ? 128 : 70;
+    orbit.tPhi = p ? 1.20 : 1.36;
+    orbit.tRadius = p ? 116 : 70;
     orbit.target.set(p ? 4 : 0, p ? 5.4 : 4.8, p ? 6 : 8);
   }
   var autoRotate = true;
@@ -15324,15 +15324,14 @@ window.__startSakuraGame = function () {
   }
   function gmGravelParts(parts, cx, cz, radius) {
     var y = terrainH(cx, cz);
-    [0.95, 0.66, 0.36].forEach(function (k) {
-      parts.push({
-        geo: new THREE.RingGeometry(radius * k, radius * k + 0.28, 42),
-        matrix: M4(new THREE.Vector3(cx, y + 0.035, cz), new THREE.Euler(-Math.PI / 2, 0, 0), 1),
-        color: new THREE.Color(k > 0.8 ? '#d8cfb1' : '#e3dcc4')
-      });
+    // 留白：去掉同心圆"靶环"（远看像不明圆圈/超大圆圈），改单片低对比砂面 + 少量收边石
+    parts.push({
+      geo: new THREE.CircleGeometry(radius * 0.9, 24),
+      matrix: M4(new THREE.Vector3(cx, y + 0.03, cz), new THREE.Euler(-Math.PI / 2, 0, 0), 1),
+      color: new THREE.Color('#cfc6a9'), tint: 0.03
     });
-    for (var i = 0; i < 9; i++) {
-      var a = i / 9 * Math.PI * 2 + 0.3;
+    for (var i = 0; i < 4; i++) {
+      var a = i / 4 * Math.PI * 2 + 0.3;
       gmRockPart(parts, cx + Math.cos(a) * (radius + 0.55), cz + Math.sin(a) * (radius + 0.55), rr(0.42, 0.72), rr(0.3, 0.55), rr(0.42, 0.7), '#7f8378', i % 2 === 0);
     }
   }
@@ -15560,20 +15559,20 @@ window.__startSakuraGame = function () {
       gmFenceParts(parts, fx, fz, -fa + Math.PI / 2, rr(3.0, 4.2));
     }
     // 苔石
-    for (var r = 0; r < 46; r++) {
+    for (var r = 0; r < 18; r++) {
       var ra = RNG() * Math.PI * 2, rr0 = 54 + RNG() * 24;
       var rx = cx + Math.cos(ra) * rr0, rz0 = cz + Math.sin(ra) * rr0;
       if (gmNearPlot(rx, rz0, 4.2) || streamDist(rx, rz0) < 3.5) continue;
       gmRockPart(parts, rx, rz0, rr(0.5, 1.25), rr(0.32, 0.8), rr(0.5, 1.2), ['#7f8479', '#898c80', '#747a71'][Math.floor(RNG() * 3)], RNG() > 0.45);
     }
-    for (var m = 0; m < 34; m++) {
+    for (var m = 0; m < 14; m++) {
       var ma = RNG() * Math.PI * 2, mr = 55 + RNG() * 20;
       var mx = cx + Math.cos(ma) * mr, mz = cz + Math.sin(ma) * mr;
       if (gmNearPlot(mx, mz, 4.0) || streamDist(mx, mz) < 3.2) continue;
       gmMossPart(parts, mx, mz, rr(0.6, 1.3));
     }
-    // 三处枯山水
-    [[40, 16], [-44, 40], [2, -40], [58, 48], [-62, -8]].forEach(function (g) {
+    // 两处枯山水（留白：原五处减至两处）
+    [[40, 16], [-44, 40]].forEach(function (g) {
       if (gmNearPlot(g[0], g[1], 6.0)) return;
       gmGravelParts(parts, g[0], g[1], 3.4);
     });
@@ -15674,7 +15673,7 @@ window.__startSakuraGame = function () {
       if (gmNearPlot(lx, lz, 5.0)) return;
       gmToriiParts(parts, lx, lz, 0.72, Math.atan2(tg.x, tg.z));
     });
-    for (var r = 0; r < 30; r++) {
+    for (var r = 0; r < 12; r++) {
       var tt2 = t0 + RNG() * (t1 - t0);
       var pt2 = streamCurve.getPointAt(tt2), tg2 = streamCurve.getTangentAt(tt2);
       var side2 = RNG() > 0.5 ? 1 : -1, off2 = 4.6 + RNG() * 5.0;
@@ -15682,7 +15681,7 @@ window.__startSakuraGame = function () {
       if (gmNearPlot(rx, rz, 3.6)) continue;
       gmRockPart(parts, rx, rz, rr(0.5, 1.1), rr(0.3, 0.7), rr(0.5, 1.0), ['#7d8177', '#888b80'][Math.floor(RNG() * 2)], RNG() > 0.5);
     }
-    for (var m = 0; m < 22; m++) {
+    for (var m = 0; m < 10; m++) {
       var mt = t0 + RNG() * (t1 - t0);
       var mp = streamCurve.getPointAt(mt), mtg = streamCurve.getTangentAt(mt);
       var ms = RNG() > 0.5 ? 1 : -1, mo = 4.2 + RNG() * 4;
@@ -15808,17 +15807,17 @@ window.__startSakuraGame = function () {
       if (gmNearPlot(lx, lz, 5.2)) continue;
       gmLanternParts(parts, glow, lx, lz, rr(0.9, 1.1), rr(0, 3));
     }
-    for (var r = 0; r < 34; r++) {
+    for (var r = 0; r < 14; r++) {
       var rx = 62 + RNG() * 56, rz = -38 + RNG() * 96;
       if (gmNearPlot(rx, rz, 4.2)) continue;
       gmRockPart(parts, rx, rz, rr(0.5, 1.3), rr(0.3, 0.8), rr(0.5, 1.2), ['#7e8278', '#898c81', '#737a70'][Math.floor(RNG() * 3)], RNG() > 0.5);
     }
-    for (var m = 0; m < 24; m++) {
+    for (var m = 0; m < 10; m++) {
       var mx = 64 + RNG() * 52, mz = -34 + RNG() * 90;
       if (gmNearPlot(mx, mz, 3.8)) continue;
       gmMossPart(parts, mx, mz, rr(0.7, 1.4));
     }
-    [[70, 44], [96, 30], [104, -8], [84, -28]].forEach(function (g) {
+    [[70, 44], [96, 30]].forEach(function (g) {
       if (gmNearPlot(g[0], g[1], 6.0)) return;
       gmGravelParts(parts, g[0], g[1], 3.2);
     });
