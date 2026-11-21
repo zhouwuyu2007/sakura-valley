@@ -1083,7 +1083,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
 <script>
-(function () {
+window.__startSakuraGame = function () {
   'use strict';
 
   var loader = document.getElementById('loader');
@@ -21897,6 +21897,27 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   /* 加载层已在 animate() 后隐藏；委托初始化改为异步，避免拖住揭幕 */
 
+};
+
+/* 先把游戏主体定义成函数，不在解析阶段同步建场景：
+   让 window.load 尽早触发，豆包外壳的加载遮罩才会先撤掉，
+   之后再由下面的 boot 启动场景。 */
+(function () {
+  var started = false;
+  function boot() {
+    if (started) return;
+    started = true;
+    setTimeout(function () {
+      try { window.__startSakuraGame(); }
+      catch (e) {
+        var le = document.getElementById('loaderErr');
+        if (le) le.textContent = '启动失败：' + (e && e.message ? e.message : e);
+      }
+    }, 0);
+  }
+  if (document.readyState === 'complete') boot();
+  else window.addEventListener('load', boot, { once: true });
+  setTimeout(boot, 3000);
 })();
 </script>
 </body>
