@@ -11669,7 +11669,8 @@ window.__startSakuraGame = function () {
   var enterGateTimer = null;
   function gmEnterGarden(silent) {
     if (enterGateDone) return;
-    if (!silent && !window.__sceneReady) { gmToast('庭园还在生成，请稍候'); return; }
+    /* 照 9388798 的可用路径：轻触先收启动页并起播，场景在后，加载层兜底；
+       不再因为“场景未就绪”拒绝第一次触摸。 */
     enterGateDone = true;
     if (enterGateTimer) { clearTimeout(enterGateTimer); enterGateTimer = null; }
     if (!silent) { try { ambUnlock(); } catch (e) {} }
