@@ -7898,6 +7898,18 @@ window.__startSakuraGame = function () {
   window.cxSeasonOf = cxSeasonOf;
   window.cxRegisterBuildables = cxRegisterBuildables;
   window.cxSyncEntries = cxSyncEntries;
+  /* 图鉴自检：总数 = 静态 CODEX_INFO + 建造物运行时注册；缺一即报 */
+  window.__codexState = function () {
+    var skip = (typeof CX_BUILD_CODEX_SKIP !== 'undefined' && CX_BUILD_CODEX_SKIP) ? CX_BUILD_CODEX_SKIP : {};
+    var miss = [], bk;
+    if (typeof GM_ITEMS !== 'undefined' && GM_ITEMS) {
+      for (bk in GM_ITEMS) { if (!CODEX_INFO[bk] && !skip[bk]) miss.push(bk); }
+    }
+    return { total: totalKinds, discovered: discoveredCount,
+             staticKeys: Object.keys(CODEX_INFO).length,
+             builds: (typeof GM_ITEMS !== 'undefined' && GM_ITEMS) ? Object.keys(GM_ITEMS).length : 0,
+             unregisteredBuilds: miss };
+  };
   window.cxArt = cxArt;
   function cxArt(inner, sky, ground) {
     return '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice">' +
@@ -16763,6 +16775,16 @@ window.__startSakuraGame = function () {
     gmLoad();
     cxRegisterBuildables();
     cxSyncEntries();
+    /* 兜底：真机若 GM_ITEMS 就绪晚于本步，二次注册保证 95 类齐全（cxAddEntry 对重复键返回 false，幂等） */
+    setTimeout(function () {
+      try {
+        var added = cxRegisterBuildables();
+        cxSyncEntries();
+        if (added && typeof console !== 'undefined' && console.warn) {
+          console.warn('[codex] 首次注册漏 ' + added + ' 类，已在兜底补齐');
+        }
+      } catch (e) {}
+    }, 0);
     gmInitForestPositions();
     gmBuildOuterGardens();
     gmVillageDetails();
