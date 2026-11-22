@@ -22583,7 +22583,8 @@ window.__startSakuraGame = function () {
     window.addEventListener('hashchange', hbAdminVis);
     hbAdminVis();
   }
-  function hbAdminVis() { var on = (/#admin/.test(location.hash) || (typeof A_SHA !== 'undefined' && A_SHA !== 'ONLINE')) ? 'block' : 'none'; var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = on; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = on; var db = document.getElementById('hbDiagBtn'); if (db) db.style.display = on; }
+  function hbAdminVis() { var on = (/#admin/.test(location.hash) || !!document.getElementById('admToggle')) ? 'block' : 'none'; var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = on; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = on; var db = document.getElementById('hbDiagBtn'); if (db) db.style.display = on; if (!on && !document.getElementById('admToggle') && !hbAdminVis._retried) { hbAdminVis._retried = 1; setTimeout(hbAdminVis, 400); } }
+  window.__hbAdminVis = hbAdminVis;
   function hbExport() {
     var txt = window.__funnelDump();
     try { var blob = new Blob([txt], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sakura-funnel.json'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); } catch (e) {}
