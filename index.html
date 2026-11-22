@@ -8169,8 +8169,8 @@ window.__startSakuraGame = function () {
      分片存放，第一次真正用到时才拼成 data URI，避免启动阶段多拷两份几 MB 的字符串。
      想换曲：替换下面 parts 里的分片即可，文件名同时存了一份在 shared/sakura/assets/。 */
   var BGM_LIB = [
-    { name: '青山绿野（内置）', parts: [], src: 'assets/bgm-qingshan.mp3' },
-    { name: '步履不停（内置）', parts: [], src: 'assets/bubu.mp3' }
+    { name: '青山绿野（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3' },
+    { name: '步履不停（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3' }
   ];
   function bgmBuiltinSrc(i) {
     var t = BGM_LIB[i];
@@ -8232,11 +8232,36 @@ window.__startSakuraGame = function () {
     /* 兜底：被策略静默拖延时，1.2 秒后还没动就允许下次手势重试 */
     setTimeout(function () {
       if (bgmActive !== idx) return;
-      if (a.paused && !bgmUserOff) bgmAutoStarted = false;
+      if (a.paused && !bgmUserOff) {
+        bgmAutoStarted = false;
+        try { a.play(); } catch (e) {}
+        setTimeout(function () {
+          if (bgmActive !== idx) return;
+          if (a.paused && !bgmUserOff) {
+            bgmAutoStarted = false;
+            if (!bgmAutoHinted) { bgmAutoHinted = true; gmToast('音乐没起来 · 点一下屏幕或设置里的播放再试'); }
+          }
+        }, 4000);
+      }
     }, 1200);
   }
   /* 切后台/锁屏时停 BGM，回到前台再续；用户主动关掉声音时不复播 */
   var bgmPausedByHide = false;
+  /* 真机自检：BGM 有没有在响、卡在哪一步（#admin 和远程调试都能读） */
+  window.__bgmState = function () {
+    var idx = bgmActive, a = idx >= 0 ? BGM_AUDIO[idx] : null;
+    return {
+      active: idx, auto: bgmAutoStarted, off: bgmUserOff, sfx: sfxOn,
+      src: a ? String(a.src || '').slice(-34) : '',
+      paused: a ? a.paused : null,
+      ready: a ? a.readyState : null,
+      net: a ? a.networkState : null,
+      err: (a && a.error) ? a.error.code : 0,
+      dur: a ? Math.round((a.duration || 0) * 10) / 10 : 0,
+      vol: a ? Math.round((a.volume || 0) * 100) / 100 : 0,
+      hidden: document.hidden
+    };
+  };
   function bgmHandleHide(hidden) {
     if (hidden) {
       bgmCancelFade();
@@ -8288,6 +8313,22 @@ window.__startSakuraGame = function () {
       // 两首轮播：不用 <audio> 自身 loop，播完切下一首，否则永远只有第一首在转
       try { BGM_AUDIO[i].loop = false; } catch (e) {}
       BGM_AUDIO[i].onended = (function (k) { return function () { bgmOnTrackEnd(k); }; })(i);
+      /* 外置音频偶发失败：主源挂了自动换备源再播，不再静默失败 */
+      BGM_AUDIO[i].onerror = (function (k) {
+        return function () {
+          var a = BGM_AUDIO[k];
+          if (!a) return;
+          var cur = a.src || '';
+          var JSD = 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/';
+          var RAW = 'https://raw.githubusercontent.com/zhouwuyu2007/sakura-valley/main/';
+          var alt = '';
+          if (cur.indexOf('cdn.jsdelivr.net') >= 0) alt = cur.replace(JSD, RAW);
+          else if (cur.indexOf('raw.githubusercontent.com') >= 0) alt = cur.replace(RAW, JSD);
+          if (!alt || alt === cur) return;
+          try { a.src = alt; a.load(); } catch (e) { return; }
+          try { if (!bgmUserOff && sfxOn) a.play(); } catch (e) {}
+        };
+      })(i);
     }
     if (BGM_AUDIO[i].src !== src) {
       try { BGM_AUDIO[i].src = src; } catch (e) {}
@@ -22177,7 +22218,7 @@ window.__startSakuraGame = function () {
   setTimeout(boot, 3000);
 })();
 </script>
-<audio id="bgmFile0" src="assets/bgm-qingshan.mp3" preload="none" hidden></audio><audio id="bgmFile1" src="assets/bubu.mp3" preload="none" hidden></audio>
+<audio id="bgmFile0" src="https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3" preload="auto" hidden></audio><audio id="bgmFile1" src="https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3" preload="auto" hidden></audio>
 <script>/*BGM_RESILIENCE*/
 (function(){
   if (window.__bgmFix) return; window.__bgmFix = 1;
