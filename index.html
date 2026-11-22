@@ -2736,7 +2736,8 @@ window.__startSakuraGame = function () {
   if (sakuraTrunkMesh) sakuraTrunkMesh.userData.kind = 'sakura';
 
   // 花团实例化
-  var blossomGeo = new THREE.IcosahedronGeometry(1, 0);
+  // 花团 LOD：远观下 8 面八面体与 20 面二十面体轮廓无差异，单株省 12 张面（3796 实例省 45.5k tris）
+  var blossomGeo = new THREE.OctahedronGeometry(1, 0);
   var blossomMat = new THREE.MeshStandardMaterial({
     color: 0xffffff, flatShading: true, roughness: 0.86, metalness: 0,
     emissive: 0xff9fc4, emissiveIntensity: 0.1
@@ -10398,7 +10399,14 @@ window.__startSakuraGame = function () {
     fujimiDai: { key: 'fujimiDai', name: '富士见台', jp: '富士見台', zone: 'foothill', tier: 3, cost: 240, appeal: 30, income: 0, research: 1.5, weeks: 2, kind: 'wood', comboPairs: ['sanmon'], desc: '登台一望，远山如画' },
     haikuStele: { key: 'haikuStele', name: '句碑', jp: '句碑', zone: 'foothill', tier: 1, cost: 110, appeal: 14, income: 0, research: 2, weeks: 1, kind: 'stone', comboPairs: ['haiku'], desc: '一句十七音，刻在石上等人读' },
     nodateUmbrella: { key: 'nodateUmbrella', name: '野点伞', jp: '野点傘', zone: 'foothill', tier: 2, cost: 130, appeal: 16, income: 22, research: 1, weeks: 1, kind: 'wood', comboPairs: ['tea', 'teaField'], desc: '撑一把野伞，在草地上点茶' },
-    sanmon: { key: 'sanmon', name: '山门', jp: '山門', zone: 'foothill', tier: 3, cost: 320, appeal: 34, income: 8, research: 1, weeks: 2, kind: 'wood', comboPairs: ['stoneShrine', 'ema'], desc: '过这道门，就算进了山' }
+
+    sanmon: { key: 'sanmon', name: '山门', jp: '山門', zone: 'foothill', tier: 3, cost: 320, appeal: 34, income: 8, research: 1, weeks: 2, kind: 'wood', comboPairs: ['stoneShrine', 'ema'], desc: '过这道门，就算进了山' },
+    /* content-5 追加：五件，五个分区各一 */
+    tsukubai: { key: 'tsukubai', name: '蹲踞', jp: '蹲踞', zone: 'pine', tier: 1, cost: 110, appeal: 12, income: 0, research: 0.5, weeks: 1, kind: 'stone', comboPairs: ['mossGarden', 'lantern'], desc: '一钵清水，照见来客' },
+    yukimiLantern: { key: 'yukimiLantern', name: '雪见灯笼', jp: '雪見灯籠', zone: 'pine', tier: 2, cost: 200, appeal: 20, income: 4, research: 1, weeks: 1, kind: 'stone', comboPairs: ['karesansui', 'sakura'], desc: '宽檐承雪，一盏长明' },
+    kawadoko: { key: 'kawadoko', name: '川床', jp: '川床', zone: 'river', tier: 2, cost: 240, appeal: 26, income: 30, research: 1, weeks: 2, kind: 'wood', comboPairs: ['waterwheel', 'takimiSeat'], desc: '溪上铺席，水声佐餐' },
+    momijiDai: { key: 'momijiDai', name: '红叶台', jp: '紅葉台', zone: 'foothill', tier: 2, cost: 190, appeal: 22, income: 0, research: 1, weeks: 2, kind: 'wood', comboPairs: ['fujimiDai', 'teaField'], desc: '一台红叶，借远山入席' },
+    sobaStand: { key: 'sobaStand', name: '荞麦摊', jp: '蕎麦屋', zone: 'core', tier: 1, cost: 140, appeal: 12, income: 20, research: 0.5, weeks: 1, kind: 'wood', comboPairs: ['dango', 'ema'], desc: '一碗荞麦，热汤见底' }
   };
 
   /* 建造卡片插图：全部为内联 SVG，无外部图片依赖 */
@@ -10432,7 +10440,12 @@ window.__startSakuraGame = function () {
     fujimiDai: '<rect x="0" y="46" width="120" height="18" fill="#5f7354"/><path d="M18 34 L102 34 L96 46 L24 46Z" fill="#a9825c"/><rect x="18" y="31" width="84" height="4" fill="#c9a878"/><path d="M20 31 L20 18 M100 31 L100 18" stroke="#6b4a33" stroke-width="3"/><path d="M20 19 L100 19" stroke="#6b4a33" stroke-width="3"/><rect x="44" y="36" width="32" height="4" fill="#8a6544"/><path d="M20 8 L38 26 L56 12 L74 28 L100 10" stroke="#a9b6bd" stroke-width="3" fill="none" opacity=".7"/><path d="M60 28 L72 34" stroke="#3d2e26" stroke-width="1.8"/><rect x="56" y="26" width="7" height="4" rx="1" fill="#3d2e26"/>',
     haikuStele: '<rect x="0" y="47" width="120" height="17" fill="#5f7354"/><ellipse cx="60" cy="56" rx="26" ry="4" fill="#83926b" opacity=".6"/><rect x="46" y="40" width="30" height="7" fill="#8f8c82"/><rect x="50" y="14" width="22" height="28" fill="#a09d8f"/><rect x="50" y="14" width="22" height="3" fill="#b9b6a8"/><path d="M54 20 L54 38 M58 20 L58 38 M62 20 L62 38 M66 20 L66 38" stroke="#6f6d64" stroke-width="1.4" opacity=".7"/><path d="M50 30 L72 30" stroke="#7b7d73" stroke-width="1.2" opacity=".6"/><circle cx="80" cy="44" r="4" fill="#6f8a58"/><circle cx="38" cy="47" r="3" fill="#6f8a58"/>',
     nodateUmbrella: '<rect x="0" y="46" width="120" height="18" fill="#5f7354"/><ellipse cx="60" cy="55" rx="30" ry="5" fill="#6d8455" opacity=".6"/><path d="M60 26 L60 52" stroke="#6b4a33" stroke-width="3"/><path d="M26 30 Q60 8 94 30 Q60 26 26 30Z" fill="#b0546e"/><path d="M34 29 Q60 12 86 29" stroke="#f2e6cf" stroke-width="2" fill="none" opacity=".7"/><circle cx="60" cy="10" r="2" fill="#6b4a33"/><rect x="34" y="48" width="52" height="15" rx="3" fill="#8f2f2f"/><rect x="38" y="46" width="12" height="8" fill="#c9a878"/><circle cx="44" cy="45" r="3.4" fill="#6f8a58"/><rect x="70" y="48" width="10" height="7" fill="#efe2c8"/>',
-    sanmon: '<rect x="0" y="48" width="120" height="16" fill="#5f7354"/><rect x="30" y="18" width="7" height="34" fill="#7a3f37"/><rect x="83" y="18" width="7" height="34" fill="#7a3f37"/><rect x="22" y="16" width="76" height="5" fill="#8f2f2f"/><path d="M16 16 L60 4 L104 16Z" fill="#3d2e26"/><path d="M22 16 L60 7 L98 16Z" fill="#4a3a30"/><rect x="42" y="24" width="36" height="5" fill="#6b4a33"/><rect x="52" y="21" width="16" height="7" fill="#efe2c8"/><rect x="34" y="38" width="52" height="3" fill="#c9a878"/><path d="M38 34 Q60 30 82 34" stroke="#d8c7a1" stroke-width="2" fill="none"/>'
+    sanmon: '<rect x="0" y="48" width="120" height="16" fill="#5f7354"/><rect x="30" y="18" width="7" height="34" fill="#7a3f37"/><rect x="83" y="18" width="7" height="34" fill="#7a3f37"/><rect x="22" y="16" width="76" height="5" fill="#8f2f2f"/><path d="M16 16 L60 4 L104 16Z" fill="#3d2e26"/><path d="M22 16 L60 7 L98 16Z" fill="#4a3a30"/><rect x="42" y="24" width="36" height="5" fill="#6b4a33"/><rect x="52" y="21" width="16" height="7" fill="#efe2c8"/><rect x="34" y="38" width="52" height="3" fill="#c9a878"/><path d="M38 34 Q60 30 82 34" stroke="#d8c7a1" stroke-width="2" fill="none"/>',
+    tsukubai: '<rect x="0" y="46" width="120" height="18" fill="#5f7354"/><ellipse cx="58" cy="52" rx="26" ry="6" fill="#7d8570"/><ellipse cx="58" cy="42" rx="24" ry="9" fill="#8f8c82"/><ellipse cx="58" cy="40" rx="18" ry="6" fill="#5d7f8c"/><path d="M78 40 L78 18" stroke="#8e9a54" stroke-width="4"/><path d="M78 19 L58 24" stroke="#8e9a54" stroke-width="4"/><rect x="46" y="37" width="14" height="3" fill="#e9dcc0"/><rect x="59" y="33" width="3" height="8" fill="#3d2e26"/><ellipse cx="30" cy="50" rx="5" ry="2.6" fill="#a09d8f"/><ellipse cx="86" cy="51" rx="4" ry="2.2" fill="#969386"/><rect x="22" y="34" width="3" height="12" fill="#3d2e26"/><rect x="16" y="31" width="15" height="5" fill="#e6d9bd"/>',
+    yukimiLantern: '<rect x="0" y="47" width="120" height="17" fill="#5f7354"/><ellipse cx="60" cy="48" rx="14" ry="4" fill="#83926b" opacity=".6"/><rect x="52" y="38" width="16" height="10" fill="#8f8c82"/><rect x="56" y="20" width="8" height="20" fill="#8f8c82"/><rect x="48" y="18" width="24" height="18" fill="#ffe6b8"/><rect x="48" y="18" width="24" height="18" fill="none" stroke="#6b5a44" stroke-width="1.6"/><path d="M22 18 L60 6 L98 18Z" fill="#7b7d73"/><path d="M28 18 L60 9 L92 18Z" fill="#9a978b"/><circle cx="60" cy="5" r="2.6" fill="#8f8c82"/><rect x="42" y="41" width="36" height="3" fill="#6b5a44"/>',
+    kawadoko: '<rect x="0" y="42" width="120" height="22" fill="#5a7c6a"/><path d="M0 56 Q30 52 60 56 Q90 60 120 55" stroke="#8fb6c2" stroke-width="3" fill="none" opacity=".5"/><rect x="22" y="34" width="76" height="8" fill="#b78a5e"/><rect x="26" y="42" width="4" height="14" fill="#6b4a33"/><rect x="44" y="42" width="4" height="14" fill="#6b4a33"/><rect x="72" y="42" width="4" height="14" fill="#6b4a33"/><rect x="90" y="42" width="4" height="14" fill="#6b4a33"/><rect x="36" y="27" width="44" height="4" fill="#8a6544"/><rect x="40" y="31" width="4" height="4" fill="#6b4a33"/><rect x="72" y="31" width="4" height="4" fill="#6b4a33"/><rect x="42" y="24" width="14" height="4" fill="#e9dcc0"/><rect x="60" y="24" width="14" height="4" fill="#c9a878"/><circle cx="98" cy="26" r="4" fill="#ffe6b8"/><path d="M22 34 L22 26 M98 34 L98 30" stroke="#6b4a33" stroke-width="2"/>',
+    momijiDai: '<rect x="0" y="46" width="120" height="18" fill="#5f7354"/><path d="M16 36 L104 36 L100 46 L20 46Z" fill="#a9825c"/><rect x="20" y="33" width="80" height="4" fill="#c9a878"/><rect x="24" y="44" width="4" height="10" fill="#6b4a33"/><rect x="92" y="44" width="4" height="10" fill="#6b4a33"/><path d="M26 33 L26 14 M26 18 L18 12 M26 22 L34 16" stroke="#6b4a33" stroke-width="3"/><circle cx="20" cy="10" r="9" fill="#b4523f"/><circle cx="34" cy="12" r="8" fill="#c46a4a"/><circle cx="28" cy="6" r="6" fill="#a8462f"/><rect x="56" y="26" width="30" height="4" fill="#8a6544"/><rect x="58" y="30" width="4" height="5" fill="#3d2e26"/><rect x="80" y="30" width="4" height="5" fill="#3d2e26"/><path d="M100 34 L100 22 M96 22 L104 22" stroke="#6b4a33" stroke-width="2"/>',
+    sobaStand: '<rect x="0" y="46" width="120" height="18" fill="#5f7354"/><rect x="26" y="34" width="68" height="12" fill="#8a6544"/><rect x="24" y="32" width="72" height="3" fill="#c9a878"/><path d="M18 32 L60 12 L102 32Z" fill="#41547d"/><path d="M26 32 L60 17 L94 32Z" fill="#4b5f8c"/><rect x="32" y="26" width="12" height="8" fill="#efe2c8"/><rect x="46" y="26" width="12" height="8" fill="#b4473c"/><rect x="60" y="26" width="12" height="8" fill="#41547d"/><rect x="74" y="26" width="12" height="8" fill="#efe2c8"/><rect x="42" y="37" width="12" height="8" fill="#3d2e26"/><circle cx="48" cy="36" r="5" fill="#6b5a44"/><rect x="70" y="40" width="10" height="3" fill="#efe2c8"/><rect x="74" y="38" width="2" height="2" fill="#c9a878"/><rect x="14" y="34" width="3" height="12" fill="#3d2e26"/><rect x="8" y="31" width="16" height="5" fill="#e0c9a4"/>'
   };
   function gmBuildArt(key) {
     var art = GM_ITEM_ART[key] || '<rect x="0" y="45" width="120" height="19" fill="#60764f"/><rect x="42" y="22" width="36" height="24" fill="#b08a63"/><path d="M38 22 L60 10 L82 22 Z" fill="#7a5237"/>';
@@ -10507,7 +10520,18 @@ window.__startSakuraGame = function () {
     { a: 'fujimiDai', b: 'pine', name: '富士见松', appeal: 25, income: 0.03, r: 0.25, hint: '富士见台外一株松', hidden: true },
     { a: 'haikuStele', b: 'ema', name: '句碑绘马', appeal: 10, income: 0.02, r: 0.10, hint: '句碑与绘马同立' },
     { a: 'nodateUmbrella', b: 'tea', name: '野点茶伞', appeal: 18, income: 0.04, r: 0.18, hint: '野点伞下摆茶' },
-    { a: 'sanmon', b: 'stoneShrine', name: '山门石祠', appeal: 10, income: 0.02, r: 0.10, hint: '山门内一座石祠' }
+    { a: 'sanmon', b: 'stoneShrine', name: '山门石祠', appeal: 10, income: 0.02, r: 0.10, hint: '山门内一座石祠' },
+    /* content-5 相性：10 条（每件 2 条） */
+    { a: 'tsukubai', b: 'mossGarden', name: '苔畔蹲踞', appeal: 8, income: 0, r: 0.10, hint: '苔庭边一钵清水' },
+    { a: 'tsukubai', b: 'lantern', name: '水灯相照', appeal: 6, income: 0, r: 0.10, hint: '石灯与蹲踞相映' },
+    { a: 'yukimiLantern', b: 'karesansui', name: '雪灯照砂', appeal: 10, income: 0, r: 0.18, hint: '雪见灯笼照枯山水' },
+    { a: 'yukimiLantern', b: 'sakura', name: '雪灯花影', appeal: 8, income: 0, r: 0.10, hint: '樱下雪见灯' },
+    { a: 'kawadoko', b: 'waterwheel', name: '川床水车', appeal: 12, income: 0.06, r: 0.18, hint: '川床听水车' },
+    { a: 'kawadoko', b: 'takimiSeat', name: '双席临流', appeal: 10, income: 0.08, r: 0.18, hint: '川床与泷见席同临水' },
+    { a: 'momijiDai', b: 'fujimiDai', name: '双台望远', appeal: 12, income: 0, r: 0.18, hint: '红叶台与富士见台对望' },
+    { a: 'momijiDai', b: 'teaField', name: '茶山红叶', appeal: 10, income: 0.04, r: 0.10, hint: '茶畑边红叶台' },
+    { a: 'sobaStand', b: 'dango', name: '团子荞麦', appeal: 6, income: 0.05, r: 0.10, hint: '荞麦摊兼卖团子' },
+    { a: 'sobaStand', b: 'ema', name: '许愿一碗', appeal: 5, income: 0, r: 0.10, hint: '摊前挂绘马' }
   ];
   var GM_STAFF = [
     { key: 'gardener', name: '庭师', jp: '庭師', cost: 220, salary: 12, desc: '庭园景致 +12%' },
@@ -13047,11 +13071,13 @@ window.__startSakuraGame = function () {
     var rm = { inn: 2.0, tea: 1.35, karesansui: 1.85, mossGarden: 1.65, teaField: 1.80,
       fujimiDai: 1.50, fishingDeck: 1.55, takimiSeat: 1.55, sanmon: 1.80, nodateUmbrella: 1.70,
       waterwheel: 1.35, tobiishi: 1.10, irisBank: 1.25, haikuStele: 0.95, stoneShrine: 0.95,
+      tsukubai: 0.80, yukimiLantern: 0.85, kawadoko: 1.45, momijiDai: 1.35, sobaStand: 1.10,
       shishiodoshi: 0.90, pineBonsai: 0.75 };
     var r = rm[key] || 1.0;
     var noPlinth = key === 'tobiishi' || key === 'irisBank' || key === 'karesansui' || key === 'mossGarden'
       || key === 'fujimiDai' || key === 'fishingDeck' || key === 'takimiSeat' || key === 'sanmon'
-      || key === 'teaField' || key === 'nodateUmbrella';
+      || key === 'teaField' || key === 'nodateUmbrella'
+      || key === 'kawadoko' || key === 'momijiDai';
     if (plant) return;
     var disc = new THREE.Mesh(new THREE.CircleGeometry(r, 28),
       new THREE.MeshBasicMaterial({ color: 0x1d1810, transparent: true, opacity: 0.09, depthWrite: false }));
@@ -13860,6 +13886,104 @@ window.__startSakuraGame = function () {
       sgnFence.position.set(0.62, 1.2, 0.09); g.add(sgnFence);
       g.add(gmBox(0.06, 1.3, 0.06, dark, -0.72, 0.7, 0));
       g.add(gmBox(0.06, 1.3, 0.06, dark, 0.72, 0.7, 0));
+    } else if (key === 'tsukubai') {
+      var tbS = gmMat(0x8f8c82, .95), tbB = gmMat(0x8e9a54, .9);
+      var tbW = new THREE.MeshStandardMaterial({ color: 0x5d7f8c, roughness: .18, metalness: .15 });
+      g.add(gmCyl(0.58, 0.68, 0.28, tbS, 0, 0.14, 0));
+      g.add(gmCyl(0.47, 0.47, 0.03, tbW, 0, 0.29, 0));
+      g.add(gmCyl(0.05, 0.06, 0.92, tbB, 0.36, 0.46, -0.28));
+      var tSp = gmBox(0.42, 0.06, 0.06, tbB, -0.10, 0.90, -0.28); tSp.rotation.z = -0.10; g.add(tSp);
+      g.add(gmBox(0.045, 0.045, 0.10, tbB, -0.30, 0.87, -0.28));
+      var tCp = gmCyl(0.085, 0.075, 0.05, cream, 0.26, 0.32, 0.28); g.add(tCp);
+      var tHd = gmBox(0.03, 0.24, 0.03, dark, 0.26, 0.44, 0.34); tHd.rotation.x = 0.85; g.add(tHd);
+      g.add(gmCyl(0.17, 0.19, 0.05, stone, 0.02, 0.03, 0.72));
+      g.add(gmCyl(0.13, 0.15, 0.05, stone, 0.62, 0.03, 0.52));
+      g.add(gmCyl(0.11, 0.12, 0.05, stone, -0.58, 0.03, 0.50));
+      g.add(gmBox(0.04, 0.46, 0.04, dark, -0.52, 0.23, 0.36));
+      var tPl = gmTextPlate('蹲踞', '', 0.30, 0.16, { size: 0.14 });
+      tPl.position.set(-0.52, 0.56, 0.36); g.add(tPl);
+    } else if (key === 'yukimiLantern') {
+      var ykS = gmMat(0x8f8c82, .95), ykD = gmMat(0x6b5a44, .9);
+      var ykGlow = new THREE.MeshStandardMaterial({ color: 0xf7e3b8, emissive: 0xffcf7a, emissiveIntensity: 1.1, roughness: .6 });
+      for (var yi = 0; yi < 3; yi++) {
+        var ya = yi * Math.PI * 2 / 3;
+        g.add(gmCyl(0.045, 0.055, 0.14, ykS, Math.cos(ya) * 0.26, 0.07, Math.sin(ya) * 0.26));
+      }
+      g.add(gmCyl(0.30, 0.34, 0.10, ykS, 0, 0.17, 0));
+      g.add(gmCyl(0.065, 0.075, 0.32, ykS, 0, 0.37, 0));
+      g.add(gmBox(0.40, 0.34, 0.40, ykGlow, 0, 0.62, 0));
+      g.add(gmBox(0.44, 0.04, 0.44, ykD, 0, 0.44, 0));
+      var ykRoof = new THREE.Mesh(new THREE.ConeGeometry(0.80, 0.26, 6), ykS);
+      ykRoof.position.set(0, 0.91, 0); ykRoof.castShadow = true; g.add(ykRoof);
+      var ykSnow = new THREE.Mesh(new THREE.ConeGeometry(0.72, 0.08, 6), new THREE.MeshStandardMaterial({ color: 0xf4f4ee, roughness: .9 }));
+      ykSnow.position.set(0, 1.00, 0); g.add(ykSnow);
+      g.add(gmCyl(0.05, 0.06, 0.10, ykS, 0, 1.08, 0));
+      var ykPl = gmTextPlate('雪见', '', 0.30, 0.16, { size: 0.13 });
+      ykPl.position.set(0, 0.36, 0.30); g.add(ykPl);
+    } else if (key === 'kawadoko') {
+      var kwW = gmMat(0xb78a5e, .9), kwD = gmMat(0x6b4a33, .9);
+      g.add(gmBox(2.40, 0.10, 1.50, kwW, 0, 0.58, 0));
+      [[-1.06, -0.62], [1.06, -0.62], [-1.06, 0.62], [1.06, 0.62]].forEach(function (q) {
+        g.add(gmBox(0.09, 0.58, 0.09, kwD, q[0], 0.29, q[1]));
+      });
+      g.add(gmBox(0.90, 0.06, 0.50, kwD, 0, 0.74, -0.10));
+      g.add(gmBox(0.06, 0.16, 0.06, kwD, -0.38, 0.66, -0.10));
+      g.add(gmBox(0.06, 0.16, 0.06, kwD, 0.38, 0.66, -0.10));
+      g.add(gmBox(0.38, 0.08, 0.38, red, -0.52, 0.68, 0.24));
+      g.add(gmBox(0.38, 0.08, 0.38, cream, 0.52, 0.68, 0.24));
+      g.add(gmBox(0.24, 0.03, 0.16, paper, 0, 0.80, -0.10));
+      g.add(gmBox(0.05, 1.0, 0.05, kwD, 1.02, 0.98, 0.72));
+      g.add(gmBox(0.05, 1.0, 0.05, kwD, -1.02, 0.98, 0.72));
+      var kwGlow = new THREE.MeshStandardMaterial({ color: 0xffe6b8, emissive: 0xffcf7a, emissiveIntensity: .9 });
+      g.add(gmBox(0.16, 0.18, 0.16, kwGlow, 1.02, 0.88, 0.72));
+      g.add(gmBox(0.26, 0.04, 0.26, dark, 1.02, 0.99, 0.72));
+      var kwPl = gmTextPlate('川床', '', 0.34, 0.18, { size: 0.14 });
+      kwPl.position.set(0, 0.88, 0.74); g.add(kwPl);
+    } else if (key === 'momijiDai') {
+      var mjW = gmMat(0xa9825c, .9), mjD = gmMat(0x6b4a33, .9), mjR = gmMat(0xb4523f, .95);
+      g.add(gmBox(2.20, 0.10, 1.60, mjW, 0, 0.62, 0));
+      [[-0.96, -0.66], [0.96, -0.66], [-0.96, 0.66], [0.96, 0.66]].forEach(function (q) {
+        g.add(gmBox(0.09, 0.62, 0.09, mjD, q[0], 0.31, q[1]));
+      });
+      [[-0.96, 0.66], [0, 0.66], [0.96, 0.66]].forEach(function (q) {
+        g.add(gmBox(0.07, 0.62, 0.07, mjD, q[0], 1.00, q[1]));
+      });
+      g.add(gmBox(2.02, 0.07, 0.07, mjD, 0, 1.30, 0.66));
+      g.add(gmBox(0.80, 0.08, 0.34, mjW, 0, 0.72, -0.20));
+      g.add(gmBox(0.06, 0.14, 0.06, mjD, -0.34, 0.64, -0.20));
+      g.add(gmBox(0.06, 0.14, 0.06, mjD, 0.34, 0.64, -0.20));
+      g.add(gmCyl(0.09, 0.13, 1.10, mjD, 0.82, 1.22, -0.42));
+      var mjA = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52, 0), mjR); mjA.position.set(0.82, 1.92, -0.42); mjA.castShadow = true; g.add(mjA);
+      var mjB = new THREE.Mesh(new THREE.IcosahedronGeometry(0.38, 0), gmMat(0xc46a4a, .95)); mjB.position.set(0.46, 1.82, -0.30); mjB.castShadow = true; g.add(mjB);
+      var mjC = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32, 0), mjR); mjC.position.set(1.12, 1.78, -0.30); mjC.castShadow = true; g.add(mjC);
+      var mjPl = gmTextPlate('红叶台', '', 0.36, 0.18, { size: 0.12 });
+      mjPl.position.set(-0.70, 1.02, 0.68); g.add(mjPl);
+    } else if (key === 'sobaStand') {
+      var sbW = gmMat(0x8a6544, .9), sbD = gmMat(0x3d2e26, .9), sbT = gmMat(0xc9a878, .9);
+      g.add(gmBox(1.80, 0.90, 0.70, sbW, 0, 0.45, 0));
+      g.add(gmBox(1.90, 0.06, 0.80, sbT, 0, 0.92, 0));
+      g.add(gmBox(0.07, 1.05, 0.07, sbD, -0.86, 0.52, 0.34));
+      g.add(gmBox(0.07, 1.05, 0.07, sbD, 0.86, 0.52, 0.34));
+      var sbRoofM = new THREE.MeshStandardMaterial({ color: 0x41547d, roughness: .9 });
+      var sbR1 = gmBox(2.10, 0.05, 0.40, sbRoofM, 0, 1.44, -0.21); sbR1.rotation.x = 0.30; g.add(sbR1);
+      var sbR2 = gmBox(2.10, 0.05, 0.40, sbRoofM, 0, 1.44, 0.21); sbR2.rotation.x = -0.30; g.add(sbR2);
+      g.add(gmBox(2.10, 0.05, 0.30, sbD, 0, 1.58, 0));
+      g.add(gmBox(0.30, 0.40, 0.03, cream, -0.34, 1.24, 0.38));
+      g.add(gmBox(0.30, 0.40, 0.03, red, 0, 1.24, 0.38));
+      g.add(gmBox(0.30, 0.40, 0.03, new THREE.MeshStandardMaterial({ color: 0x41547d, roughness: .9 }), 0.34, 1.24, 0.38));
+      var sbPot = gmCyl(0.17, 0.16, 0.22, sbD, 0.46, 1.06, -0.10); g.add(sbPot);
+      g.add(gmCyl(0.18, 0.18, 0.03, sbT, 0.46, 1.18, -0.10));
+      g.add(gmCyl(0.11, 0.08, 0.07, cream, 0.02, 0.98, 0.16));
+      g.add(gmCyl(0.11, 0.08, 0.07, cream, -0.22, 0.98, 0.16));
+      g.add(gmBox(0.03, 0.16, 0.03, sbD, 0.02, 1.02, 0.16));
+      g.add(gmCyl(0.16, 0.16, 0.05, sbW, -0.52, 0.30, 0.66));
+      g.add(gmCyl(0.16, 0.16, 0.05, sbW, 0.52, 0.30, 0.66));
+      [[-0.52], [0.52]].forEach(function (q) {
+        g.add(gmBox(0.05, 0.28, 0.05, sbD, q[0], 0.14, 0.66));
+        g.add(gmBox(0.05, 0.28, 0.05, sbD, q[0], 0.14, 0.58));
+      });
+      var sbPl = gmTextPlate('荞麦', '', 0.34, 0.18, { size: 0.13 });
+      sbPl.position.set(0, 1.20, 0.42); g.add(sbPl);
     }
     g.userData.kind = 'built'; g.userData.gmKey = key;
     g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.userData.kind = 'built'; o.userData.gmKey = key; } });
@@ -16523,6 +16647,26 @@ window.__startSakuraGame = function () {
 
   /* ---------- 存档 ---------- */
   /* economy-owned：gmSave 唯一属主；其他窗口只挂 GM.mods，不得改本函数 */
+  /* ---------- 属主注册点（gm-hook）：只暴露注册与只读清单，不改现有调用顺序 ---------- */
+  var gmHookReg = { init: [], load: [], save: [] };
+  function gmHook(name, fn) {
+    if (!gmHookReg[name] || typeof fn !== 'function') return false;
+    gmHookReg[name].push(fn);
+    return true;
+  }
+  function gmRunHooks(name, arg) {
+    var list = gmHookReg[name] || [];
+    for (var i = 0; i < list.length; i++) {
+      try { list[i](arg); } catch (e) {}
+    }
+  }
+  function gmHooksList() {
+    return {
+      init: gmHookReg.init.map(function (fn) { return fn.name || 'anonymous'; }),
+      load: gmHookReg.load.map(function (fn) { return fn.name || 'anonymous'; }),
+      save: gmHookReg.save.map(function (fn) { return fn.name || 'anonymous'; })
+    };
+  }
   function gmSave(force) {
     if (!force && GAME_SETTINGS.autosave === false) return;
     try {
@@ -16540,6 +16684,7 @@ window.__startSakuraGame = function () {
         mods: GM.mods
       }));
     } catch (e) {}
+    gmRunHooks('save');
   }
   function gmExportCode() {
     try {
@@ -16670,6 +16815,7 @@ window.__startSakuraGame = function () {
         gmNewWeekly();
       }
       GM.lastAutoSave = performance.now();
+      gmRunHooks('load');
       return true;
     } catch (e) { return false; }
   }
@@ -16892,6 +17038,8 @@ window.__startSakuraGame = function () {
       openSheet: gmOpenSheet, previewState: function () { return gmPreview ? { plot: gmPreview.plot, key: gmPreview.key, age: 1 } : null; },
       settingsState: function () { return JSON.parse(JSON.stringify(GAME_SETTINGS)); }
     };
+    window.gmHook = gmHook;
+    window.__gmHooks = gmHooksList;
     window.__guestsFreeze = gmGuestsFreeze;
     window.__guestsCount = function () { return GM.visList.length; };
     window.__visitorLookKey = gmVisitorLookKey;
@@ -16926,6 +17074,7 @@ window.__startSakuraGame = function () {
     /* ECO-01：兼容空壳；生态不要再包装，驻足由经营直接调用 __lifeDwell */
     if (!window.__onGuestDwell) window.__onGuestDwell = function () {};
     if (GM.loaded) gmToast('已载入第 ' + Math.ceil(GM.day) + ' 日 · 第 ' + GM.week + ' 周');
+    gmRunHooks('init');
   }
 
   function roamStep(rec, dt) {
@@ -20417,6 +20566,49 @@ window.__startSakuraGame = function () {
       batchOn: BATCH.on
     };
   };
+  // 面数分布：按场景角色给六类桶，供 tris-budget 报告与验收（只读，不改渲染）
+  window.__trisBudget = function () {
+    var out = { total: 0, byRole: {}, terrainNear: 0, terrainFar: 0, meshes: 0 };
+    function triOf(g, n) {
+      var t = g.index ? g.index.count / 3 : (g.attributes.position ? g.attributes.position.count / 3 : 0);
+      return Math.floor(t) * n;
+    }
+    function add(k, n) { out.byRole[k] = (out.byRole[k] || 0) + n; out.total += n; }
+    function bucket(o) {
+      var u = o.userData || {}, k = (u.kind || u.artRole || '').toLowerCase();
+      if (o === terrainLodMesh) return 'terrain';
+      if (u.artRole === 'batch' || k === 'batch' || k === 'merged') return 'batch';
+      var pn = '';
+      var pp = o.parent;
+      while (pp) { if (/garden-zone-/.test(pp.name || '')) { pn = pp.name; break; } pp = pp.parent; }
+      if (pn) return 'terrace';
+      if (u.plotId !== undefined || /^(facility|facility-detail|built)$/.test(k)) return 'building';
+      if (/snow|yuki|snowman/.test(k) || (o.name && /snow/i.test(o.name))) return 'snowfx';
+      if (/tree|sakura|pine|bamboo|shrub|grass|moss|foliage|flower|plant|vegetation|ridge|giant|stone|rock|crop|mushroom|deer/.test(k)) return 'vegetation';
+      return 'other';
+    }
+    scene.traverse(function (o) {
+      if (!o.isMesh && !o.isInstancedMesh) return;
+      if (o.visible === false || !o.geometry) return;
+      var n = o.isInstancedMesh ? o.count : 1;
+      if (!n) return;
+      var t = triOf(o.geometry, n);
+      if (!t) return;
+      out.meshes++;
+      var b = bucket(o);
+      add(b, t);
+      // 地形单 mesh：按三角面质心半径再拆近景/远景台地
+      if (o === terrainLodMesh && o.geometry.attributes.position) {
+        var pos = o.geometry.attributes.position.array, near = 0, far = 0;
+        for (var i = 0; i + 8 < pos.length; i += 9) {
+          var cx = (pos[i] + pos[i + 3] + pos[i + 6]) / 3, cz = (pos[i + 2] + pos[i + 5] + pos[i + 8]) / 3;
+          if (Math.sqrt(cx * cx + cz * cz) > 96) far += 1; else near += 1;
+        }
+        out.terrainNear = near; out.terrainFar = far;
+      }
+    });
+    return out;
+  };
   // 渲染配置取证：移动端优化是否生效（像素比/MSAA/阴影节流/帧率上限），#admin 与探针可读
   window.__renderInfo = function () {
     return {
@@ -22391,7 +22583,7 @@ window.__startSakuraGame = function () {
     window.addEventListener('hashchange', hbAdminVis);
     hbAdminVis();
   }
-  function hbAdminVis() { var on = /#admin/.test(location.hash) ? 'block' : 'none'; var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = on; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = on; var db = document.getElementById('hbDiagBtn'); if (db) db.style.display = on; }
+  function hbAdminVis() { var on = (/#admin/.test(location.hash) || (typeof A_SHA !== 'undefined' && A_SHA !== 'ONLINE')) ? 'block' : 'none'; var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = on; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = on; var db = document.getElementById('hbDiagBtn'); if (db) db.style.display = on; }
   function hbExport() {
     var txt = window.__funnelDump();
     try { var blob = new Blob([txt], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sakura-funnel.json'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); } catch (e) {}
