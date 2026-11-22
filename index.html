@@ -10282,7 +10282,12 @@ window.__startSakuraGame = function () {
     { id: 'g5', name: '松庭之约', desc: '开放松庭，并建成 8 处设施', type: 'pine', target: 8, reward: { money: 320, renown: 12 } },
     { id: 'g6', name: '溪谷回响', desc: '开放溪谷', type: 'zoneRiver', target: 1, reward: { money: 420, research: 15 } },
     { id: 'g7', name: '名园之姿', desc: '庭园景致达到 220', type: 'appeal', target: 220, reward: { money: 560, renown: 20 } },
-    { id: 'g8', name: '山麓远望', desc: '开放山麓，累计收入达到 1600 銭', type: 'endgame', target: 2, reward: { money: 900, renown: 30 } }
+    { id: 'g8', name: '山麓远望', desc: '开放山麓，累计收入达到 1600 銭', type: 'endgame', target: 2, reward: { money: 900, renown: 30 } },
+    { id: 'g9',  name: '图鉴初成', desc: '图鉴收录 30 种', type: 'codex', target: 30, reward: { money: 420, renown: 10 } },
+    { id: 'g10', name: '百客盈庭', desc: '累计接待 120 位访客', type: 'visitors', target: 120, reward: { money: 560, research: 12 } },
+    { id: 'g11', name: '岁岁年年', desc: '经营满 84 天，走过三季', type: 'day', target: 84, reward: { money: 700, renown: 16 } },
+    { id: 'g12', name: '万金之庭', desc: '累计收入达到 6000 銭', type: 'income', target: 6000, reward: { money: 1200, renown: 24 } },
+    { id: 'g13', name: '一庭千秋', desc: '图鉴收录 60 种', type: 'codex', target: 60, reward: { money: 1600, renown: 36 } }
   ];
 
   var GM_ZONE_DEFS = [
@@ -14975,14 +14980,17 @@ window.__startSakuraGame = function () {
       }
       if (!v.dwellUntil && nowDwell > (v.dwellScanAt || 0)) {
         v.dwellScanAt = nowDwell + 1.2;
-        var nearB = null, nearD = 99;
+        var nearB = null, nearD = 99, nearAny = null, nearAnyD = 99;
         for (var bd = 0; bd < GM.built.length; bd++) {
           var bb = GM.built[bd], bit = GM_ITEMS[bb.key], bp = GM.plots[bb.plot];
-          if (!bit || !bp || !GM_LARGE_KEYS[bb.key]) continue;
+          if (!bit || !bp) continue;
           var dd = Math.sqrt((bp.x - v.g.position.x) * (bp.x - v.g.position.x) + (bp.z - v.g.position.z) * (bp.z - v.g.position.z));
-          if (dd < 3.2 && dd < nearD) { nearD = dd; nearB = bb; }
+          if (GM_LARGE_KEYS[bb.key]) { if (dd < 3.2 && dd < nearD) { nearD = dd; nearB = bb; } }
+          else if (dd < 2.4 && dd < nearAnyD) { nearAnyD = dd; nearAny = bb; }
         }
-        if (nearB) {
+        if (!nearB && nearAny) nearB = nearAny;
+        if (nearB && (v.dwellN || 0) < 2) {
+          v.dwellN = (v.dwellN || 0) + 1;
           v.dwellPlot = nearB.plot;
           v.dwellUntil = nowDwell + 0.12 + Math.random() * 0.08;
           v.thoughts.push('在「' + GM_ITEMS[nearB.key].name + '」前停了停。');
@@ -15591,6 +15599,9 @@ window.__startSakuraGame = function () {
     if (g.type === 'pine') return GM.zones.pine ? (st.builtTotal || 0) : 0;
     if (g.type === 'zoneRiver') return GM.zones.river ? 1 : 0;
     if (g.type === 'endgame') return (GM.zones.foothill ? 1 : 0) + ((st.incomeTotal || 0) >= 1600 ? 1 : 0);
+    if (g.type === 'codex') return st.codexTotal || 0;
+    if (g.type === 'day') return GM.day || 0;
+    if (g.type === 'income') return st.incomeTotal || 0;
     return 0;
   }
   function gmGoalMet(g) { return gmGoalProgress(g) >= g.target; }
