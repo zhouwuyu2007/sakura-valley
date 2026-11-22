@@ -8169,8 +8169,8 @@ window.__startSakuraGame = function () {
      分片存放，第一次真正用到时才拼成 data URI，避免启动阶段多拷两份几 MB 的字符串。
      想换曲：替换下面 parts 里的分片即可，文件名同时存了一份在 shared/sakura/assets/。 */
   var BGM_LIB = [
-    { name: '青山绿野（内置）', parts: [], src: 'https://raw.githubusercontent.com/zhouwuyu2007/sakura-valley/main/assets/bgm-qingshan.mp3' },
-    { name: '步履不停（内置）', parts: [], src: 'https://raw.githubusercontent.com/zhouwuyu2007/sakura-valley/main/assets/bubu.mp3' }
+    { name: '青山绿野（内置）', parts: [], src: 'assets/bgm-qingshan.mp3' },
+    { name: '步履不停（内置）', parts: [], src: 'assets/bubu.mp3' }
   ];
   function bgmBuiltinSrc(i) {
     var t = BGM_LIB[i];
@@ -22177,5 +22177,63 @@ window.__startSakuraGame = function () {
   setTimeout(boot, 3000);
 })();
 </script>
-<audio id="bgmFile0" src="https://raw.githubusercontent.com/zhouwuyu2007/sakura-valley/main/assets/bgm-qingshan.mp3" preload="none" hidden></audio><audio id="bgmFile1" src="https://raw.githubusercontent.com/zhouwuyu2007/sakura-valley/main/assets/bubu.mp3" preload="none" hidden></audio></body>
+<audio id="bgmFile0" src="assets/bgm-qingshan.mp3" preload="none" hidden></audio><audio id="bgmFile1" src="assets/bubu.mp3" preload="none" hidden></audio>
+<script>/*BGM_RESILIENCE*/
+(function(){
+  if (window.__bgmFix) return; window.__bgmFix = 1;
+  var REL = 'assets/', PAGES = 'https://zhouwuyu2007.github.io/sakura-valley/assets/',
+      RAW = 'https://raw.githubusercontent.com/zhouwuyu2007/sakura-valley/main/assets/';
+  function variants(u){
+    var m = /assets\/([^\/?#]+[.](?:mp3|m4a|ogg))/.exec(u || '');
+    return m ? [REL + m[1], PAGES + m[1], RAW + m[1]] : [];
+  }
+  function log(s){ try{ console.info('[bgm-fix] ' + s); }catch(e){} }
+  function arm(a){
+    if (a.__bgmArm) return; a.__bgmArm = 1;
+    var ev = ['pointerdown', 'touchstart', 'click', 'keydown'];
+    function once(){
+      ev.forEach(function(t){ document.removeEventListener(t, once, true); });
+      try{ var p = a.play(); if (p && p.catch) p.catch(function(){}); }catch(e){}
+    }
+    ev.forEach(function(t){ document.addEventListener(t, once, true); });
+  }
+  function hook(a){
+    if (!a || a.__bgmHooked) return a; a.__bgmHooked = 1;
+    var q = variants(a.src || a.getAttribute('src') || ''), k = 0, rounds = 0;
+    function cycle(why){
+      if (!q.length) return;
+      if (k + 1 >= q.length){ k = 0; if (++rounds > 3) return; } else k++;
+      try{ a.src = q[k]; a.load(); }catch(e){}
+      try{ var p = a.play(); if (p && p.catch) p.catch(function(){}); }catch(e){}
+      log('换源 ' + why + ' -> ' + q[k]);
+    }
+    a.addEventListener('error', function(){ cycle('error'); });
+    a.addEventListener('stalled', function(){ if (!a.paused) cycle('stalled'); });
+    var play0 = a.play, pause0 = a.pause;
+    a.play = function(){
+      var p = play0.apply(a, arguments);
+      if (p && p.catch) p.catch(function(e){
+        var n = e && e.name;
+        if (n === 'NotAllowedError') arm(a); else cycle('play:' + n);
+      });
+      return p;
+    };
+    a.pause = function(){ return pause0.apply(a, arguments); };
+    return a;
+  }
+  var Native = window.Audio;
+  if (Native){
+    function A(src){ var a = src ? new Native(src) : new Native(); return hook(a); }
+    A.prototype = Native.prototype;
+    window.Audio = A;
+  }
+  function scan(){
+    var l = document.querySelectorAll('audio');
+    for (var i = 0; i < l.length; i++) hook(l[i]);
+  }
+  scan();
+  document.addEventListener('DOMContentLoaded', scan);
+  window.addEventListener('load', scan);
+})();
+</script></body>
 </html>
