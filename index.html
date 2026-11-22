@@ -347,6 +347,10 @@
   #seasons{ display:none !important; }
   .seasons .season{ opacity:.9; }
   #hint{ bottom:92px; }
+  /* 面板打开时统一隐藏 body 级浮标（节庆条/委托/悬停提示），由 body.gm-panel-open 一处控制 */
+  body.gm-panel-open #evBanner,
+  body.gm-panel-open #qsBtn,
+  body.gm-panel-open #hint{ opacity:0 !important; pointer-events:none !important; }
 
   #gameHud [hidden]{ display:none !important; }
   #gameHud{ position:fixed; inset:0; z-index:24; pointer-events:none; }
@@ -410,10 +414,10 @@
   .gdock button.on{ background:#9c4a4a; border-color:#9c4a4a; }
 
   .gsheet{
-    position:fixed; z-index:30; left:50%; bottom:96px; transform:translateX(-50%);
+    position:fixed; z-index:32; left:50%; bottom:96px; transform:translateX(-50%);
     width:min(94vw,640px); max-height:min(72vh,640px); overflow:hidden; overscroll-behavior:contain;
     display:flex; flex-direction:column;
-    background:rgba(34,28,24,.94); border:1px solid rgba(247,239,228,.18);
+    background:rgba(34,28,24,.99); border:1px solid rgba(247,239,228,.18);
     backdrop-filter:blur(12px); color:#f4e9da;
     box-shadow:0 18px 60px rgba(0,0,0,.4);
   }
@@ -7639,10 +7643,21 @@ window.__startSakuraGame = function () {
     for (var i = 0; i < EV_DEFS.length; i++) if (EV_DEFS[i].codex && EV_DEFS[i].codex.key === kind) return EV_DEFS[i];
     return null;
   }
+  /* 可建条目只认设施键（GM_ITEMS key）；b_* codexKey 不进入图鉴键空间 */
+  function cxBuildItem(kind) {
+    if (typeof GM_ITEMS === 'undefined') return null;
+    return GM_ITEMS[kind] || null;
+  }
+  function cxZoneName(key) {
+    if (typeof GM_ZONE_DEFS === 'undefined') return '';
+    for (var i = 0; i < GM_ZONE_DEFS.length; i++) if (GM_ZONE_DEFS[i].key === key) return GM_ZONE_DEFS[i].name;
+    return '';
+  }
   function cxSeasonOf(kind) {
     if (CX_FIXED_SEASON[kind]) return CX_FIXED_SEASON[kind];
     if (typeof FLOWER_KINDS !== 'undefined' && FLOWER_KINDS[kind]) return FLOWER_KINDS[kind].season;
-    if (typeof GM_ITEMS !== 'undefined' && GM_ITEMS[kind] && GM_ITEMS[kind].season) return GM_ITEMS[kind].season;
+    var bit = cxBuildItem(kind);
+    if (bit && bit.season) return bit.season;
     var ev = cxEventDef(kind);
     if (ev) return ev.season;
     return '';
@@ -7655,9 +7670,11 @@ window.__startSakuraGame = function () {
       var fz = { tsubaki: '池西林下', fujibana: '老松枝与木架', ajisai: '池畔花丛', ayame: '水缘', higanbana: '林下', kiku: '石径旁', ume: '茶室侧' }[kind] || '花带';
       return CX_SEASON_NAME[FLOWER_KINDS[kind].season] + ' · ' + fz;
     }
-    if (typeof GM_ITEMS !== 'undefined' && GM_ITEMS[kind]) {
-      var bi = GM_ITEMS[kind];
-      return (bi.season ? CX_SEASON_NAME[bi.season] + '限定 · ' : '') + '建成「' + bi.name + '」后点击设施';
+    var bi = cxBuildItem(kind);
+    if (bi) {
+      var z = cxZoneName(bi.zone);
+      return (z ? z + ' · ' : '') + (bi.season ? CX_SEASON_NAME[bi.season] + '限定 · ' : '')
+        + '建成「' + bi.name + '」后点它入园' + (bi.desc ? ' · ' + bi.desc : '');
     }
     return '在庭园中寻找并点击「' + (CODEX_INFO[kind] ? CODEX_INFO[kind][0] : kind) + '」';
   }
@@ -7726,6 +7743,7 @@ window.__startSakuraGame = function () {
     if (!entry || typeof entry !== 'object' || !entry.key) return false;
     var key = String(entry.key);
     if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) return false;
+    if (/^b_/.test(key)) return false;             // 建造统一用设施键，拒绝 b_* codexKey
     if (CODEX_INFO[key]) return false;             // 不覆盖既有条目，避免窗口互相打架
     var name = entry.name ? String(entry.name) : '';
     if (!name) return false;
@@ -7779,7 +7797,8 @@ window.__startSakuraGame = function () {
     var list = [];
     for (var bk in GM_ITEMS) {
       var bi = GM_ITEMS[bk];
-      var ck = bi.codexKey || bk;
+      /* 键用设施键：点击已建设施时 respond 以 userData.gmKey 查图鉴，codexKey 仅作建筑侧字段 */
+      var ck = bk;
       if (CX_BUILD_CODEX_SKIP[ck] || CODEX_INFO[ck]) continue;
       var art = (typeof GM_ITEM_ART !== 'undefined' && GM_ITEM_ART[bk]) ? cxArt(GM_ITEM_ART[bk], '#e4f0f4', '#86a95d') : '';
       list.push({ key: ck, name: bi.name, jp: bi.jp || bi.name, desc: bi.desc || '建成后入册', art: art, requiresItem: bk });
@@ -10101,23 +10120,23 @@ window.__startSakuraGame = function () {
 
     /* —— v3 扩表：15 种，三分区各 5；zone 为专属分区，tier 1–3 对应 40–120 / 120–240 / 240–320 成本带 —— */
     // 松庭 · 石与苔
-    karesansui: { key: 'karesansui', name: '枯山水砂纹', jp: '枯山水', zone: 'pine', tier: 2, cost: 180, appeal: 26, income: 0, research: 1, weeks: 2, kind: 'stone', comboPairs: ['lantern', 'pine'], codexKey: 'b_karesansui', desc: '白砂耙出波纹，石为山，砂为海' },
-    mossGarden: { key: 'mossGarden', name: '苔庭', jp: '苔庭', zone: 'pine', tier: 2, cost: 120, appeal: 18, income: 0, research: 0.5, weeks: 1, kind: 'stone', comboPairs: ['lantern', 'sakura'], codexKey: 'b_mossgarden', desc: '一寸苔痕，一寸光阴' },
-    shishiodoshi: { key: 'shishiodoshi', name: '鹿威し', jp: '鹿威し', zone: 'pine', tier: 1, cost: 90, appeal: 12, income: 0, research: 0.5, weeks: 1, kind: 'bamboo', comboPairs: ['mossGarden'], codexKey: 'b_shishiodoshi', desc: '竹筒一倾，敲醒整座庭' },
-    pineBonsai: { key: 'pineBonsai', name: '松盆栽', jp: '松盆栽', zone: 'pine', tier: 1, cost: 80, appeal: 10, income: 2, research: 0, weeks: 1, kind: 'pine', comboPairs: ['karesansui'], codexKey: 'b_pinebonsai', desc: '盆中一株松，也藏风骨' },
-    stoneShrine: { key: 'stoneShrine', name: '石祠', jp: '石祠', zone: 'pine', tier: 2, cost: 220, appeal: 24, income: 6, research: 1, weeks: 2, kind: 'stone', comboPairs: ['lantern', 'ema'], codexKey: 'b_stoneshrine', desc: '小小的石龛，收着山里的愿' },
+    karesansui: { key: 'karesansui', name: '枯山水砂纹', jp: '枯山水', zone: 'pine', tier: 2, cost: 180, appeal: 26, income: 0, research: 1, weeks: 2, kind: 'stone', comboPairs: ['lantern', 'pine'], desc: '白砂耙出波纹，石为山，砂为海' },
+    mossGarden: { key: 'mossGarden', name: '苔庭', jp: '苔庭', zone: 'pine', tier: 2, cost: 120, appeal: 18, income: 0, research: 0.5, weeks: 1, kind: 'stone', comboPairs: ['lantern', 'sakura'], desc: '一寸苔痕，一寸光阴' },
+    shishiodoshi: { key: 'shishiodoshi', name: '鹿威し', jp: '鹿威し', zone: 'pine', tier: 1, cost: 90, appeal: 12, income: 0, research: 0.5, weeks: 1, kind: 'bamboo', comboPairs: ['mossGarden'], desc: '竹筒一倾，敲醒整座庭' },
+    pineBonsai: { key: 'pineBonsai', name: '松盆栽', jp: '松盆栽', zone: 'pine', tier: 1, cost: 80, appeal: 10, income: 2, research: 0, weeks: 1, kind: 'pine', comboPairs: ['karesansui'], desc: '盆中一株松，也藏风骨' },
+    stoneShrine: { key: 'stoneShrine', name: '石祠', jp: '石祠', zone: 'pine', tier: 2, cost: 220, appeal: 24, income: 6, research: 1, weeks: 2, kind: 'stone', comboPairs: ['lantern', 'ema'], desc: '小小的石龛，收着山里的愿' },
     // 溪谷 · 水与石
-    tobiishi: { key: 'tobiishi', name: '飞石渡', jp: '飛石渡', zone: 'river', tier: 1, cost: 70, appeal: 9, income: 0, research: 0, weeks: 1, kind: 'stone', comboPairs: ['waterwheel'], codexKey: 'b_tobiishi', desc: '七块踏石，把人引到对岸' },
-    waterwheel: { key: 'waterwheel', name: '水车', jp: '水車', zone: 'river', tier: 2, cost: 200, appeal: 22, income: 12, research: 1, weeks: 2, kind: 'wood', comboPairs: ['tobiishi', 'fishingDeck'], codexKey: 'b_waterwheel', desc: '水推着轮子转，日子也跟着转' },
-    fishingDeck: { key: 'fishingDeck', name: '钓台', jp: '釣台', zone: 'river', tier: 2, cost: 140, appeal: 14, income: 18, research: 0.5, weeks: 1, kind: 'wood', comboPairs: ['waterwheel'], codexKey: 'b_fishingdeck', desc: '一竿垂下去，钓的是清静' },
-    takimiSeat: { key: 'takimiSeat', name: '泷见茶席', jp: '滝見茶席', zone: 'river', tier: 3, cost: 260, appeal: 28, income: 34, research: 2, weeks: 2, kind: 'wood', comboPairs: ['tea', 'irisBank'], codexKey: 'b_takimiseat', desc: '对着瀑布煮水，茶里也有水声' },
-    irisBank: { key: 'irisBank', name: '溪岸菖蒲', jp: '溪岸菖蒲', zone: 'river', tier: 1, cost: 100, appeal: 15, income: 0, research: 0.5, weeks: 1, kind: 'flower', comboPairs: ['takimiSeat'], codexKey: 'b_irisbank', desc: '紫花临水，端午前后最盛' },
+    tobiishi: { key: 'tobiishi', name: '飞石渡', jp: '飛石渡', zone: 'river', tier: 1, cost: 70, appeal: 9, income: 0, research: 0, weeks: 1, kind: 'stone', comboPairs: ['waterwheel'], desc: '七块踏石，把人引到对岸' },
+    waterwheel: { key: 'waterwheel', name: '水车', jp: '水車', zone: 'river', tier: 2, cost: 200, appeal: 22, income: 12, research: 1, weeks: 2, kind: 'wood', comboPairs: ['tobiishi', 'fishingDeck'], desc: '水推着轮子转，日子也跟着转' },
+    fishingDeck: { key: 'fishingDeck', name: '钓台', jp: '釣台', zone: 'river', tier: 2, cost: 140, appeal: 14, income: 18, research: 0.5, weeks: 1, kind: 'wood', comboPairs: ['waterwheel'], desc: '一竿垂下去，钓的是清静' },
+    takimiSeat: { key: 'takimiSeat', name: '泷见茶席', jp: '滝見茶席', zone: 'river', tier: 3, cost: 260, appeal: 28, income: 34, research: 2, weeks: 2, kind: 'wood', comboPairs: ['tea', 'irisBank'], desc: '对着瀑布煮水，茶里也有水声' },
+    irisBank: { key: 'irisBank', name: '溪岸菖蒲', jp: '溪岸菖蒲', zone: 'river', tier: 1, cost: 100, appeal: 15, income: 0, research: 0.5, weeks: 1, kind: 'flower', comboPairs: ['takimiSeat'], desc: '紫花临水，端午前后最盛' },
     // 山麓 · 茶与远山
-    teaField: { key: 'teaField', name: '茶畑', jp: '茶畑', zone: 'foothill', tier: 2, cost: 160, appeal: 16, income: 20, research: 1.5, weeks: 2, kind: 'green', comboPairs: ['tea', 'nodateUmbrella'], codexKey: 'b_teafield', desc: '一垄一垄的茶，从山脚铺上去' },
-    fujimiDai: { key: 'fujimiDai', name: '富士见台', jp: '富士見台', zone: 'foothill', tier: 3, cost: 240, appeal: 30, income: 0, research: 1.5, weeks: 2, kind: 'wood', comboPairs: ['sanmon'], codexKey: 'b_fujimidai', desc: '登台一望，远山如画' },
-    haikuStele: { key: 'haikuStele', name: '句碑', jp: '句碑', zone: 'foothill', tier: 1, cost: 110, appeal: 14, income: 0, research: 2, weeks: 1, kind: 'stone', comboPairs: ['haiku'], codexKey: 'b_haikustele', desc: '一句十七音，刻在石上等人读' },
-    nodateUmbrella: { key: 'nodateUmbrella', name: '野点伞', jp: '野点傘', zone: 'foothill', tier: 2, cost: 130, appeal: 16, income: 22, research: 1, weeks: 1, kind: 'wood', comboPairs: ['tea', 'teaField'], codexKey: 'b_nodate', desc: '撑一把野伞，在草地上点茶' },
-    sanmon: { key: 'sanmon', name: '山门', jp: '山門', zone: 'foothill', tier: 3, cost: 320, appeal: 34, income: 8, research: 1, weeks: 2, kind: 'wood', comboPairs: ['stoneShrine', 'ema'], codexKey: 'b_sanmon', desc: '过这道门，就算进了山' }
+    teaField: { key: 'teaField', name: '茶畑', jp: '茶畑', zone: 'foothill', tier: 2, cost: 160, appeal: 16, income: 20, research: 1.5, weeks: 2, kind: 'green', comboPairs: ['tea', 'nodateUmbrella'], desc: '一垄一垄的茶，从山脚铺上去' },
+    fujimiDai: { key: 'fujimiDai', name: '富士见台', jp: '富士見台', zone: 'foothill', tier: 3, cost: 240, appeal: 30, income: 0, research: 1.5, weeks: 2, kind: 'wood', comboPairs: ['sanmon'], desc: '登台一望，远山如画' },
+    haikuStele: { key: 'haikuStele', name: '句碑', jp: '句碑', zone: 'foothill', tier: 1, cost: 110, appeal: 14, income: 0, research: 2, weeks: 1, kind: 'stone', comboPairs: ['haiku'], desc: '一句十七音，刻在石上等人读' },
+    nodateUmbrella: { key: 'nodateUmbrella', name: '野点伞', jp: '野点傘', zone: 'foothill', tier: 2, cost: 130, appeal: 16, income: 22, research: 1, weeks: 1, kind: 'wood', comboPairs: ['tea', 'teaField'], desc: '撑一把野伞，在草地上点茶' },
+    sanmon: { key: 'sanmon', name: '山门', jp: '山門', zone: 'foothill', tier: 3, cost: 320, appeal: 34, income: 8, research: 1, weeks: 2, kind: 'wood', comboPairs: ['stoneShrine', 'ema'], desc: '过这道门，就算进了山' }
   };
 
   /* 建造卡片插图：全部为内联 SVG，无外部图片依赖 */
@@ -10181,10 +10200,8 @@ window.__startSakuraGame = function () {
     { a: 'sakura', b: 'inn', name: '花宿', appeal: 8, income: 0.10 },
     { a: 'tsukimi', b: 'lantern', name: '月灯', appeal: 10, income: 0 },
     { a: 'tsukimi', b: 'tea', name: '月见茶', appeal: 6, income: 0.12 },
-    { a: 'umbrellaShop', b: 'tsukimi', name: '雨月', appeal: 6, income: 0.08 }
-  ];
-  /* v3 相性表尾追加：24 正 + 4 负；r=效应量，hidden=需探索，hint=图鉴线索，neg=负相性 */
-  GM_COMBOS.push.apply(GM_COMBOS, [
+    { a: 'umbrellaShop', b: 'tsukimi', name: '雨月', appeal: 6, income: 0.08 },
+    /* v3 相性表尾追加：24 正 + 4 负；r=效应量，hidden=需探索，hint=图鉴线索，neg=负相性 */
     { a: 'sakura', b: 'pine', name: '松樱对景', appeal: 18, income: 0.02, r: 0.18, season: 'spring', hint: '松庭东坡，樱与松同框' },
     { a: 'sakura', b: 'fence', name: '花篱', appeal: 10, income: 0, r: 0.10, season: 'spring', hint: '竹篱边落花最密' },
     { a: 'sakura', b: 'lantern', name: '花灯夜', appeal: 18, income: 0.02, r: 0.18, season: 'spring', hint: '夜樱下留一盏灯' },
@@ -10212,8 +10229,24 @@ window.__startSakuraGame = function () {
     { a: 'lantern', b: 'oden', name: '油烟扰灯', appeal: -10, income: -0.04, r: -0.10, neg: true, hint: '热汤油烟熏暗石灯' },
     { a: 'dango', b: 'pine', name: '甜香扰松', appeal: -10, income: -0.03, r: -0.10, neg: true, hint: '甜摊太近，松风不清' },
     { a: 'umbrellaShop', b: 'sakura', name: '伞影遮花', appeal: -15, income: -0.02, r: -0.15, neg: true, hint: '伞铺挤住花枝' },
-    { a: 'umbrellaShop', b: 'oden', name: '伞骨碰汤', appeal: -20, income: -0.05, r: -0.20, neg: true, hint: '伞骨与热汤摊挤在一处' }
-  ]);
+    { a: 'umbrellaShop', b: 'oden', name: '伞骨碰汤', appeal: -20, income: -0.05, r: -0.20, neg: true, hint: '伞骨与热汤摊挤在一处' },
+    /* 15 个新建造项补行；key 已与建造窗口当前 GM_ITEMS 对齐 */
+    { a: 'karesansui', b: 'stoneShrine', name: '砂庭石祠', appeal: 18, income: 0.02, r: 0.18, hint: '砂纹与石祠同处一庭' },
+    { a: 'mossGarden', b: 'lantern', name: '苔庭灯', appeal: 10, income: 0.02, r: 0.10, hint: '苔上映一盏石灯' },
+    { a: 'shishiodoshi', b: 'mossGarden', name: '苔上鹿威', appeal: 18, income: 0.02, r: 0.18, hint: '鹿威し敲在苔庭边' },
+    { a: 'pineBonsai', b: 'tsukimi', name: '松盆待月', appeal: 18, income: 0.03, r: 0.18, hint: '松盆栽与待月亭对景' },
+    { a: 'stoneShrine', b: 'ema', name: '祠前绘马', appeal: 10, income: 0.02, r: 0.10, hint: '石祠前挂绘马' },
+    { a: 'tobiishi', b: 'karesansui', name: '飞石砂纹', appeal: 10, income: 0, r: 0.10, hint: '飞石穿过枯山水砂纹' },
+    { a: 'waterwheel', b: 'irisBank', name: '水车菖蒲', appeal: 18, income: 0.04, r: 0.18, hint: '水车边一岸菖蒲' },
+    { a: 'fishingDeck', b: 'waterwheel', name: '钓台水车', appeal: 18, income: 0.04, r: 0.18, hint: '钓台听水车转' },
+    { a: 'takimiSeat', b: 'sakura', name: '泷见樱', appeal: 25, income: 0.06, r: 0.25, hint: '瀑前樱下置茶席', hidden: true },
+    { a: 'irisBank', b: 'tea', name: '菖蒲茶', appeal: 10, income: 0.04, r: 0.10, hint: '溪岸菖蒲旁设茶' },
+    { a: 'teaField', b: 'tea', name: '茶畑茶席', appeal: 18, income: 0.08, r: 0.18, season: 'spring', hint: '茶畑边一席新茶' },
+    { a: 'fujimiDai', b: 'pine', name: '富士见松', appeal: 25, income: 0.03, r: 0.25, hint: '富士见台外一株松', hidden: true },
+    { a: 'haikuStele', b: 'ema', name: '句碑绘马', appeal: 10, income: 0.02, r: 0.10, hint: '句碑与绘马同立' },
+    { a: 'nodateUmbrella', b: 'tea', name: '野点茶伞', appeal: 18, income: 0.04, r: 0.18, hint: '野点伞下摆茶' },
+    { a: 'sanmon', b: 'stoneShrine', name: '山门石祠', appeal: 10, income: 0.02, r: 0.10, hint: '山门内一座石祠' }
+  ];
   var GM_STAFF = [
     { key: 'gardener', name: '庭师', jp: '庭師', cost: 220, salary: 12, desc: '庭园景致 +12%' },
     { key: 'miko', name: '巫女', jp: '巫女', cost: 320, salary: 16, desc: '客流上限 +3，誉 +1/周' },
@@ -11153,8 +11186,6 @@ window.__startSakuraGame = function () {
     ['gMoney', 'gResearch', 'gRenown', 'gWeek', 'gSeason', 'gDate', 'gClock', 'gPause', 'gSpeed', 'gSun', 'gMoon', 'gWx', 'gCrowd', 'gSheet', 'gSheetTitle', 'gSheetGrid', 'gMask', 'gModalTitle', 'gModalBody', 'gModalFoot', 'gToast', 'gSheetClose', 'gBuildBtn', 'gCalBtn', 'gShopBtn'].forEach(function (id) {
       gmEl[id] = document.getElementById(id);
     });
-    /* 建造面板挂到 body：脱离 #gameHud 的层叠上下文，才能压住委托浮标与节庆条 */
-    if (gmEl.gSheet && gmEl.gSheet.parentNode !== document.body) document.body.appendChild(gmEl.gSheet);
   }
   function gmToast(msg) {
     if (!gmEl.gToast) return;
@@ -11277,7 +11308,8 @@ window.__startSakuraGame = function () {
     if (!pp) return 999;
     gmEnsureAccess();
     var best = 999;
-    var curves = [gmCurve, gmSpines.pine, gmSpines.river, gmSpines.foothill];
+    /* P1 统一口径：承载判定只认主游线 gmCurve，不再混入 gmSpines 短样条 */
+    var curves = [gmCurve];
     for (var ci = 0; ci < curves.length; ci++) {
       var cur = curves[ci];
       if (!cur) continue;
@@ -13787,6 +13819,7 @@ window.__startSakuraGame = function () {
     var it = GM_ITEMS[key];
     var p = GM.plots[plotId];
     if (!it || !p || p.built || p.reserved) return false;
+    if (p.locked && gmZoneOpen(p.zone)) p.locked = false;   /* 读档后 zones 已开但 plot.locked 可能残留 */
     if (p.locked) { gmToast('「' + (gmZoneDef(p.zone) ? gmZoneDef(p.zone).name : '外圈') + '」尚未开放'); return false; }
     if (it.season && it.season !== gmSeason(gmDate(GM.doy).m)) { gmToast('季货只在' + GM_SEASON_NAME[it.season] + '季出售'); return false; }
     if (it.req && !GM.unlocked[it.req]) { gmToast('尚未研究「' + (it.req === 'tea' ? '茶事' : '宿坊') + '」'); return false; }
@@ -13809,7 +13842,6 @@ window.__startSakuraGame = function () {
     gmSave();
     gmSetBuildMode(false);
     if (!gmEl.gSheet.hidden) gmEl.gSheet.hidden = true;
-    gmSheetBanner(false);
     gmFireBuild(key, plotId, 'place');
     return true;
   }
@@ -13920,14 +13952,15 @@ window.__startSakuraGame = function () {
     } catch (e) { pred = null; }
     if (pred && (pred.state || pred.appeal !== undefined || pred.income !== undefined)) {
       var state = pred.state;
+      var sgn = function (v) { var r = Math.round(v * 100) / 100; return (r > 0 ? '+' : '') + r; };
       if (!state) {
         var pa = pred.appeal || 0, pi = pred.income || 0;
-        state = (pa < 0 || (pred.neg && (pa || pi))) ? 'bad' : ((pa > 0 || pi > 0) ? 'good' : 'flat');
+        state = (pa < 0 || pi < 0 || (pred.neg && (pa || pi))) ? 'bad' : ((pa > 0 || pi > 0) ? 'good' : 'flat');
       }
       var txt = '?';
       if (pred.label) txt = pred.label;
-      else if (state === 'bad') txt = '相性 −' + Math.abs(pred.appeal || 0);
-      else if (state === 'good') txt = '景 +' + (pred.appeal || 0) + (pred.income ? ' · 收 +' + Math.round((pred.income || 0) * 100) / 100 : '');
+      else if (state === 'bad') txt = '相性 −' + Math.abs(pred.appeal || 0) + (pred.income ? ' · 收 ' + sgn(pred.income) : '');
+      else if (state === 'good') txt = '景 ' + sgn(pred.appeal || 0) + (pred.income ? ' · 收 ' + sgn(pred.income) : '');
       else if (state === 'flat') txt = '无相性';
       return { state: state, txt: txt, appeal: pred.appeal || 0, income: pred.income || 0 };
     }
@@ -13945,11 +13978,6 @@ window.__startSakuraGame = function () {
     if (bad > good) return { state: 'bad', txt: '相性 −' + bad };
     if (good > 0) return { state: 'good', txt: '景 +' + good + (names.length ? ' · ' + names[0] : '') };
     return { state: 'unk', txt: '?' };
-  }
-  /* 建造面板打开时压住节庆浮标，避免盖住 ghost 说明 */
-  function gmSheetBanner(on) {
-    var evb = document.getElementById('evBanner');
-    if (evb) evb.style.visibility = on ? 'hidden' : '';
   }
   function gmGhostChip(key, plotId) {
     var gl = gmGhostInfo(key, plotId);
@@ -13989,6 +14017,7 @@ window.__startSakuraGame = function () {
     GM.selected = plotId;
     var p = GM.plots[plotId];
     if (!p || p.built || p.reserved) return;
+    if (p.locked && gmZoneOpen(p.zone)) p.locked = false;
     if (p.locked) {
       var zd = gmZoneDef(p.zone);
       gmToast((zd ? zd.name : '外圈') + ' · 誉 ' + (zd ? zd.need : 0) + ' 开放');
@@ -14023,7 +14052,6 @@ window.__startSakuraGame = function () {
     }
     gmEl.gSheetGrid.innerHTML = html;
     gmEl.gSheet.hidden = false;
-    gmSheetBanner(true);
     gmSheetReadyAt = performance.now();
     gmSetBuildMode(false);
     if (gmEl.gSheetGrid) {
@@ -14208,6 +14236,17 @@ window.__startSakuraGame = function () {
     for (var j = 0; j < pool.length; j++) { r -= pool[j].w; if (r <= 0) return pool[j].k; }
     return pool[0].k;
   }
+  function gmVisitorLookKey(v) {
+    var l = (v && v.look) ? v.look : (v || {});
+    if (!l || typeof l !== 'object') return '';
+    var keys = ['female', 'hat', 'hatColor', 'accessory', 'cloth', 'cloth2', 'skin', 'hair', 'obi', 'accent'];
+    var out = [];
+    for (var i = 0; i < keys.length; i++) {
+      var x = l[keys[i]];
+      out.push(x === undefined || x === null ? '' : String(x));
+    }
+    return out.join('|');
+  }
   function gmVisitorLook(kind) {
     var female = kind.gender === 'f' ? true : kind.gender === 'm' ? false : Math.random() < 0.5;
     var look = {
@@ -14230,31 +14269,66 @@ window.__startSakuraGame = function () {
   /* 低多边形人形：身体、头发、五官、手脚与随身物，全部挂在可动画的 Group 上 */
   /* ---------- 游客视觉对象池（≤16）：只池化 gmVisitorPerson 产物，不改访客逻辑 ---------- */
   var VIS_POOL = { free: [], cap: 16, live: 0, hits: 0, misses: 0 };
+  function visLookCols(look) {
+    return [['skin', look.skin], ['hair', look.hair], ['cloth', look.cloth], ['cloth2', look.cloth2],
+      ['obi', look.obi], ['accent', look.accent], ['hat', look.hatColor || 0xc7a96f]];
+  }
+  function visTagRoles(root, look) {
+    var m = visLookCols(look);
+    root.traverse(function (o) {
+      if (!o.isMesh || !o.material || !o.material.color) return;
+      var hex = o.material.color.getHex();
+      for (var i = 0; i < m.length; i++) {
+        if (m[i][1] === hex) { o.userData.vRole = m[i][0]; o.userData.vRough = o.material.roughness; return; }
+      }
+    });
+  }
+  function visApplyLook(root, look) {
+    var m = visLookCols(look);
+    root.traverse(function (o) {
+      if (!o.isMesh || !o.userData || !o.userData.vRole) return;
+      for (var i = 0; i < m.length; i++) {
+        if (m[i][0] === o.userData.vRole) { o.material = gmMat(m[i][1], o.userData.vRough); return; }
+      }
+    });
+  }
   function visPoolKey(kind, look) {
-    return [kind.party || 'single', look.female ? 'f' : 'm', look.skin, look.hair, look.cloth, look.cloth2, look.obi, look.accent, look.hatColor || 0xc7a96f].join('|');
+    return [kind.party || 'single', look.female ? 'f' : 'm', kind.party === 'child' ? 'c' : 'a'].join('|');
   }
   function sceneVisAcquire(kind, look) {
     var key = visPoolKey(kind, look);
     for (var i = 0; i < VIS_POOL.free.length; i++) {
-      if (VIS_POOL.free[i].key === key) {
-        var rec0 = VIS_POOL.free.splice(i, 1)[0];
-        rec0.g.visible = true;
-        VIS_POOL.hits++;
-        VIS_POOL.live++;
-        return rec0;
+      var rec = VIS_POOL.free[i];
+      if (rec.key !== key) continue;
+      VIS_POOL.free.splice(i, 1);
+      rec.g.visible = true;
+      visApplyLook(rec.g, look);
+      var cr = rec.g.userData.__compRoot;
+      if (cr) {
+        var cl2 = gmVisitorLook(kind);
+        if (kind.party === 'partner') cl2.female = !look.female;
+        visApplyLook(cr, cl2);
+        rec.g.userData.__compLook = cl2;
       }
+      VIS_POOL.hits++;
+      VIS_POOL.live++;
+      return rec;
     }
     var person = gmVisitorPerson(look, { female: look.female });
     var g = person.root;
     g.scale.set(1.36, 1.36, 1.36);
-    var comp = null;
+    visTagRoles(g, look);
+    var comp = null, compLook = null;
     if (kind.party) {
-      var compLook = gmVisitorLook(kind);
+      compLook = gmVisitorLook(kind);
       if (kind.party === 'partner') compLook.female = !look.female;
       comp = gmVisitorPerson(compLook, { female: compLook.female, child: kind.party === 'child' });
+      visTagRoles(comp.root, compLook);
       comp.root.scale.setScalar(kind.party === 'child' ? 0.72 : 0.94);
       comp.root.position.set(kind.party === 'child' ? 0.36 : -0.36, 0, 0.06);
       g.add(comp.root);
+      g.userData.__compRoot = comp.root;
+      g.userData.__compLook = compLook;
     }
     var proxy = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.5, 1.9, 8),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
@@ -14263,7 +14337,7 @@ window.__startSakuraGame = function () {
     g.add(proxy);
     VIS_POOL.misses++;
     VIS_POOL.live++;
-    return { key: key, g: g, anim: person, compAnim: comp };
+    return { key: key, g: g, anim: person, compAnim: comp, compRoot: comp ? comp.root : null, compLook: compLook };
   }
   function sceneVisDispose(g) {
     g.traverse(function (o) {
@@ -14273,7 +14347,7 @@ window.__startSakuraGame = function () {
       }
     });
   }
-  function sceneVisRelease(g, umb, key) {
+  function sceneVisRelease(g, umb, key, anim, compAnim) {
     if (!g) return;
     VIS_POOL.live = Math.max(0, VIS_POOL.live - 1);
     if (umb && umb.parent) { umb.parent.remove(umb); sceneVisDispose(umb); }
@@ -14283,10 +14357,18 @@ window.__startSakuraGame = function () {
     if (VIS_POOL.free.length >= VIS_POOL.cap) { sceneVisDispose(g); return; }
     g.visible = false;
     g.position.set(0, 0, 0);
-    VIS_POOL.free.push({ key: key || '', g: g, anim: null, compAnim: null });
+    VIS_POOL.free.push({ key: key || '', g: g, anim: anim || null, compAnim: compAnim || null });
   }
   window.__visitorPoolStats = function () {
     return { cap: VIS_POOL.cap, free: VIS_POOL.free.length, live: VIS_POOL.live, hits: VIS_POOL.hits, misses: VIS_POOL.misses };
+  };
+  window.__visitorPoolCap = function (n) {
+    if (n > 0) VIS_POOL.cap = Math.min(64, Math.floor(n));
+    while (VIS_POOL.free.length > VIS_POOL.cap) {
+      var over = VIS_POOL.free.pop();
+      if (over && over.g) sceneVisDispose(over.g);
+    }
+    return VIS_POOL.cap;
   };
 
   function gmVisitorPerson(look, opts) {
@@ -14473,6 +14555,7 @@ window.__startSakuraGame = function () {
     }
     return n < cap;
   }
+  /* economy-owned：访客销毁段 1/3（正常离场） */
   function gmVisitorRemove(v, idx) {
     if (!v || v.gone) return;
     v.gone = true;
@@ -14482,7 +14565,7 @@ window.__startSakuraGame = function () {
     var giftChance = v.invited ? 0.42 : (v.sat >= 82 ? 0.28 : v.sat >= 68 ? 0.18 : 0.07);
     if (Math.random() < giftChance) gmVisitorGift(v);
     if (v.g) {
-      sceneVisRelease(v.g, v.umb, v.__visKey);
+      sceneVisRelease(v.g, v.umb, v.__visKey, v.anim, v.compAnim);
     }
     GM.visList.splice(idx, 1);
   }
@@ -14591,6 +14674,7 @@ window.__startSakuraGame = function () {
     return true;
   }
 
+  /* economy-owned：游客建人段；场景只读，不得改 */
   function gmSpawnVisitor(kindOverride, invited) {
     var kind = kindOverride || gmVisitorPickKind();
     var look = gmVisitorLook(kind);
@@ -14627,6 +14711,9 @@ window.__startSakuraGame = function () {
     v.satTarget = gmVisitorSatTarget(v);
     v.sat = Math.max(invited ? 52 : 28, v.satTarget - 4);
     GM.visitors = GM.visList.length;
+    if (typeof window.__stepFirstGuests === 'function' && !(GM.mods.steps && GM.mods.steps.firstGuests && GM.mods.steps.firstGuests.count)) {
+      try { window.__stepFirstGuests({ key: kind.key, name: v.name }); } catch (e) {}
+    }
   }
 
 
@@ -14761,11 +14848,47 @@ window.__startSakuraGame = function () {
   }
 
   var gmGuestFreezeN = null;
+  /* economy-owned：E-03 真实步钩子，写入 GM.mods.steps，并触发 funnel 重算 */
+  function gmStepResearchReal(payload) {
+    if (!GM.mods.steps || typeof GM.mods.steps !== 'object') GM.mods.steps = {};
+    var st = GM.mods.steps.research;
+    if (!st) st = GM.mods.steps.research = { count: 0, firstDay: 0, lastDay: 0, lastKey: '' };
+    if (!st.firstDay) st.firstDay = GM.day;
+    st.count++; st.lastDay = GM.day; st.lastKey = (payload && payload.key) ? String(payload.key) : '';
+    if (typeof hbPoll === 'function') { try { hbPoll(); } catch (e) {} }
+    return st.count;
+  }
+  function gmStepFirstGuestsReal(payload) {
+    if (!GM.mods.steps || typeof GM.mods.steps !== 'object') GM.mods.steps = {};
+    var st = GM.mods.steps.firstGuests;
+    if (!st) st = GM.mods.steps.firstGuests = { count: 0, firstDay: 0, lastDay: 0 };
+    if (!st.firstDay) st.firstDay = GM.day;
+    st.count++; st.lastDay = GM.day;
+    if (typeof hbPoll === 'function') { try { hbPoll(); } catch (e) {} }
+    return st.count;
+  }
+  function gmInstallStepHooks() {
+    if (window.__stepResearch && window.__stepResearch.__economyHook &&
+        window.__stepFirstGuests && window.__stepFirstGuests.__economyHook) return;
+    var prevR = window.__stepResearch, prevG = window.__stepFirstGuests;
+    var wr = function (p) {
+      try { if (typeof prevR === 'function') prevR(p); } catch (e) {}
+      return gmStepResearchReal(p);
+    };
+    var wg = function (p) {
+      try { if (typeof prevG === 'function') prevG(p); } catch (e) {}
+      return gmStepFirstGuestsReal(p);
+    };
+    wr.__economyHook = true; wg.__economyHook = true;
+    window.__stepResearch = wr;
+    window.__stepFirstGuests = wg;
+  }
+  /* economy-owned：访客销毁段 2/3（性能冻结裁人） */
   function gmPerfDropVisitor(idx) {
     var v = GM.visList[idx];
     if (!v) return;
     if (v.g) {
-      sceneVisRelease(v.g, v.umb, v.__visKey);
+      sceneVisRelease(v.g, v.umb, v.__visKey, v.anim, v.compAnim);
     }
     GM.visList.splice(idx, 1);
     GM.visitors = GM.visList.length;
@@ -14864,6 +14987,8 @@ window.__startSakuraGame = function () {
           v.dwellUntil = nowDwell + 0.12 + Math.random() * 0.08;
           v.thoughts.push('在「' + GM_ITEMS[nearB.key].name + '」前停了停。');
           if (v.thoughts.length > 6) v.thoughts.splice(0, v.thoughts.length - 6);
+          /* ECO-01：在 detour 驻足判定处直调生态，不再经 __onGuestDwell 包装 */
+          try { if (typeof window.__lifeDwell === 'function') window.__lifeDwell(v, nearB.plot); } catch (e) {}
         }
       }
       v.u += (rdt / 42) * v.sp;
@@ -15751,13 +15876,15 @@ window.__startSakuraGame = function () {
     var cmb = gmComboInfo(), tags = [];
     for (var c = 0; c < cmb.pairs.length; c++) if (cmb.pairs[c].i === idx || cmb.pairs[c].j === idx) tags.push(cmb.pairs[c].name);
     var aNow = Math.round(it.appeal * (1 + 0.5 * (lv - 1)));
-    var iNow = Math.round(it.income * (1 + 0.5 * (lv - 1)));
+    var farFromCurve = GM_SERVICE_KEYS[b.key] && gmPlotAccess(plot) > 6;
+    var iNow = farFromCurve ? 0 : Math.round(it.income * (1 + 0.5 * (lv - 1)));
     var cost = gmUpgradeCost(it, lv);
     var nextA = Math.round(it.appeal * (1 + 0.5 * lv));
-    var nextI = Math.round(it.income * (1 + 0.5 * lv));
+    var nextI = farFromCurve ? 0 : Math.round(it.income * (1 + 0.5 * lv));
     var body = '' +
       '<div class="rt"><b>' + it.name + ' <span style="font-weight:400;opacity:.5;font-size:9px">' + it.jp + '</span></b><span class="num">Lv ' + lv + ' / 3</span></div>' +
       '<p>景致 <span class="num">+' + aNow + '</span>' + (iNow ? ' · 每周收入 <span class="num">+' + iNow + '</span>' : '') + '</p>' +
+      (farFromCurve ? '<p class="lock">距游线过远 · 不计收益</p>' : '') +
       '<p style="opacity:.62">' + it.desc + '</p>' +
       (tags.length ? '<p>相性 <span class="up">' + tags.join(' / ') + '</span></p>' : '') +
       (lv < 3 ? '<p>升级后 景 <span class="up">+' + nextA + '</span>' + (nextI ? ' · 收入 <span class="up">+' + nextI + '</span>' : '') + '</p>' : '<p style="opacity:.6">已至最高等级。</p>');
@@ -15874,6 +16001,7 @@ window.__startSakuraGame = function () {
         if (!def || GM.unlocked[k]) return;
         if (GM.research < def.cost) { gmToast('研究点不足'); return; }
         GM.research -= def.cost; GM.unlocked[k] = true;
+        if (typeof window.__stepResearch === 'function') { try { window.__stepResearch({ key: k, name: def.name }); } catch (e) {} }
         sfx('chime'); gmToast('习得 · ' + def.name); gmHud(performance.now()); gmSave();
         gmResearchPanel();
       };
@@ -16084,6 +16212,7 @@ window.__startSakuraGame = function () {
   }
 
   /* ---------- 存档 ---------- */
+  /* economy-owned：gmSave 唯一属主；其他窗口只挂 GM.mods，不得改本函数 */
   function gmSave(force) {
     if (!force && GAME_SETTINGS.autosave === false) return;
     try {
@@ -16143,10 +16272,12 @@ window.__startSakuraGame = function () {
       if (pc) { pc.reserved = false; if (pc.base) pc.base.visible = false; }
     }
     GM.construction.length = 0;
+    /* economy-owned：访客销毁段 3/3（导入存档清场） */
     for (var v = 0; v < GM.visList.length; v++) if (GM.visList[v].g) scene.remove(GM.visList[v].g);
     GM.visList.length = 0;
     GM.visitors = 0;
   }
+  /* economy-owned：gmLoad 唯一属主；其他窗口只挂 GM.mods，不得改本函数 */
   function gmLoad() {
     try {
       var raw = PLATFORM.storageGet('sakuraGarden_' + GM_VERSION);
@@ -16385,7 +16516,18 @@ window.__startSakuraGame = function () {
     };
     document.getElementById('gResearchBtn').onclick = function () { gmResearchPanel(); };
     document.getElementById('gReportBtn').onclick = function () { gmReport(); };
-    document.getElementById('gSheetClose').onclick = function () { gmEl.gSheet.hidden = true; gmSheetBanner(false); gmPreviewClear(); gmSheetPreview(false); gmSetBuildMode(false); };
+    document.getElementById('gSheetClose').onclick = function () { gmEl.gSheet.hidden = true; gmPreviewClear(); gmSheetPreview(false); gmSetBuildMode(false); };
+    /* 统一浮标管理：gSheet 打开即给 body 加 gm-panel-open，关闭即撤；不侵入各面板 */
+    (function () {
+      if (!gmEl.gSheet) return;
+      function syncPanelFloat() {
+        if (document.body) document.body.classList.toggle('gm-panel-open', !gmEl.gSheet.hidden);
+      }
+      if (window.MutationObserver) {
+        new MutationObserver(syncPanelFloat).observe(gmEl.gSheet, { attributes: true, attributeFilter: ['hidden'] });
+      }
+      syncPanelFloat();
+    })();
     document.getElementById('gModalX').onclick = function () { gmCloseModal(); };
     document.getElementById('gMask').addEventListener('pointerdown', function (e) {
       if (e.target === this) gmCloseModal();
@@ -16432,6 +16574,7 @@ window.__startSakuraGame = function () {
     };
     window.__guestsFreeze = gmGuestsFreeze;
     window.__guestsCount = function () { return GM.visList.length; };
+    window.__visitorLookKey = gmVisitorLookKey;
     window.__economyApi = {
       stats4: gmStats4,
       counters: function () { return gmRefreshCounters(); },
@@ -16451,21 +16594,17 @@ window.__startSakuraGame = function () {
       settleWeek: gmWeek
     };
     if (!window.__onBuild) window.__onBuild = function () { gmComboInvalidate(); gmRefreshCounters(); };
-    if (!window.__stepResearch) window.__stepResearch = function () {};
-    if (!window.__stepFirstGuests) window.__stepFirstGuests = function () {};
-    if (!window.__onGuestDwell) window.__onGuestDwell = function (v, plot) {
-      if (!v) return;
-      v.dwellPlot = plot === undefined ? v.dwellPlot : Number(plot);
-      v.dwellUntil = GM.day * 24 + hour + 0.35;
-      if (v.thoughts) {
-        var it = null;
-        for (var bi = 0; bi < GM.built.length; bi++) {
-          if (GM.built[bi].plot === v.dwellPlot) { it = GM_ITEMS[GM.built[bi].key] || null; break; }
-        }
-        v.thoughts.push(it ? '在「' + it.name + '」前停了停。' : '在这里停了停。');
-        if (v.thoughts.length > 6) v.thoughts.splice(0, v.thoughts.length - 6);
-      }
-    };
+    if (!window.__stepResearch) window.__stepResearch = gmStepResearchReal;
+    if (!window.__stepFirstGuests) window.__stepFirstGuests = gmStepFirstGuestsReal;
+    setTimeout(gmInstallStepHooks, 1100);
+    /* hbInit 在异步 boot 后才赋值，短轮询保证最终包住真实的 funnel 钩子 */
+    var gmStepHookTries = 0;
+    var gmStepHookTimer = setInterval(function () {
+      if (++gmStepHookTries > 24) { clearInterval(gmStepHookTimer); return; }
+      gmInstallStepHooks();
+    }, 250);
+    /* ECO-01：兼容空壳；生态不要再包装，驻足由经营直接调用 __lifeDwell */
+    if (!window.__onGuestDwell) window.__onGuestDwell = function () {};
     if (GM.loaded) gmToast('已载入第 ' + Math.ceil(GM.day) + ' 日 · 第 ' + GM.week + ' 周');
   }
 
@@ -17134,15 +17273,21 @@ window.__startSakuraGame = function () {
           var f = raw[i];
           if (!f || f.active === false) continue;
           if (!isFinite(f.x) || !isFinite(f.z)) continue;
-          list.push({ x: f.x, z: f.z, kind: f.kind || 'wild' });
+          var fy = isFinite(f.y) ? f.y : terrainH(f.x, f.z) + 0.5;
+          list.push({ x: f.x, z: f.z, kind: f.kind || 'wild', y: fy });
         }
       }
       if (!list.length) {
-        list = [{ x: 4.6, z: 11.2, kind: 'lotus' }, { x: -6.4, z: 10.2, kind: 'lotus' },
-          { x: 1.8, z: 14.1, kind: 'lotus' }, { x: 18, z: 5, kind: 'garden' }];
+        list = [{ x: 4.6, z: 11.2, kind: 'lotus', y: terrainH(4.6, 11.2) + 0.5 },
+          { x: -6.4, z: 10.2, kind: 'lotus', y: terrainH(-6.4, 10.2) + 0.5 },
+          { x: 1.8, z: 14.1, kind: 'lotus', y: terrainH(1.8, 14.1) + 0.5 },
+          { x: 18, z: 5, kind: 'garden', y: terrainH(18, 5) + 0.5 }];
       }
       if (LIFE.habitatSpots && LIFE.habitatSpots.length) {
-        for (var h = 0; h < LIFE.habitatSpots.length; h++) list.push(LIFE.habitatSpots[h]);
+        for (var h = 0; h < LIFE.habitatSpots.length; h++) {
+          var hs = LIFE.habitatSpots[h];
+          list.push({ x: hs.x, z: hs.z, kind: hs.kind || 'habitat', y: terrainH(hs.x, hs.z) + 0.55 });
+        }
       }
       lifeFlowerCache.list = list;
     }
@@ -17177,8 +17322,8 @@ window.__startSakuraGame = function () {
     }
     if (B.wR.instanceColor) B.wR.instanceColor.needsUpdate = true;
     if (B.wL.instanceColor) B.wL.instanceColor.needsUpdate = true;
-    zone(B.center.x, WATER_Y + 1.5, B.center.z, 3.2, 'bird',
-      function (pt) { lifeStartleButterflies(pt); }, B.body);
+    zone(B.center.x, WATER_Y + 1.5, B.center.z, 3.0, 'butterfly',
+      function (pt) { lifeDiscover('butterfly', pt); lifeStartleButterflies(pt); }, B.body);
     B.zone = pickZones[pickZones.length - 1];
     LIFE.butterflies = B;
   }
@@ -17223,6 +17368,7 @@ window.__startSakuraGame = function () {
             if (d2 < pd) { pd = d2; p = cand; }
           }
           b.target = { x: p.x + Math.cos(b.slot) * 0.3, z: p.z + Math.sin(b.slot) * 0.3 };
+          b.restY = (p.y || (terrainH(p.x, p.z) + 0.5)) + 0.08;
           b.state = 'fly';
         }
       } else if (b.state === 'start') {
@@ -17230,6 +17376,7 @@ window.__startSakuraGame = function () {
         if (b.stT <= 0) {
           var q = pts[Math.floor(Math.random() * pts.length)];
           b.target = { x: q.x + Math.cos(b.slot) * 0.3, z: q.z + Math.sin(b.slot) * 0.3 };
+          b.restY = (q.y || (terrainH(q.x, q.z) + 0.5)) + 0.08;
           b.state = 'fly';
         }
       }
@@ -17238,7 +17385,14 @@ window.__startSakuraGame = function () {
         var nx = dx / (dist || 1), nz = dz / (dist || 1);
         b.pos.x += nx * sp * dt + Math.cos(LIFE.t * 2.2 + b.ph) * 0.18 * dt;
         b.pos.z += nz * sp * dt + Math.sin(LIFE.t * 2.8 + b.ph) * 0.18 * dt;
-        var ty = Math.max(terrainH(b.pos.x, b.pos.z), WATER_Y) + 0.45 + Math.sin(LIFE.t * 1.9 + b.ph) * 0.16 + (b.state === 'start' ? 0.9 : 0);
+        var ty;
+        if (b.state === 'start') {
+          ty = Math.max(terrainH(b.pos.x, b.pos.z), WATER_Y) + 0.45 + Math.sin(LIFE.t * 1.9 + b.ph) * 0.16 + 0.9;
+        } else if (dist < 1.1 && b.restY) {
+          ty = b.restY + Math.sin(LIFE.t * 1.9 + b.ph) * 0.05;
+        } else {
+          ty = Math.max(terrainH(b.pos.x, b.pos.z), WATER_Y) + 0.45 + Math.sin(LIFE.t * 1.9 + b.ph) * 0.16;
+        }
         b.pos.y += (ty - b.pos.y) * Math.min(1, dt * 4);
         var want = Math.atan2(-nz, nx);
         var dif = Math.atan2(Math.sin(want - b.rotY), Math.cos(want - b.rotY));
@@ -17271,6 +17425,13 @@ window.__startSakuraGame = function () {
       }
     }
     B.body.instanceMatrix.needsUpdate = true;
+    if (B.zone) {
+      var cx = 0, cy = 0, cz = 0;
+      for (var zi = 0; zi < B.birds.length; zi++) { cx += B.birds[zi].pos.x; cy += B.birds[zi].pos.y; cz += B.birds[zi].pos.z; }
+      var zn = B.birds.length || 1;
+      B.zone.p.set(cx / zn, cy / zn, cz / zn);
+      B.zone.r = 2.6;
+    }
     B.wR.instanceMatrix.needsUpdate = true;
     B.wL.instanceMatrix.needsUpdate = true;
   }
@@ -17312,7 +17473,7 @@ window.__startSakuraGame = function () {
         rotY: 0, ph: Math.random() * 6.28, flapPh: Math.random() * 6.28, takeoff: 0, lift: 0
       });
     }
-    zone(T.home.x, T.home.y, T.home.z, 1.9, 'bird', function (pt) { lifeScareTits(pt); }, T.body);
+    zone(T.home.x, T.home.y, T.home.z, 1.9, 'tit', function (pt) { lifeDiscover('tit', pt); lifeScareTits(pt); }, T.body);
     T.zone = pickZones[pickZones.length - 1];
     LIFE.tits = T;
   }
@@ -17807,6 +17968,7 @@ window.__startSakuraGame = function () {
       });
     }
     zone(hx, hy - 0.2, hz, 1.1, 'bee', function (pt) {
+      lifeDiscover('bee', pt);
       B.swarmT = 2.4;
       burst(pt, '#f0cf7a', 14, { speed: 1.1, up: 1.0, life: 0.7 });
       sfx('chime');
@@ -17898,6 +18060,7 @@ window.__startSakuraGame = function () {
       for (var i = 0; i < S.list.length; i++) {
         (function (idx) {
           zone(S.list[idx].x, S.list[idx].base + 1.4, S.list[idx].z, 1.0, 'squirrel', function (pt) {
+            lifeDiscover('squirrel', pt);
             var s = S.list[idx]; s.state = 'flee'; s.dir = 1; s.y = Math.max(s.y, s.base + 0.6);
             burst(pt, '#c98a4a', 12, { speed: 1.2, up: 1.1, life: 0.7 });
             sfx('click');
@@ -17912,6 +18075,7 @@ window.__startSakuraGame = function () {
       for (var j = 0; j < F.list.length; j++) {
         (function (idx) {
           zone(F.list[idx].x, terrainH(F.list[idx].x, F.list[idx].z) + 0.4, F.list[idx].z, 0.9, 'pheasant', function (pt) {
+            lifeDiscover('pheasant', pt);
             lifePheasantFlush(F, idx, pt);
             burst(pt, '#c98a52', 14, { speed: 1.6, up: 1.4, life: 0.8 });
             sfx('bird');
@@ -17923,6 +18087,7 @@ window.__startSakuraGame = function () {
     var C = LIFE.cat;
     if (C) {
       zone(C.p.x, terrainH(C.p.x, C.p.z) + 0.5, C.p.z, 1.0, 'cat', function (pt) {
+        lifeDiscover('cat', pt);
         C.p.state = 'walk'; C.p.tgt = lifeCatNextWaypoint();
         sfx('chime');
       }, C.body);
@@ -17945,24 +18110,38 @@ window.__startSakuraGame = function () {
 
   // 栖息表：既认 key，也认中文名（建造窗口后期换 key 也不会失联）
   var LIFE_HAB = [
-    { id: 'waterwheel', kind: 'water', words: ['waterwheel', 'suisha', 'shuiche', '水车', '水車'] },
-    { id: 'shobu', kind: 'flower', words: ['shobu', 'shoubu', 'iris', '菖蒲', '溪岸菖蒲'] },
-    { id: 'teafield', kind: 'field', words: ['teafield', 'teaField', 'chabatake', '茶畑', '茶田'] },
-    { id: 'moss', kind: 'flower', words: ['moss', 'koke', '苔庭', '苔'] },
-    { id: 'shishiodoshi', kind: 'pond', words: ['shishiodoshi', 'deerScare', '鹿威し', '鹿威'] },
-    { id: 'takimi', kind: 'water', words: ['takimi', 'taki', '泷见', '瀧見', '瀑布茶席'] }
+    { id: 'waterwheel', kind: 'water', words: ['waterwheel', 'suisha', 'shuiche', '水車', '水车'] },
+    { id: 'shobu', kind: 'flower', words: ['irispank', 'irisbank', 'shobu', 'shoubu', 'iris', '菖蒲', '溪岸菖蒲'] },
+    { id: 'teafield', kind: 'field', words: ['teafield', 'chabatake', '茶畑', '茶田'] },
+    { id: 'moss', kind: 'flower', words: ['mossgarden', 'moss', 'koke', '苔庭', '苔'] },
+    { id: 'shishiodoshi', kind: 'pond', words: ['shishiodoshi', 'deerscare', '鹿威し', '鹿威し', '鹿威'] },
+    { id: 'takimi', kind: 'water', words: ['takimiseat', 'takimi', 'taki', '泷见', '瀧見', '瀑布茶席'] },
+    { id: 'karesansui', kind: 'stone', words: ['karesansui', '砂紋', '砂纹', '枯山水'] },
+    { id: 'pineBonsai', kind: 'stone', words: ['pinebonsai', 'bonsai', '松盆栽', '盆栽'] },
+    { id: 'stoneShrine', kind: 'stone', words: ['stoneshrine', 'shrine', '石祠', '石社'] },
+    { id: 'tobiishi', kind: 'stone', words: ['tobiishi', 'stepping', '飞石', '飛石'] },
+    { id: 'fishingDeck', kind: 'water', words: ['fishingdeck', 'deck', '钓台', '釣台'] },
+    { id: 'fujimiDai', kind: 'stone', words: ['fujimidai', 'fujimi', '富士见', '富士見'] },
+    { id: 'haikuStele', kind: 'stone', words: ['haikustele', 'kuhi', '句碑'] },
+    { id: 'nodateUmbrella', kind: 'stone', words: ['nodateumbrella', 'nodate', '野点伞', '野点傘'] },
+    { id: 'sanmon', kind: 'stone', words: ['sanmon', '三门', '三門'] }
   ];
 
   function lifeHabMatch(key, name) {
     var k = String(key || '').toLowerCase(), n = String(name || '');
+    var hits = [];
     for (var i = 0; i < LIFE_HAB.length; i++) {
       var d = LIFE_HAB[i];
       for (var w = 0; w < d.words.length; w++) {
-        var wd = d.words[w].toLowerCase();
-        if (k === wd || k.indexOf(wd) >= 0 || n.indexOf(d.words[w]) >= 0) return d;
+        var raw = d.words[w], wd = raw.toLowerCase();
+        if (k === wd) { hits.push({ d: d, s: 100 + wd.length }); break; }
+        if (k.indexOf(wd) >= 0) { hits.push({ d: d, s: 50 + wd.length }); break; }
+        if (raw && n.indexOf(raw) >= 0) { hits.push({ d: d, s: 20 + raw.length }); break; }
       }
     }
-    return null;
+    if (!hits.length) return null;
+    hits.sort(function (a, b) { return b.s - a.s; });
+    return hits[0].d;
   }
 
   function lifeHabApply(def, p, key) {
@@ -18014,6 +18193,20 @@ window.__startSakuraGame = function () {
           }
           if (fg && fgd < 32) { fg.rest = { x: p.x, z: p.z }; }
         }
+      }
+    } else if (def.kind === 'stone') {
+      var sb = null, sbd = 1e9;
+      for (var si2 = 0; si2 < LIFE.flocks.length; si2++) {
+        var sf = LIFE.flocks[si2];
+        var sd = Math.hypot(sf.lead.x - p.x, sf.lead.z - p.z);
+        if (sd < sbd) { sbd = sd; sb = sf; }
+      }
+      if (sb && sbd < 30) { sb.rest = { x: p.x, z: p.z }; }
+      var ST = LIFE.tits;
+      if (ST && ST.home && Math.hypot(ST.home.x - p.x, ST.home.z - p.z) < 18) {
+        ST.home.x += (p.x - ST.home.x) * 0.25;
+        ST.home.z += (p.z - ST.home.z) * 0.25;
+        ST.home.y = terrainH(ST.home.x, ST.home.z) + 3.4;
       }
     } else if (def.kind === 'pond') {
       for (var f = 0; f < LIFE.flocks.length; f++) {
@@ -18090,11 +18283,17 @@ window.__startSakuraGame = function () {
     return true;
   }
 
+  // 六个动物条目的观察入口：统一走图鉴窗提供的 cxDiscover（带 funnel），不存在则退回 showLabel
+  function lifeDiscover(kind, pt) {
+    if (!kind || typeof window.cxDiscover !== 'function') return false;
+    try { return window.cxDiscover(kind, 'life', pt); } catch (e) { return false; }
+  }
+
   function lifeDwellHook(v, plot) {
     var p = lifePlotPoint(plot);
     if (!p && v && isFinite(v.plot)) p = lifePlotPoint(v.plot);
     if (!p) return null;
-    LIFE.dwell = LIFE.dwell || { count: 0, last: null, cd: 0 };
+    LIFE.dwell = LIFE.dwell || { count: 0, last: null, cd: -99 };
     if (LIFE.t - (LIFE.dwell.cd || 0) < 1.4) return null;
     LIFE.dwell.cd = LIFE.t;
     LIFE.dwell.count++;
@@ -18114,41 +18313,17 @@ window.__startSakuraGame = function () {
     return LIFE.dwell.last;
   }
 
-  function lifeAttachDwell() {
-    var fn = window.__onGuestDwell;
-    if (typeof fn !== 'function' || fn.__lifeWrapped) return false;
-    var wrapped = function (v, p) {
-      var r = fn.apply(this, arguments);
-      try { lifeDwellHook(v, p); } catch (e) {}
-      return r;
-    };
-    wrapped.__lifeWrapped = true;
-    wrapped.__lifeOriginal = fn;
-    window.__onGuestDwell = wrapped;
-    return true;
-  }
-
   function lifeBeesAtHabitat() {
     // 花位已含栖息点（lifeFlowerSpots 会并入 habitatSpots），蜂群自动改去新花
     return LIFE.habitatSpots ? LIFE.habitatSpots.length : 0;
   }
 
   window.__lifeDwell = lifeDwellHook;
-  window.__lifeAttachDwell = lifeAttachDwell;
   // 调试/验收：列出地块，按地块模拟“落了某个新内容”，验证栖息挂钩
   window.__lifePlots = function () {
     if (typeof GM === 'undefined' || !GM.plots) return [];
     return GM.plots.map(function (p) { return { id: p.id, x: +p.x.toFixed(1), z: +p.z.toFixed(1), built: p.built ? p.built.key : null }; });
   };
-  window.__lifeHabTest = function (key, plotId) {
-    if (typeof GM === 'undefined' || !GM.plots) return false;
-    var plot = GM.plots[plotId];
-    if (!plot) return false;
-    var item = (typeof GM_ITEMS !== 'undefined' && GM_ITEMS[key]) ? GM_ITEMS[key] : null;
-    var def = lifeHabMatch(key, item ? item.name : '');
-    return def ? lifeHabApply(def, plot, key) : false;
-  };
-
   /* ---------- 验收口径（脚本用） ---------- */
   window.__lifeTerrain = terrainH; // 生态调试：只读取地形高度
   window.__lifeAudit = function () {
@@ -18221,7 +18396,7 @@ window.__startSakuraGame = function () {
       spots: (LIFE.habitatSpots || []).length };
     out.dwell = { count: (LIFE.dwell ? LIFE.dwell.count : 0), last: (LIFE.dwell ? LIFE.dwell.last : null),
       hook: (GM.hooks && GM.hooks.dwell) ? GM.hooks.dwell.length : 0,
-      wrapped: !!(window.__onGuestDwell && window.__onGuestDwell.__lifeWrapped) };
+      dispatch: 'GM.hooks.dwell' };
     try {
       out.codex = { squirrel: !!CODEX_INFO.squirrel, pheasant: !!CODEX_INFO.pheasant, cat: !!CODEX_INFO.cat, bee: !!CODEX_INFO.bee,
         butterfly: !!CODEX_INFO.butterfly, tit: !!CODEX_INFO.tit,
@@ -18263,8 +18438,6 @@ window.__startSakuraGame = function () {
     lifeUpdateCat(dt, h, sk);
     lifeUpdateBees(dt, h, sk);
     lifeHabitatScan(dt);
-    LIFE.attachT = (LIFE.attachT || 0) - dt;
-    if (LIFE.attachT <= 0) { LIFE.attachT = 2.0; lifeAttachDwell(); }
   }
 
   function lifeHook(dt, hour, season) {
@@ -18313,12 +18486,10 @@ window.__startSakuraGame = function () {
     LIFE.habitatList = [];
     LIFE.habitatSpots = [];
     LIFE.habSeen = {};
-    LIFE.dwell = { count: 0, last: null, cd: 0 };
-    LIFE.attachT = 0;
+    LIFE.dwell = { count: 0, last: null, cd: -99 };
     GM.hooks = GM.hooks || {};
     GM.hooks.dwell = GM.hooks.dwell || [];
     if (GM.hooks.dwell.indexOf(lifeDwellHook) < 0) GM.hooks.dwell.push(lifeDwellHook);
-    lifeAttachDwell();
     GM.mods = GM.mods || {};
     GM.mods.life = GM.mods.life || {};
     GM.mods.life.migCount = GM.mods.life.migCount || 0;
@@ -19622,6 +19793,77 @@ window.__startSakuraGame = function () {
 
   var animateShadowTs = 0;
   var animateLastTs = 0;
+  /* ---------- 小件投影裁剪：9 类贴地小件 + prop<0.8m，游客/树/建筑保留 ---------- */
+  var SHADOW_TRIM = { items: [], tris: 0, kinds: { rock: 1, stump: 1, shrub: 1, ground: 1, shrine: 1, stele: 1, ema: 1, chochin: 1, steps: 1 } };
+  function sceneShadowTrim() {
+    scene.updateMatrixWorld(true);
+    scene.traverse(function (o) {
+      if (!o.isMesh || o.isInstancedMesh || !o.castShadow) return;
+      var k = (o.userData && o.userData.kind) || '';
+      if (k === 'visitor' || k === 'sakura' || k === 'giant' || k === 'torii' || k === 'teahouse' || k === 'stone') return;
+      var kill = !!SHADOW_TRIM.kinds[k];
+      if (!kill && k === 'prop') {
+        if (!o.geometry.boundingSphere && o.geometry) o.geometry.computeBoundingSphere();
+        var e = o.matrixWorld.elements;
+        var wsc = Math.sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
+        if (o.geometry.boundingSphere && o.geometry.boundingSphere.radius * wsc < 0.8) kill = true;
+      }
+      if (!kill) return;
+      var g = o.geometry;
+      var t = g ? (g.index ? g.index.count : (g.attributes.position ? g.attributes.position.count : 0)) / 3 : 0;
+      o.castShadow = false;
+      SHADOW_TRIM.items.push({ kind: k, tris: Math.round(t), name: o.name || '' });
+      SHADOW_TRIM.tris += t;
+    });
+    return { count: SHADOW_TRIM.items.length, tris: Math.round(SHADOW_TRIM.tris) };
+  }
+  window.__shadowTrim = function () {
+    var byKind = {};
+    SHADOW_TRIM.items.forEach(function (it) { byKind[it.kind] = (byKind[it.kind] || 0) + 1; });
+    return { count: SHADOW_TRIM.items.length, tris: Math.round(SHADOW_TRIM.tris), byKind: byKind, items: SHADOW_TRIM.items };
+  };
+  window.__shadowTrimRevert = function (n) {
+    var m = Math.max(0, Math.min(n || SHADOW_TRIM.items.length, SHADOW_TRIM.items.length));
+    var back = 0;
+    scene.traverse(function (o) {
+      if (!o.isMesh) return;
+      var k = (o.userData && o.userData.kind) || '';
+      if (SHADOW_TRIM.kinds[k] || k === 'prop') {
+        if (o.castShadow === false && back < m) { o.castShadow = true; back++; }
+      }
+    });
+    return back;
+  };
+
+  /* ---------- 裙边逐边高程校验（只读，不加面） ---------- */
+  window.__skirtAudit = function () {
+    var rows = [], tol = 0.05, worst = 0;
+    function edge(side, half, coarse, skirt) {
+      var n = Math.max(1, Math.round((half * 2) / coarse));
+      var maxGap = 0;
+      for (var i = 0; i < n; i++) {
+        var a0 = -half + i * coarse, a1 = a0 + coarse, mid = (a0 + a1) / 2;
+        var hA, hB, hM;
+        if (side === 'n' || side === 's') {
+          var z = side === 'n' ? -half : half;
+          hA = terrainH(a0, z); hB = terrainH(a1, z); hM = terrainH(mid, z);
+        } else {
+          var x = side === 'w' ? -half : half;
+          hA = terrainH(x, a0); hB = terrainH(x, a1); hM = terrainH(x, mid);
+        }
+        var gap = Math.abs(hM - (hA + hB) * 0.5);
+        if (gap > maxGap) maxGap = gap;
+      }
+      var uncovered = Math.max(0, maxGap - (skirt || 0));
+      var ok = uncovered <= tol;
+      if (uncovered > worst) worst = uncovered;
+      rows.push('edge=' + side + half + ' len=' + (half * 2).toFixed(1) + ' maxGap=' + uncovered.toFixed(3) + ' tol=' + tol.toFixed(2) + ' ' + (ok ? 'PASS' : 'FAIL'));
+    }
+    [['n', 48, 3.2, 0.9], ['s', 48, 3.2, 0.9], ['w', 48, 3.2, 0.9], ['e', 48, 3.2, 0.9],
+      ['n', 128, 8, 1.2], ['s', 128, 8, 1.2], ['w', 128, 8, 1.2], ['e', 128, 8, 1.2]].forEach(function (d) { edge(d[0], d[1], d[2], d[3]); });
+    return { rows: rows, worst: Math.round(worst * 1000) / 1000, pass: worst <= tol, tol: tol };
+  };
+
   /* ---------- 静态装饰合批：8x8 空间格 + 同材质 + attribute 兼容 ---------- */
   var BATCH = { merged: [], originals: [], on: true, mats: {}, stats: { buckets: 0, meshes: 0, cells: 0 } };
   function sceneChainKind(o) {
@@ -20225,6 +20467,7 @@ window.__startSakuraGame = function () {
       var mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 1 });
       var mesh = new THREE.InstancedMesh(geo, mat, def.pts.length);
       mesh.name = 'flower-' + kind;
+      mesh.userData.kind = kind;
       mesh.frustumCulled = false;
       for (var i = 0; i < def.pts.length; i++) {
         var p = def.pts[i];
@@ -20239,6 +20482,7 @@ window.__startSakuraGame = function () {
         dm.updateMatrix();
         mesh.setMatrixAt(i, dm.matrix);
         SCENE_FLOWERS.push({ kind: kind, x: Math.round(jx * 10) / 10, z: Math.round(jz * 10) / 10, y: Math.round(gy * 100) / 100, season: def.season, active: def.season === seasonKey });
+        if (typeof pickZones !== 'undefined') pickZones.push({ kind: kind, p: new THREE.Vector3(jx, gy + 0.35, jz), r: 1.4, owner: mesh });
       }
       mesh.count = Math.max(1, Math.ceil(def.pts.length * 0.55)); // 留白：花丛实例减至约半数
       mesh.instanceMatrix.needsUpdate = true;
@@ -20295,6 +20539,11 @@ window.__startSakuraGame = function () {
   sceneFlowersApply(seasonKey);
   sceneFlowerCodex();
   sceneRebuildLandmarks();
+  window.__projectPoint = function (x, y, z) {
+    var v = new THREE.Vector3(x, y, z).project(camera);
+    return [Math.round((v.x + 1) / 2 * window.innerWidth), Math.round((1 - v.y) / 2 * window.innerHeight), Math.round(v.z * 1000) / 1000];
+  };
+  sceneShadowTrim();
   sceneTagRoles();
   sceneBatchBuild();
   if (window.location && (window.location.search.indexOf('admin=1') >= 0 || window.location.hash === '#admin' || window.location.hash === '#admin-panel')) {
