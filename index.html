@@ -8271,8 +8271,8 @@ window.__startSakuraGame = function () {
     master: 0.8, sfx: 0.8, ambient: 0.42, bgmVol: 0.65, mixV2: 1,
     fps: 60, quality: 'mid', shadows: true, autosave: true, hudMode: 'brief',
     bgmSlots: [
-      { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 0 },
-      { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 1 }
+      { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 1 },
+      { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 0 }
     ]
   };
   (function loadGameSettings() {
@@ -8301,7 +8301,7 @@ window.__startSakuraGame = function () {
           var bname = String(st.name || '');
           if (st.builtin === 0 || st.builtin === 1) {
             GAME_SETTINGS.bgmSlots[i].builtin = st.builtin;
-            if (!bsrc) bname = bgmBuiltinName(st.builtin);
+            if (!bsrc) bname = st.builtin === 0 ? '青山绿野（内置）' : '步履不停（内置）';
           } else if (!bsrc && !bname) {
             GAME_SETTINGS.bgmSlots[i].builtin = i;
             bname = bgmBuiltinName(i);
@@ -8309,12 +8309,18 @@ window.__startSakuraGame = function () {
           GAME_SETTINGS.bgmSlots[i].name = bname;
         }
       }
-      /* 曲名跟着 builtin 走：老存档里存的是旧标题，统一按内置曲重算，避免标签与音频错位 */
-      for (var bt = 0; bt < 2; bt++) {
-        var sb = GAME_SETTINGS.bgmSlots[bt];
-        if (sb && sb.builtin != null && !sb.src) sb.title = sb.builtin === 0 ? '步履不停' : '青山绿野';
-      }
     } catch (e) {}
+  })();
+  /* 内置两首固定成：槽0《步履不停》(builtin 1, 109.8s) / 槽1《青山绿野》(builtin 0, 235.7s)。
+     放在 loadGameSettings 之外执行——老存档读取里任何一行抛错都不能把顺序纠正一起吞掉 */
+  (function fixBgmSlots() {
+    for (var bt = 0; bt < 2; bt++) {
+      var sb = GAME_SETTINGS.bgmSlots[bt];
+      if (!sb || sb.src) continue;
+      sb.builtin = bt === 0 ? 1 : 0;
+      sb.name = bt === 0 ? '步履不停（内置）' : '青山绿野（内置）';
+      sb.title = bt === 0 ? '步履不停' : '青山绿野';
+    }
   })();
   function gmSaveSettings() {
     var out = JSON.parse(JSON.stringify(GAME_SETTINGS));
@@ -8381,10 +8387,10 @@ window.__startSakuraGame = function () {
   /* 两首曲子以 44.1kHz / 64kbps mp3 内联（原始 320kbps 共 13.8MB，内联会撑爆页面）
      分片存放，第一次真正用到时才拼成 data URI，避免启动阶段多拷两份几 MB 的字符串。
      想换曲：替换下面 parts 里的分片即可，文件名同时存了一份在 shared/sakura/assets/。 */
-  /* 曲名以 name 为准：assets 里历史文件名与内容相反（bgm-qingshan.mp3 实为《步履不停》235.7s，bubu.mp3 实为《青山绿野》109.8s） */
+  /* 曲名对照：bgm-qingshan.mp3 = 《青山绿野》235.7s，bubu.mp3 = 《步履不停》109.8s；首曲取《步履不停》 */
   var BGM_LIB = [
-    { name: '步履不停（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3' },
-    { name: '青山绿野（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3' }
+    { name: '青山绿野（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3' },
+    { name: '步履不停（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3' }
   ];
   function bgmBuiltinSrc(i) {
     var t = BGM_LIB[i];
