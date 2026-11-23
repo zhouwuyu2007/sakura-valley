@@ -1828,6 +1828,7 @@ window.__startSakuraGame = function () {
     mesh.receiveShadow = true;
     mesh.castShadow = false;
     mesh.userData.kind = 'ground';
+    gmSeasonRole(mesh, 'ground');
     scene.add(mesh);
     terrainMat = mat;
     terrainColorAttr = geo.attributes.color;
@@ -2573,6 +2574,7 @@ window.__startSakuraGame = function () {
       color: '#5b7c45', roughness: 0.95, flatShading: true, vertexColors: false
     });
     mossMesh = new THREE.Mesh(partsToGeometry(mossParts), mossMat);
+    gmSeasonRole(mossMesh, 'moss');
     mossMesh.castShadow = false;
     mossMesh.receiveShadow = true;
     mossMesh.name = 'moss';
@@ -3697,6 +3699,7 @@ window.__startSakuraGame = function () {
       color: '#5d7f4c', roughness: 0.92, flatShading: true, vertexColors: false
     });
     greenShrubMesh = new THREE.Mesh(partsToGeometry(shrubParts), greenShrubMat);
+    gmSeasonRole(greenShrubMesh, 'shrub');
     greenShrubMesh.castShadow = true;
     greenShrubMesh.receiveShadow = true;
     greenShrubMesh.name = 'greenShrub';
@@ -3716,6 +3719,7 @@ window.__startSakuraGame = function () {
       color: '#5f7f48', roughness: 0.96, flatShading: true, vertexColors: false
     });
     groundMossMesh = new THREE.Mesh(partsToGeometry(groundMossParts), groundMossMat);
+    gmSeasonRole(groundMossMesh, 'moss');
     groundMossMesh.castShadow = false;
     groundMossMesh.receiveShadow = true;
     groundMossMesh.name = 'groundMoss';
@@ -3733,6 +3737,7 @@ window.__startSakuraGame = function () {
   var bambooMeshAll = addPartsMesh(bambooParts, stdMat, true, true);
   if (bambooMeshAll) bambooMeshAll.userData.kind = 'bamboo';
   pineMesh = addPartsMesh(pineParts, stdMat, true, true);
+  gmSeasonRole(pineMesh, 'pine');
   if (pineMesh) pineMesh.name = 'pines';
   if (glowParts.length) {
     var glowGeo = partsToGeometry(glowParts);
@@ -3854,6 +3859,7 @@ window.__startSakuraGame = function () {
       color: '#4f7241', roughness: 0.95, flatShading: true, vertexColors: false
     });
     islandMossMesh = new THREE.Mesh(partsToGeometry(mossParts2), islandMossMat);
+    gmSeasonRole(islandMossMesh, 'moss');
     islandMossMesh.receiveShadow = true;
     islandMossMesh.name = 'islandMoss';
     scene.add(islandMossMesh);
@@ -4157,6 +4163,7 @@ window.__startSakuraGame = function () {
     inst.frustumCulled = false;
     scene.add(inst);
     grassMesh = inst;
+    gmSeasonRole(grassMesh, 'grass');
     grassMesh.name = 'grass';
     grassMat = mat;
   })();
@@ -4210,6 +4217,7 @@ window.__startSakuraGame = function () {
       });
     }
     reedsMesh = addPartsMesh(parts, stdMat, false, false);
+    gmSeasonRole(reedsMesh, 'reed');
   })();
 
   /* ============================================================
@@ -5665,29 +5673,126 @@ window.__startSakuraGame = function () {
     window.__hour = hour;
   }
 
-  /* 季节乘色：地表与植被的颜色是烘在顶点色里的，只改材质无用；
-     这里给每类克隆独立材质，按季叠加一层色调，避免秋冬仍一片鲜绿。
-     合批（sceneBatch）桶内混类，不在此列。 */
-  var SEASON_TINT = {
-    spring: null, summer: null,
-    autumn: { ground: '#cfae6f', shrub: '#d68f58', knoll: '#c9a76a', grass: '#e5cc93',
-              ridge: '#c8a86b', reed: '#d7bd85', ruin: '#d2c9b3', frog: '#c9b06a',
-              pine: '#c8a86a', field: '#d8b06a', bamboo: '#c9ad74', foliage: '#d3a866',
-              karesan: '#cfb47c', moss: '#c8a96e' },
-    winter: { ground: '#dfe7ea', shrub: '#c9d2d4', knoll: '#e4e8e5', grass: '#e7edee',
-              ridge: '#ced5d1', reed: '#d2d6cb', ruin: '#d0d3cb', frog: '#d5dade',
-              pine: '#b7c4c2', field: '#d9e0dc', bamboo: '#cfd6d2', foliage: '#cdd6d8',
-              karesan: '#dbe2df', moss: '#dde4e2' }
+  /* 季节属性注册表：物件创建时用 gmSeasonRole(obj, role) 声明身份，
+     换季由 applySeason → seasonTintApply 统一遍历上色，不再靠逐类 kind 猜测。
+     角色：foliage(草木) / wood(木构) / stone(石材) / snow(积雪) / keep(不随季)；
+     旧 14 类 kind（ground/shrub/knoll/...）全部迁进本表，由注册表接管，
+     新物件只要在建好后调一次 gmSeasonRole 就不会漏季。
+     flat 规格 = 直接覆成单色（用于冬季去绿：乘色改不了顶点色烘进去的绿）。 */
+  var SEASON_ROLE_TINT = {
+    ground:  { autumn: '#cfae6f', winter: '#dfe7ea' },
+    shrub:   { autumn: '#d68f58', winter: { flat: '#ced6d4' } },
+    knoll:   { autumn: '#c9a76a', winter: { flat: '#e4e8e5' } },
+    grass:   { autumn: '#e5cc93', winter: { flat: '#e7edee' } },
+    ridge:   { autumn: '#c8a86b', winter: { flat: '#ced5d1' } },
+    reed:    { autumn: '#d7bd85', winter: { flat: '#d2d6cb' } },
+    ruin:    { autumn: '#d2c9b3', winter: { flat: '#d8dcdc' } },
+    frog:    { autumn: '#c9b06a', winter: { flat: '#d5dade' } },
+    pine:    { autumn: '#c8a86a', winter: { flat: '#b7c4c2' } },
+    field:   { autumn: '#d8b06a', winter: { flat: '#dfe5e1' } },
+    bamboo:  { autumn: '#c9ad74', winter: { flat: '#cfd6d2' } },
+    foliage: { autumn: '#d3a866', winter: { flat: '#cdd6d8' } },
+    karesan: { autumn: '#cfb47c', winter: { flat: '#dbe2df' } },
+    moss:    { autumn: '#c8a96e', winter: { flat: '#dde4e2' } },
+    wood:    { autumn: '#d9c0a0', winter: '#d2d4cf' },
+    stone:   { autumn: '#d2c9b6', winter: '#dfe3e5' },
+    snow:    { autumn: { flat: '#eef1f1' }, winter: { flat: '#ffffff' } },
+    batch:   { autumn: '#d9b477', winter: { flat: '#d6dbd6' } },
+    event:   { autumn: '#d3a866', winter: { flat: '#d3d9d5' } },
+    keep:    {}
   };
   var SEASON_TINT_CP = {};
-  var SEASON_TINT_FORCE = { knoll: 1, ridge: 1 };
-  function seasonTintApply(key) {
-    var tbl = SEASON_TINT[key] || {};
+  var SEASON_REG = SEASON_REG || [];
+  function gmSeasonRole(obj, role) {
+    if (!obj || !obj.isMesh) return obj;
+    if (!role || (SEASON_ROLE_TINT && !SEASON_ROLE_TINT[role])) role = 'keep';
+    if (!SEASON_REG) SEASON_REG = [];
+    obj.userData = obj.userData || {};
+    var e = obj.userData.__seasonEntry;
+    if (!e) {
+      e = { o: obj, role: role, base: null, vc: null, dropped: false };
+      SEASON_REG.push(e);
+      obj.userData.__seasonEntry = e;
+    }
+    e.role = role;
+    obj.userData.gmSeasonRole = role;
+    if (obj.parent && typeof seasonKey === 'string') seasonTintOne(e, seasonKey);
+    return obj;
+  }
+  function gmSeasonUnregister(obj) {
+    if (!obj || !obj.userData || !obj.userData.__seasonEntry) return;
+    obj.userData.__seasonEntry.dropped = true;
+    obj.userData.__seasonEntry = null;
+  }
+  function seasonTintOne(e, key) {
+    var o = e.o;
+    if (!o || e.dropped) return;
+    /* 建好但还没 add 进场景的（合批网格等）先跳过；已经 add 过的不会被移出，留着无害 */
+    if (!o.parent) return;
+    var m = o.material;
+    if (!m || Array.isArray(m) || !m.color) return;
+    var spec = SEASON_ROLE_TINT[e.role] || null;
+    if (!spec || e.role === 'keep') return;
+    var q = spec[key];
+    if (!q) {
+      /* 春/夏 = 原色，必须显式还原：以前秋冬色会一直挂到明年春天 */
+      if (e.base && o.userData.__seasonMat) {
+        o.userData.__seasonMat.color.copy(e.base);
+        o.userData.__seasonMat.vertexColors = e.vc;
+        o.userData.__seasonMat.needsUpdate = true;
+      }
+      return;
+    }
+    if (!o.userData.__seasonMat) {
+      e.base = m.color.clone();
+      e.vc = m.vertexColors;
+      o.userData.__seasonBase = e.base;
+      o.userData.__seasonMat = m.clone();
+      o.material = o.userData.__seasonMat;
+    }
+    var mat = o.userData.__seasonMat;
+    var flat = (typeof q === 'object' && q.flat) ? q.flat : null;
+    var hex = (typeof q === 'string') ? q : (q.mul || null);
+    mat.color.copy(e.base);
+    if (flat) {
+      mat.vertexColors = false;
+      mat.color.set(flat);
+    } else {
+      mat.vertexColors = e.vc;
+      if (!SEASON_TINT_CP[hex]) SEASON_TINT_CP[hex] = new THREE.Color(hex);
+      mat.color.multiply(SEASON_TINT_CP[hex]);
+    }
+    mat.needsUpdate = true;
+  }
+  /* 当前渲染出来的有效颜色（材质 × 顶点色），供审计与自动登记共用 */
+  function seasonEffectiveRGB(o) {
+    var mat = o && o.material;
+    if (!mat || Array.isArray(mat) || !mat.color) return null;
+    var vcAttr = (mat.vertexColors !== false && o.geometry && o.geometry.attributes && o.geometry.attributes.color) || null;
+    var r = mat.color.r, g = mat.color.g, b = mat.color.b;
+    if (vcAttr) {
+      var n = Math.min(vcAttr.count, 200), ar = 0, ag = 0, ab = 0, i;
+      for (i = 0; i < n; i++) { ar += vcAttr.getX(i); ag += vcAttr.getY(i); ab += vcAttr.getZ(i); }
+      ar /= n; ag /= n; ab /= n;
+      r *= ar; g *= ag; b *= ab;
+    }
+    return [r, g, b];
+  }
+  function seasonIsGreen(o) {
+    var c = seasonEffectiveRGB(o);
+    if (!c) return false;
+    return c[1] > c[0] * 1.12 && c[1] > c[2] * 1.18 && c[1] > 0.18;
+  }
+  /* 兜底扫场：老物件（含运行时新建但没声明 role 的）按 kind/name 自动登记一次；
+     之后调色只走注册表，不再全场景 traverse 猜类别。 */
+  function seasonRegisterScene() {
+    if (typeof scene === 'undefined' || !scene || !SEASON_REG) return 0;
+    var n = 0;
     scene.traverse(function (o) {
-      if (!o.isMesh || !o.material) return;
+      if (!o.isMesh || !o.material || Array.isArray(o.material)) return;
+      if (o.userData && o.userData.__seasonEntry) return;
       var ud = o.userData || {};
-      var k = (typeof ud.kind === 'string' && ud.kind) || (typeof ud.type === 'string' && ud.type) || (typeof ud.key === 'string' && ud.key);
-      /* 远景台地群：group 与 mesh 两种命名都可能，宁可多判 */
+      var k = (typeof ud.kind === 'string' && ud.kind) || (typeof ud.type === 'string' && ud.type) || (typeof ud.key === 'string' && ud.key) || null;
       if (o.name === 'game-knolls' || (o.parent && o.parent.name === 'game-knolls')) k = 'knoll';
       if (o.name === 'ridge' || (o.parent && o.parent.name === 'ridge')) k = 'ridge';
       /* 这些具名合批网格没有 userData.kind，靠变量认 */
@@ -5695,35 +5800,37 @@ window.__startSakuraGame = function () {
       else if (o === grassMesh) k = 'grass';
       else if (o === reedsMesh) k = 'reed';
       else if (o === greenShrubMesh) k = 'shrub';
-      else if (o === mossMesh) k = 'moss';
-      else if (o === groundMossMesh) k = 'moss';
-      if (!k) return;
-      var FORCE = SEASON_TINT_FORCE[k];
-      var hex = tbl[k];
-      /* 只有登记过的类别才克隆材质，避免材质数暴涨；强制类在春季也要能还原 */
-      if (!hex && !(FORCE && o.userData.__seasonMat)) return;
-      var m = o.material;
-      if (Array.isArray(m) || !m.color) return;
-      if (!o.userData.__seasonMat) {
-        o.userData.__seasonBase = m.color.clone();
-        o.userData.__seasonMat = m.clone();
-        o.material = o.userData.__seasonMat;
+      else if (o === mossMesh || o === groundMossMesh) k = 'moss';
+      if (ud.artRole === 'batch' && !(k && SEASON_ROLE_TINT[k])) k = 'batch';
+      /* 节庆装饰按设计常绿（初诣松枝等），不登记、不随季改色；审计也不统计它们 */
+      var pe = o.parent, peHop = 0;
+      while (pe && peHop < 3) {
+        if (pe.name && pe.name.indexOf('ev-root-') === 0) return;
+        pe = pe.parent; peHop++;
       }
-      var mat = o.userData.__seasonMat;
-      if (FORCE) {
-        /* 台地/山脊的顶点色本身是深绿，乘色乘不白，只能关掉顶点色直接覆盖 */
-        if (hex) { mat.vertexColors = false; mat.color.set(hex); }
-        else { mat.vertexColors = true; mat.color.copy(o.userData.__seasonBase); }
-        mat.needsUpdate = true;
-        return;
-      }
-      mat.color.copy(o.userData.__seasonBase);
-      {
-        if (!SEASON_TINT_CP[hex]) SEASON_TINT_CP[hex] = new THREE.Color(hex);
-        mat.color.multiply(SEASON_TINT_CP[hex]);
-      }
+      /* 无 kind 的 prop：只有"当下确实显绿"的才归为 foliage，避免把石灯笼、长凳一起改色 */
+      if (!k && ud.artRole === 'prop' && seasonIsGreen(o)) k = 'foliage';
+      if (!k || !SEASON_ROLE_TINT[k] || k === 'keep') return;
+      gmSeasonRole(o, k);
+      n++;
     });
+    return n;
   }
+  function seasonTintApply(key) {
+    seasonRegisterScene();
+    for (var i = 0; i < SEASON_REG.length; i++) seasonTintOne(SEASON_REG[i], key);
+  }
+  window.__seasonRegistry = function () {
+    var byRole = {}, total = 0, dropped = 0;
+    for (var i = 0; i < SEASON_REG.length; i++) {
+      if (SEASON_REG[i].dropped) { dropped++; continue; }
+      byRole[SEASON_REG[i].role] = (byRole[SEASON_REG[i].role] || 0) + 1;
+      total++;
+    }
+    return { total: total, dropped: dropped, byRole: byRole };
+  };
+  window.__seasonRole = gmSeasonRole;
+  window.__seasonRegisterScene = seasonRegisterScene;
   function applySeason(key, instant) {
     if (!SEASONS[key] || (key === seasonKey && !instant)) return;
     var seAppealBefore = null;
@@ -5978,6 +6085,7 @@ window.__startSakuraGame = function () {
       vertexColors: true, flatShading: true, roughness: 1, fog: false, color: '#ffffff'
     }), false, false);
     if (footMesh) { footMesh.userData.kind = 'ridge'; fujiFootMat = footMesh.material; }
+    if (footMesh) gmSeasonRole(footMesh, 'ridge');
 
     // 半山云带
     var bandParts = [];
@@ -8437,12 +8545,21 @@ window.__startSakuraGame = function () {
   };
   window.__seasonAudit = function (max) {
     max = max || 30;
-    var counts = {}, total = 0, sample = [];
+    var counts = {}, total = 0, sample = [], water = 0, registered = 0, residual = 0;
     scene.traverse(function (o) {
       if (!o.isMesh || !o.visible) return;
+      /* 只查自身 visible 会误判“整组随季隐藏”的物件（荷叶、节庆装饰等），逐级往上查 */
+      var pv = o.parent, pvHop = 0;
+      while (pv && pvHop < 5) { if (!pv.visible) return; pv = pv.parent; pvHop++; }
+      /* 节庆装饰是限时布景，不参与“绿残留”统计（否则初诣松枝会被当成冬季残留） */
+      var pe = o.parent, peHop = 0;
+      while (pe && peHop < 5) { if (pe.name && pe.name.indexOf('ev-root-') === 0) return; pe = pe.parent; peHop++; }
+      /* 游客是人物（衣服/道具颜色不随季），不计入绿残留 */
+      if ((o.userData && o.userData.kind) === 'visitor') return;
       var mat = o.material;
       if (!mat || Array.isArray(mat) || !mat.color) return;
-      var vcAttr = o.geometry && o.geometry.attributes && o.geometry.attributes.color;
+      /* 材质 vertexColors=false 时顶点色不参与渲染，不能算进去 */
+      var vcAttr = (mat.vertexColors !== false && o.geometry && o.geometry.attributes && o.geometry.attributes.color) || null;
       var r = mat.color.r, g = mat.color.g, b = mat.color.b;
       if (vcAttr) {
         var n = Math.min(vcAttr.count, 200), ar = 0, ag = 0, ab = 0;
@@ -8453,6 +8570,10 @@ window.__startSakuraGame = function () {
       if (g > r * 1.12 && g > b * 1.18 && g > 0.18) {
         var nm = o.name || (o.parent && o.parent.name) || 'unnamed';
         counts[nm] = (counts[nm] || 0) + 1; total++;
+        var gk = (o.userData && (o.userData.kind || o.userData.type)) || '';
+        if (gk === 'water') water++;
+        else if (o.userData && o.userData.gmSeasonRole) registered++;
+        else residual++;
         if (sample.length < max) {
           var wp = new THREE.Vector3();
           try { o.getWorldPosition(wp); } catch (e) {}
@@ -8467,7 +8588,8 @@ window.__startSakuraGame = function () {
         }
       }
     });
-    return { season: seasonKey, total: total, counts: counts, sample: sample };
+    /* residual = 未声明 role 的绿，即真正“漏登记”的部分；registered = 已声明随季上色的设计绿 */
+    return { season: seasonKey, total: total, water: water, registered: registered, residual: residual, counts: counts, sample: sample };
   };
   /* 真机自检：BGM 有没有在响、卡在哪一步（#admin 和远程调试都能读） */
   window.__bgmState = function () {
@@ -9523,6 +9645,25 @@ window.__startSakuraGame = function () {
   }
   function pickAt(cx, cy) {
     var rect = renderer.domElement.getBoundingClientRect();
+    // 花带优先：花簇小、常被石/木/废墟遮住，射线只认最近命中会漏掉；按屏幕距离给 16px 容差，
+    // 仅当前季可见的花参与，命中后直接返回花 kind，respond() 就能进图鉴判定。
+    if (SCENE_FLOWERS && SCENE_FLOWERS.length) {
+      var fpv = pickAt._v || (pickAt._v = new THREE.Vector3());
+      var bestF = null, bestD = 16;
+      for (var fi = 0; fi < SCENE_FLOWERS.length; fi++) {
+        var fl = SCENE_FLOWERS[fi];
+        if (!fl.active) continue;
+        fpv.set(fl.x, fl.y + 0.35, fl.z).project(camera);
+        if (fpv.z > 1 || fpv.z < -1) continue;
+        var fsx = (fpv.x + 1) / 2 * rect.width + rect.left;
+        var fsy = (1 - fpv.y) / 2 * rect.height + rect.top;
+        var fd = Math.sqrt((fsx - cx) * (fsx - cx) + (fsy - cy) * (fsy - cy));
+        if (fd < bestD) { bestD = fd; bestF = { kind: fl.kind, x: fl.x, y: fl.y + 0.35, z: fl.z }; }
+      }
+      if (bestF) {
+        return { kind: bestF.kind, point: new THREE.Vector3(bestF.x, bestF.y, bestF.z), normal: new THREE.Vector3(0, 1, 0), zone: { kind: bestF.kind, r: 1.4 }, hit: null, flower: bestF };
+      }
+    }
     ndc.x = ((cx - rect.left) / rect.width) * 2 - 1;
     ndc.y = -((cy - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
@@ -18753,6 +18894,27 @@ window.__startSakuraGame = function () {
   }
 
   // 六个动物条目的观察入口：统一走图鉴窗提供的 cxDiscover（带 funnel），不存在则退回 showLabel
+  // 图鉴 6 种动物：镜头靠近到阈值即触发发现（每只只触发一次，不重复发奖）
+  var LIFE_CX_ANIMALS = ['deer', 'crane', 'frog', 'rabbit', 'bird', 'squirrel'];
+  function lifeCxPickScan(dt) {
+    LIFE.cxT = (LIFE.cxT || 0) - dt;
+    if (LIFE.cxT > 0) return;
+    LIFE.cxT = 0.6;
+    if (typeof window.cxDiscover !== 'function') return;
+    var cam = window.__camera;
+    var zs = window.__props && window.__props.zones;
+    if (!cam || !zs) return;
+    for (var i = 0; i < zs.length; i++) {
+      var z = zs[i];
+      if (!z || !z.p || z.cxPicked) continue;
+      if (LIFE_CX_ANIMALS.indexOf(z.kind) < 0) continue;
+      var d = cam.position.distanceTo(z.p);
+      if (d > 16) continue;
+      z.cxPicked = true;
+      lifeDiscover(z.kind, z.p);
+    }
+  }
+
   function lifeDiscover(kind, pt) {
     if (!kind || typeof window.cxDiscover !== 'function') return false;
     try { return window.cxDiscover(kind, 'life', pt); } catch (e) { return false; }
@@ -18907,6 +19069,7 @@ window.__startSakuraGame = function () {
     lifeUpdateCat(dt, h, sk);
     lifeUpdateBees(dt, h, sk);
     lifeHabitatScan(dt);
+    lifeCxPickScan(dt);
   }
 
   function lifeHook(dt, hour, season) {
@@ -20449,6 +20612,7 @@ window.__startSakuraGame = function () {
       var kk = sceneChainKind(first);
       if (kk) merged.userData.kind = kk;
       else { merged.userData.noPick = true; merged.raycast = function () {}; }
+      gmSeasonRole(merged, kk || 'batch');
       if (first.userData.plot) merged.userData.plot = first.userData.plot;
       if (first.userData.plotId !== undefined) merged.userData.plotId = first.userData.plotId;
       scene.add(merged);
