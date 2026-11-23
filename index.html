@@ -1046,7 +1046,7 @@
   var SAFE_KEY = 'sakuraBootFail';
   var fails = 0;
   try { fails = parseInt(localStorage.getItem(SAFE_KEY) || '0', 10) || 0; } catch (e) {}
-  window.__safeMode = fails > 0;
+  window.__safeMode = fails >= 2;   /* 连续两次启动失败才降级，一次卡住/中途关页不算 */
   window.__bootFails = fails;
   try { localStorage.setItem(SAFE_KEY, String(fails + 1)); } catch (e) {}
   window.__bootOK = false;
@@ -16636,6 +16636,7 @@ window.__startSakuraGame = function () {
       '<div class="gset-sect"><b>画面</b>' +
       '<div class="gset-row"><span>帧率</span><div class="gseg">' + fpsHtml + '</div></div>' +
       '<div class="gset-row"><span>画质</span><div class="gseg">' + qHtml + '</div></div>' +
+      (window.__safeMode ? '<p class="gset-note" style="color:#c8886a">安全模式生效中：上次启动连续失败，本次按低画质运行（阴影关闭、像素比 1）。点任意画质档即可解除。</p>' : '') +
       '<div class="gset-row"><span>阴影</span><button type="button" class="gswitch ' + (GAME_SETTINGS.shadows ? 'on' : '') + '" data-shadow>' + (GAME_SETTINGS.shadows ? '开' : '关') + '</button></div>' +
       '<p class="gset-note">帧率上限为 30 / 60 / 120 帧或不限制；实际帧率还受屏幕刷新率与设备性能影响。画质越高，像素比与阴影越精细。</p></div>' +
       '<div class="gset-sect"><b>触屏操作</b><p class="gset-note">单指拖动只旋转视角，不会改变远近；双指需同时张开或捏合才会缩放，另一根手指搭在屏幕上不会误触。需要单指平移时点「平移视角」。</p></div>' +
@@ -16681,6 +16682,11 @@ window.__startSakuraGame = function () {
     for (var qq = 0; qq < qBtns.length; qq++) {
       qBtns[qq].onclick = function () {
         GAME_SETTINGS.quality = this.getAttribute('data-quality');
+        /* 玩家主动选画质就解除安全模式：它只是启动兜底，不该长期压住显式选择 */
+        if (window.__safeMode) {
+          window.__safeMode = false;
+          try { localStorage.setItem('sakuraBootFail', '0'); } catch (e) {}
+        }
         for (var x = 0; x < qBtns.length; x++) qBtns[x].classList.toggle('on', qBtns[x].getAttribute('data-quality') === GAME_SETTINGS.quality);
         gmApplyQuality();
         gmSaveSettings();
@@ -16690,6 +16696,10 @@ window.__startSakuraGame = function () {
     var shadowBtn = body.querySelector('[data-shadow]');
     if (shadowBtn) shadowBtn.onclick = function () {
       GAME_SETTINGS.shadows = !GAME_SETTINGS.shadows;
+      if (GAME_SETTINGS.shadows && window.__safeMode) {
+        window.__safeMode = false;
+        try { localStorage.setItem('sakuraBootFail', '0'); } catch (e) {}
+      }
       this.classList.toggle('on', GAME_SETTINGS.shadows);
       this.textContent = GAME_SETTINGS.shadows ? '开' : '关';
       gmApplyQuality(); gmSaveSettings();
@@ -20803,6 +20813,8 @@ window.__startSakuraGame = function () {
       shadowAuto: renderer.shadowMap.autoUpdate,
       shadowType: renderer.shadowMap.type === THREE.PCFSoftShadowMap ? 'soft' : 'pcf',
       shadowMap: sunLight.shadow.mapSize.x,
+      shadowEnabled: renderer.shadowMap.enabled,
+      safeMode: !!window.__safeMode,
       fpsCap: GAME_SETTINGS.fps,
       quality: GAME_SETTINGS.quality,
       tier: gmTier().label,
