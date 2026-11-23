@@ -142,9 +142,10 @@
   }
   .ctrl{
     appearance:none; cursor:pointer;
-    border:1px solid rgba(255,248,238,.42);
-    background:rgba(42,33,27,.42);
-    color:rgba(255,247,237,.92);
+    border:1px solid rgba(255,248,238,.62);
+    background:rgba(34,27,22,.74);
+    color:#fffaf3;
+    box-shadow:0 3px 12px rgba(0,0,0,.28);
     backdrop-filter:blur(8px);
     font-family:inherit; font-size:11px; letter-spacing:.14em;
     padding:9px 14px; border-radius:999px;
@@ -153,7 +154,7 @@
   }
   .ctrl:hover{ background:rgba(247,238,228,.9); color:#3a3029; border-color:rgba(247,238,228,.9); }
   .ctrl:active{ transform:scale(.97); }
-  .ctrl.on{ background:rgba(247,238,228,.88); color:#3a3029; border-color:rgba(247,238,228,.9); }
+  .ctrl.on{ background:rgba(156,74,74,.82); color:#fff6ea; border-color:rgba(200,120,110,.8); box-shadow:0 3px 12px rgba(120,40,40,.32); }
 
   /* —— 触控回响：浮签 —— */
   .taplabel{
@@ -199,12 +200,12 @@
   .cx-title b{ font-size:16px; letter-spacing:.30em; color:#f7e8da; }
   .cx-title span{ font-size:9px; letter-spacing:.16em; color:rgba(244,207,220,.72); }
   .cx-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
-  .cx-filters{ display:flex; gap:2px; padding:2px; border:1px solid rgba(247,239,228,.14); border-radius:999px; }
+  .cx-filters{ display:flex; gap:2px; padding:2px; border:1px solid rgba(247,239,228,.26); border-radius:999px; }
   .cx-filters button{
     appearance:none; cursor:pointer; font-family:inherit; border:0; border-radius:999px;
-    background:transparent; color:rgba(244,233,218,.58); font-size:9px; letter-spacing:.12em; padding:5px 10px;
+    background:transparent; color:rgba(244,233,218,.9); font-size:10px; letter-spacing:.06em; padding:4px 9px;
   }
-  .cx-filters button.on{ background:rgba(244,207,220,.18); color:#f7e8da; }
+  .cx-filters button.on{ background:rgba(244,207,220,.3); color:#fff6ea; }
   .cx-head > .cx-close{
     appearance:none; cursor:pointer; font-family:inherit;
     background:rgba(255,244,234,.10); color:#f4e6d8;
@@ -405,7 +406,7 @@
   }
   .gdock button{
     appearance:none; cursor:pointer; padding:9px 18px; font-family:inherit;
-    font-size:11px; letter-spacing:.18em; color:#f7efe4; background:rgba(46,37,31,.74);
+    font-size:11px; letter-spacing:.18em; color:#fff8ec; background:rgba(46,37,31,.88);
     border:1px solid rgba(247,239,228,.2); backdrop-filter:blur(8px);
     transition:background .25s ease,transform .15s ease;
   }
@@ -818,7 +819,7 @@
   body.playing .vertical{ display:none; }
   body.hud-detail #gPanel{ background:rgba(247,239,228,.82); max-width:64vw; }
   body.hud-folded .gp-res, body.hud-folded .gp-top, body.hud-folded .gp-date, body.hud-folded .gp-clock, body.hud-folded #gWx, body.hud-folded #gSun, body.hud-folded #gMoon{ display:none !important; }
-  #gHudFold, #ctrlFold{ border:1px solid rgba(54,43,35,.25); background:transparent; color:rgba(54,43,35,.75); border-radius:6px; font-size:9px; padding:1px 6px; }
+  #gHudFold, #ctrlFold{ border:1px solid rgba(255,248,238,.5); background:rgba(34,27,22,.66); color:#fffaf3; border-radius:6px; font-size:9px; padding:2px 7px; }
     .gp-line.dim{ margin-top:0; font-size:8px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .gp-line.wx em{ display:none; }
     .gp-line.dim{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:7.5px; margin-top:3px; }
@@ -8270,8 +8271,8 @@ window.__startSakuraGame = function () {
     master: 0.8, sfx: 0.8, ambient: 0.42, bgmVol: 0.65, mixV2: 1,
     fps: 60, quality: 'mid', shadows: true, autosave: true, hudMode: 'brief',
     bgmSlots: [
-      { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 0 },
-      { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 1 }
+      { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 1 },
+      { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 0 }
     ]
   };
   (function loadGameSettings() {
@@ -8307,6 +8308,17 @@ window.__startSakuraGame = function () {
           }
           GAME_SETTINGS.bgmSlots[i].name = bname;
         }
+      }
+      /* 一次性迁移：老存档把「青山绿野」放在首位的，换回新顺序（步履不停第一首） */
+      var bg0 = GAME_SETTINGS.bgmSlots[0], bg1 = GAME_SETTINGS.bgmSlots[1];
+      if (bg0 && bg1 && bg0.builtin === 0 && bg1.builtin === 1 && !bg0.src && !bg1.src) {
+        GAME_SETTINGS.bgmSlots[0] = bg1;
+        GAME_SETTINGS.bgmSlots[1] = bg0;
+      }
+      for (var bt = 0; bt < 2; bt++) {
+        var sb = GAME_SETTINGS.bgmSlots[bt];
+        if (sb.builtin === 1) sb.title = '步履不停';
+        else if (sb.builtin === 0) sb.title = '青山绿野';
       }
     } catch (e) {}
   })();
@@ -11674,6 +11686,13 @@ window.__startSakuraGame = function () {
   }
   function gmToggleHudMode() {
     GAME_SETTINGS.hudMode = GAME_SETTINGS.hudMode === 'detail' ? 'brief' : 'detail';
+    /* 切到详细时先展开：hud-folded 的 !important 规则写在 hud-detail 之后，
+       两者并存会把详细版压成"半详细"，用户就再也点不回最详细 */
+    if (GAME_SETTINGS.hudMode === 'detail') {
+      document.body.classList.remove('hud-folded');
+      var hf = document.getElementById('gHudFold');
+      if (hf) hf.textContent = '收起';
+    }
     gmApplyHudMode();
     gmSaveSettings();
     gmToast(GAME_SETTINGS.hudMode === 'detail' ? '状态栏：详细' : '状态栏：简略');
@@ -22747,7 +22766,7 @@ window.__startSakuraGame = function () {
     window.addEventListener('hashchange', hbAdminVis);
     hbAdminVis();
   }
-  function hbAdminVis() { var on = (/#admin/.test(location.hash) || !!document.getElementById('admToggle')) ? 'block' : 'none'; var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = on; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = on; var db = document.getElementById('hbDiagBtn'); if (db) db.style.display = on; if (!on && !document.getElementById('admToggle') && !hbAdminVis._retried) { hbAdminVis._retried = 1; setTimeout(hbAdminVis, 400); } }
+  function hbAdminVis() { /* 右侧悬浮三按钮只在 URL 带 #admin 时出现；管理员版改用面板内入口，避免遮挡右下角 HUD */ var on = /#admin/.test(location.hash) ? 'block' : 'none'; var f = document.getElementById('hbFunnelBtn'); if (f) f.style.display = on; var sb = document.getElementById('hbStallBtn'); if (sb) sb.style.display = on; var db = document.getElementById('hbDiagBtn'); if (db) db.style.display = on; }
   window.__hbAdminVis = hbAdminVis;
   function hbExport() {
     var txt = window.__funnelDump();
