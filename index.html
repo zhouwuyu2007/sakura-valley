@@ -8271,8 +8271,8 @@ window.__startSakuraGame = function () {
     master: 0.8, sfx: 0.8, ambient: 0.42, bgmVol: 0.65, mixV2: 1,
     fps: 60, quality: 'mid', shadows: true, autosave: true, hudMode: 'brief',
     bgmSlots: [
-      { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 1 },
-      { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 0 }
+      { title: '步履不停', src: '', name: '步履不停（内置）', builtin: 0 },
+      { title: '青山绿野', src: '', name: '青山绿野（内置）', builtin: 1 }
     ]
   };
   (function loadGameSettings() {
@@ -8309,16 +8309,10 @@ window.__startSakuraGame = function () {
           GAME_SETTINGS.bgmSlots[i].name = bname;
         }
       }
-      /* 一次性迁移：老存档把「青山绿野」放在首位的，换回新顺序（步履不停第一首） */
-      var bg0 = GAME_SETTINGS.bgmSlots[0], bg1 = GAME_SETTINGS.bgmSlots[1];
-      if (bg0 && bg1 && bg0.builtin === 0 && bg1.builtin === 1 && !bg0.src && !bg1.src) {
-        GAME_SETTINGS.bgmSlots[0] = bg1;
-        GAME_SETTINGS.bgmSlots[1] = bg0;
-      }
+      /* 曲名跟着 builtin 走：老存档里存的是旧标题，统一按内置曲重算，避免标签与音频错位 */
       for (var bt = 0; bt < 2; bt++) {
         var sb = GAME_SETTINGS.bgmSlots[bt];
-        if (sb.builtin === 1) sb.title = '步履不停';
-        else if (sb.builtin === 0) sb.title = '青山绿野';
+        if (sb && sb.builtin != null && !sb.src) sb.title = sb.builtin === 0 ? '步履不停' : '青山绿野';
       }
     } catch (e) {}
   })();
@@ -8387,9 +8381,10 @@ window.__startSakuraGame = function () {
   /* 两首曲子以 44.1kHz / 64kbps mp3 内联（原始 320kbps 共 13.8MB，内联会撑爆页面）
      分片存放，第一次真正用到时才拼成 data URI，避免启动阶段多拷两份几 MB 的字符串。
      想换曲：替换下面 parts 里的分片即可，文件名同时存了一份在 shared/sakura/assets/。 */
+  /* 曲名以 name 为准：assets 里历史文件名与内容相反（bgm-qingshan.mp3 实为《步履不停》235.7s，bubu.mp3 实为《青山绿野》109.8s） */
   var BGM_LIB = [
-    { name: '青山绿野（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3' },
-    { name: '步履不停（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3' }
+    { name: '步履不停（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3' },
+    { name: '青山绿野（内置）', parts: [], src: 'https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3' }
   ];
   function bgmBuiltinSrc(i) {
     var t = BGM_LIB[i];
