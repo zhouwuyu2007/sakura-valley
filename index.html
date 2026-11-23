@@ -1081,7 +1081,7 @@
     var r = e && e.reason;
     window.__lastBootError = (r && r.message) ? r.message : String(r);
   });
-  setTimeout(function () { window.__sakuraSlow('加载较慢，可点下方重试'); }, 15000);
+  setTimeout(function () { window.__sakuraSlow('正在加载场景…网络慢可点重试'); }, 6000);
   setTimeout(function () {
     if (window.__bootOK || window.__sceneReady) return;
     var cur = el('loaderErr');
@@ -22877,7 +22877,7 @@ window.__startSakuraGame = function () {
   setTimeout(boot, 3000);
 })();
 </script>
-<audio id="bgmFile0" src="https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3" preload="auto" hidden></audio><audio id="bgmFile1" src="https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3" preload="auto" hidden></audio>
+<audio id="bgmFile0" src="https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bgm-qingshan.mp3" preload="none" hidden></audio><audio id="bgmFile1" src="https://cdn.jsdelivr.net/gh/zhouwuyu2007/sakura-valley@main/assets/bubu.mp3" preload="none" hidden></audio>
 <script>/*BGM_RESILIENCE*/
 (function(){
   if (window.__bgmFix) return; window.__bgmFix = 1;
