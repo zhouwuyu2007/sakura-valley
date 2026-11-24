@@ -2,8 +2,31 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<script src="assets/version.js"></script>
+<script>
+/* 版本自检：旧链接 / 被缓存的老页面启动时，把自身构建号与 assets/version.js
+   里的远端构建号对比，不一致就跳到当前版本的 URL（?v=远端号）。
+   4b9a91d 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
+(function () {
+  try {
+    var BUILD = '4b9a91d';
+    if (!BUILD || BUILD.indexOf('__') === 0) return;
+    var REMOTE = (typeof window.__SAKURA_BUILD === 'string') ? window.__SAKURA_BUILD : '';
+    if (!REMOTE || REMOTE === BUILD) {
+      try { sessionStorage.removeItem('sakuraVerJump'); } catch (e) {}
+      return;
+    }
+    var n = 0;
+    try { n = parseInt(sessionStorage.getItem('sakuraVerJump') || '0', 10) || 0; } catch (e) {}
+    if (n >= 2) return;
+    try { sessionStorage.setItem('sakuraVerJump', String(n + 1)); } catch (e) {}
+    location.replace(location.pathname + '?v=' + encodeURIComponent(REMOTE));
+  } catch (e) {}
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>樱花山谷庭园 · Sakura Valley</title>
+
 <style>
   :root{
     --ink: #332b25;
