@@ -6,10 +6,10 @@
 <script>
 /* 版本自检：旧链接 / 被缓存的老页面启动时，把自身构建号与 assets/version.js
    里的远端构建号对比，不一致就跳到当前版本的 URL（?v=远端号）。
-   f56046b 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
+   e3826eb 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
 (function () {
   try {
-    var BUILD = 'f56046b';
+    var BUILD = 'e3826eb';
     if (!BUILD || BUILD.indexOf('__') === 0) return;
     var REMOTE = (typeof window.__SAKURA_BUILD === 'string') ? window.__SAKURA_BUILD : '';
     if (!REMOTE || REMOTE === BUILD) {
@@ -1016,6 +1016,10 @@
     .ev-body{ padding:10px 12px 14px; font-size:10.5px; }
     .ev-cx-art{ flex-basis:46px; width:46px; height:34px; }
     .ev-reward{ font-size:9.5px; }
+  }
+  /* 横屏时右下控件列会往上排到节庆条这一带，节庆条要往左让出整列的宽度，否则互相压住 */
+  @media (orientation: landscape){
+    .ev-banner{ right:calc(clamp(14px,2.4vw,30px) + 104px); }
   }
 
   /* 启动页：沿用原加载界面的留白与动效，只把“等待”改成“轻触进入” */
