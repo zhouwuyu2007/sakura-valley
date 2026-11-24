@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parent.parent
 THREE_TAG = re.compile(
     r'<script src="https://[^"]*jsdelivr\.net[^"]*three[^"]*"></script>'
 )
+# 线上包已把 three 外置成同目录 assets/three.min.js，这里同样内联回单文件
+REL_THREE = re.compile(r'<script src="(?:\./)?assets/three\.min\.js"></script>')
 
 
 def fetch() -> str:
@@ -61,7 +63,10 @@ def clean(html: str) -> str:
 
 def inline_three(html: str) -> str:
     js = (ROOT / "assets" / "three.min.js").read_text(encoding="utf-8")
-    return THREE_TAG.sub(lambda _: "<script>\n" + js + "\n</script>", html, count=1)
+    tag = "<script>\n" + js + "\n</script>"
+    if REL_THREE.search(html):
+        return REL_THREE.sub(lambda _: tag, html, count=1)
+    return THREE_TAG.sub(lambda _: tag, html, count=1)
 
 
 RAW_AUDIO = re.compile(
