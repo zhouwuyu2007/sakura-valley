@@ -6,10 +6,10 @@
 <script>
 /* 版本自检：旧链接 / 被缓存的老页面启动时，把自身构建号与 assets/version.js
    里的远端构建号对比，不一致就跳到当前版本的 URL（?v=远端号）。
-   4b9a91d 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
+   3e14846 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
 (function () {
   try {
-    var BUILD = '4b9a91d';
+    var BUILD = '3e14846';
     if (!BUILD || BUILD.indexOf('__') === 0) return;
     var REMOTE = (typeof window.__SAKURA_BUILD === 'string') ? window.__SAKURA_BUILD : '';
     if (!REMOTE || REMOTE === BUILD) {
@@ -3839,8 +3839,9 @@ window.__startSakuraGame = function () {
 
     var discGeo = new THREE.CircleGeometry(R, 52);
     discGeo.rotateX(-Math.PI / 2);
-    var disc = new THREE.Mesh(discGeo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0 }));
-    disc.position.set(cx, padTop + 0.005, cz);
+    var disc = new THREE.Mesh(discGeo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    disc.position.set(cx, padTop + 0.055, cz);
     disc.rotation.y = 0.3;
     disc.receiveShadow = true;
     scene.add(disc);
@@ -3853,7 +3854,7 @@ window.__startSakuraGame = function () {
       color: '#f3f8fa', roughness: 1, transparent: true, opacity: 0
     });
     var sdMesh = new THREE.Mesh(sdGeo, sdMat);
-    sdMesh.position.set(cx, padTop + 0.012, cz);
+    sdMesh.position.set(cx, padTop + 0.078, cz);
     sdMesh.rotation.y = 0.3;
     sdMesh.receiveShadow = true;
     sdMesh.visible = false;
