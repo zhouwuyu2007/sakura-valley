@@ -6,10 +6,10 @@
 <script>
 /* 版本自检：旧链接 / 被缓存的老页面启动时，把自身构建号与 assets/version.js
    里的远端构建号对比，不一致就跳到当前版本的 URL（?v=远端号）。
-   e3826eb 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
+   9ccf34a 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
 (function () {
   try {
-    var BUILD = 'e3826eb';
+    var BUILD = '9ccf34a';
     if (!BUILD || BUILD.indexOf('__') === 0) return;
     var REMOTE = (typeof window.__SAKURA_BUILD === 'string') ? window.__SAKURA_BUILD : '';
     if (!REMOTE || REMOTE === BUILD) {
@@ -1017,7 +1017,8 @@
     .ev-cx-art{ flex-basis:46px; width:46px; height:34px; }
     .ev-reward{ font-size:9.5px; }
   }
-  /* 横屏时右下控件列会往上排到节庆条这一带，节庆条要往左让出整列的宽度，否则互相压住 */
+  /* 横屏时右下控件列会往上排到节庆条这一带：默认先往左让出整列宽度，
+     运行时再由 evBannerPlace() 把节庆条摆到这一列正上方的空处、右边缘对齐 */
   @media (orientation: landscape){
     .ev-banner{ right:calc(clamp(14px,2.4vw,30px) + 104px); }
   }
@@ -20670,6 +20671,9 @@ window.__startSakuraGame = function () {
     EV.el.banner.onclick = function () { evPanelOpen(EV.bannerMode === 'contest' ? 'contest' : 'auto'); };
     EV.el.close.onclick = evPanelClose;
     EV.el.mask.addEventListener('pointerdown', function (e) { if (e.target === this) evPanelClose(); });
+    window.addEventListener('resize', function () { setTimeout(evBannerPlace, 70); });
+    window.addEventListener('orientationchange', function () { setTimeout(evBannerPlace, 140); });
+    setTimeout(evBannerPlace, 260);
   }
   function evBannerUpdate() {
     var b = EV.el && EV.el.banner;
@@ -20704,7 +20708,25 @@ window.__startSakuraGame = function () {
       EV.el.bName.textContent = '下一节 · ' + nx.def.name;
       EV.el.bLeft.textContent = nx.days <= 0 ? '就在今日' : nx.days + ' 日后';
     }
+    try { evBannerPlace(); } catch (e) {}
   }
+  /* 横屏：控件列从屏幕底部往上长，节庆条摆到列正上方的空处，右边缘与列对齐 */
+  function evBannerPlace() {
+    var el = EV.el && EV.el.banner;
+    if (!el) return;
+    var ctl = document.querySelector('.controls');
+    if (!ctl) return;
+    var landscape = window.innerWidth > window.innerHeight && window.innerWidth >= 760;
+    if (!landscape) { el.style.top = ''; el.style.bottom = ''; el.style.right = ''; return; }
+    var r = ctl.getBoundingClientRect();
+    var h = el.offsetHeight || 46;
+    var topPx = Math.round(r.top - h - 10);
+    if (topPx < 10) { el.style.top = ''; el.style.bottom = ''; el.style.right = ''; return; }
+    el.style.top = topPx + 'px';
+    el.style.bottom = 'auto';
+    el.style.right = 'clamp(14px,2.4vw,30px)';
+  }
+  window.__evBannerPlace = evBannerPlace;
   function evPanelOpen(view) {
     if (!EV.ready || !EV.el) return;
     if (view) EV.view = view;
@@ -23350,7 +23372,7 @@ window.__startSakuraGame = function () {
       document.body.classList.add('playing');
       if (window.innerWidth <= 430) document.body.classList.add('ctrl-folded');
       var cf = document.getElementById('ctrlFold');
-      if (cf) cf.addEventListener('click', function () { var f = document.body.classList.toggle('ctrl-folded'); cf.textContent = f ? '工具' : '收起'; });
+      if (cf) cf.addEventListener('click', function () { var f = document.body.classList.toggle('ctrl-folded'); cf.textContent = f ? '工具' : '收起'; if (window.__evBannerPlace) setTimeout(window.__evBannerPlace, 90); });
       var hf = document.getElementById('gHudFold');
       if (hf) hf.addEventListener('click', function () { var f = document.body.classList.toggle('hud-folded'); hf.textContent = f ? '展开' : '收起'; });
       var m = GM.mods;
