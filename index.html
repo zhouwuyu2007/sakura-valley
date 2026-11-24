@@ -15527,6 +15527,14 @@ window.__startSakuraGame = function () {
     GM.visitors = GM.visList.length;
     return GM.visList.length;
   }
+  /* 营业时段：06:00–22:00 正常接客；满月夜观（满月+晴）例外；
+     其余时间闭园，不再来人，滞留客人每 5 秒走一位 */
+  var gmClosedNoticeDay = -1;
+  function gmIsOpenNow() {
+    var h = GM.hour;
+    if (h >= 6 && h < 22) return true;
+    return wxNightWindow().open;
+  }
   function gmVisitors(rdt) {
     if (gmGuestFreezeN !== null) {
       while (GM.visList.length > gmGuestFreezeN) gmPerfDropVisitor(GM.visList.length - 1);
@@ -15534,8 +15542,21 @@ window.__startSakuraGame = function () {
       GM.visitors = GM.visList.length;
       return;
     }
+    var openNow = gmIsOpenNow();
+    if (!openNow) {
+      if (gmClosedNoticeDay !== Math.floor(GM.day)) {
+        gmClosedNoticeDay = Math.floor(GM.day);
+        gmToast('闭园时段 · 停止入园（满月夜观除外）', 5000);
+      }
+      var nowC = performance.now();
+      if (GM.visList.length && nowC > (GM.closeDropAt || 0)) {
+        gmPerfDropVisitor(GM.visList.length - 1);
+        GM.visitors = GM.visList.length;
+        GM.closeDropAt = nowC + 5000;
+      }
+    }
     var cap = gmCap();
-    if (GM.visList.length < cap && performance.now() > GM.nextSpawn) {
+    if (openNow && GM.visList.length < cap && performance.now() > GM.nextSpawn) {
       gmSpawnVisitor();
       var gap = Math.max(2400, 5000 + Math.random() * 6000 - (GM.rating - 3) * 900);
       GM.nextSpawn = performance.now() + gap / Math.max(0.25, wxSpawnMul());
@@ -17143,6 +17164,11 @@ window.__startSakuraGame = function () {
     gmEnsureWeekly();
     gmApplyQuality();
     window.__gmTour = gmTourPanel;
+    /* 诊断用：强制设定游戏内小时，验证营业时段闸门 */
+    window.__gmHour = function (h) {
+      if (typeof h === 'number' && isFinite(h)) { GM.hour = ((h % 24) + 24) % 24; hour = GM.hour; }
+      return GM.hour;
+    };
     if (GM.loaded) {
       GM.doy = ((59 + Math.floor(GM.day - 1)) % 365) + 1;
       var sk = gmSeason(gmDate(GM.doy).m);
