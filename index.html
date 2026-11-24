@@ -3346,8 +3346,13 @@ window.__startSakuraGame = function () {
 
   // 竹垣
   (function buildFence() {
+    /* 恢复原位全长 x=37.5 / z=8..32；只在茶室那块地块的后段留一个缺口，
+       否则竹篱会从房子中间穿过去 */
     var startZ = 8, endZ = 32, x = 37.5;
+    var gapA = 25.5, gapB = 33.0;
+    function inGap(z) { return z > gapA && z < gapB; }
     for (var z = startZ; z <= endZ; z += 0.42) {
+      if (inGap(z)) continue;
       var wxp = x + Math.sin(z * 0.12) * 1.2;
       var wy = terrainH(wxp, z);
       bambooParts.push({
@@ -3361,8 +3366,9 @@ window.__startSakuraGame = function () {
     for (var h = 0; h < 2; h++) {
       var yy = 1.05 + h * 0.55;
       for (var z2 = startZ; z2 < endZ; z2 += 3.0) {
-        var wx1 = x + Math.sin(z2 * 0.12) * 1.2;
         var wz1 = z2, wz2 = Math.min(z2 + 3.0, endZ);
+        if (inGap((wz1 + wz2) / 2)) continue;
+        var wx1 = x + Math.sin(z2 * 0.12) * 1.2;
         var wx2 = x + Math.sin(wz2 * 0.12) * 1.2;
         var midx = (wx1 + wx2) / 2, midz = (wz1 + wz2) / 2;
         var gy = terrainH(midx, midz);
@@ -3377,6 +3383,7 @@ window.__startSakuraGame = function () {
     }
     // 绑绳
     for (var z3 = startZ + 0.5; z3 < endZ; z3 += 2.2) {
+      if (inGap(z3)) continue;
       var wx3 = x + Math.sin(z3 * 0.12) * 1.2;
       var gy2 = terrainH(wx3, z3);
       bambooParts.push({
@@ -3790,19 +3797,27 @@ window.__startSakuraGame = function () {
     tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
 
     var baseY = terrainH(cx, cz);
+    /* 只取中心点高度当台面，坡上一半就埋进地里：改成取整盘覆盖范围内的最高地形点 */
+    var padBase = baseY;
+    for (var pai = 0; pai < 16; pai++) {
+      var paa = pai / 16 * Math.PI * 2;
+      padBase = Math.max(padBase, terrainH(cx + Math.cos(paa) * (R + 0.45), cz + Math.sin(paa) * (R + 0.45)));
+      padBase = Math.max(padBase, terrainH(cx + Math.cos(paa) * (R + 0.45) * 0.55, cz + Math.sin(paa) * (R + 0.45) * 0.55));
+    }
+    var padTop = padBase + 0.18;
     karesanPadMat = new THREE.MeshStandardMaterial({ color: '#c2b596', roughness: 1 });
     var pad = new THREE.Mesh(
-      new THREE.CylinderGeometry(R + 0.22, R + 0.45, 0.34, 36),
+      new THREE.CylinderGeometry(R + 0.22, R + 0.45, 1.6, 36),
       karesanPadMat
     );
-    pad.position.set(cx, baseY + 0.02, cz);
+    pad.position.set(cx, padTop - 0.8, cz);
     pad.receiveShadow = true;
     scene.add(pad);
 
     var discGeo = new THREE.CircleGeometry(R, 52);
     discGeo.rotateX(-Math.PI / 2);
     var disc = new THREE.Mesh(discGeo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0 }));
-    disc.position.set(cx, baseY + 0.2, cz);
+    disc.position.set(cx, padTop + 0.005, cz);
     disc.rotation.y = 0.3;
     disc.receiveShadow = true;
     scene.add(disc);
@@ -3815,7 +3830,7 @@ window.__startSakuraGame = function () {
       color: '#f3f8fa', roughness: 1, transparent: true, opacity: 0
     });
     var sdMesh = new THREE.Mesh(sdGeo, sdMat);
-    sdMesh.position.set(cx, baseY + 0.215, cz);
+    sdMesh.position.set(cx, padTop + 0.012, cz);
     sdMesh.rotation.y = 0.3;
     sdMesh.receiveShadow = true;
     sdMesh.visible = false;
@@ -3827,7 +3842,7 @@ window.__startSakuraGame = function () {
     function rstone(x, z, sx, sy, sz, hex) {
       rgParts.push({
         geo: new THREE.DodecahedronGeometry(1, 0),
-        matrix: M4(new THREE.Vector3(x, baseY + 0.2 + sy * 0.42, z),
+        matrix: M4(new THREE.Vector3(x, padTop + 0.02 + sy * 0.42, z),
           new THREE.Euler(0, rr(0, 6.28), 0), new THREE.Vector3(sx, sy, sz)),
         color: new THREE.Color(hex),
         tint: 0.05
@@ -3851,7 +3866,7 @@ window.__startSakuraGame = function () {
     [[cx - 1.2, cz + 0.1, 1.1], [cx + 1.1, cz + 1.1, 0.7]].forEach(function (mp) {
       mossParts2.push({
         geo: new THREE.IcosahedronGeometry(1, 0),
-        matrix: M4(new THREE.Vector3(mp[0], baseY + 0.2, mp[1]), new THREE.Euler(0, rr(0, 6), 0),
+        matrix: M4(new THREE.Vector3(mp[0], padTop + 0.02, mp[1]), new THREE.Euler(0, rr(0, 6), 0),
           new THREE.Vector3(mp[2], 0.08, mp[2] * 0.75)),
         color: new THREE.Color('#4f7241')
       });
@@ -5683,13 +5698,13 @@ window.__startSakuraGame = function () {
   var SEASON_ROLE_TINT = {
     ground:  { autumn: '#cfae6f', winter: '#dfe7ea' },
     shrub:   { autumn: '#d68f58', winter: { flat: '#ced6d4' } },
-    knoll:   { autumn: '#c9a76a', winter: { flat: '#e4e8e5' } },
+    knoll:   { autumn: { flat: '#a8925f' }, winter: { flat: '#e4e8e5' } },
     grass:   { autumn: '#e5cc93', winter: { flat: '#e7edee' } },
     ridge:   { autumn: '#c8a86b', winter: { flat: '#ced5d1' } },
     reed:    { autumn: '#d7bd85', winter: { flat: '#d2d6cb' } },
     ruin:    { autumn: '#d2c9b3', winter: { flat: '#d8dcdc' } },
     frog:    { autumn: '#c9b06a', winter: { flat: '#d5dade' } },
-    pine:    { autumn: '#c8a86a', winter: { flat: '#b7c4c2' } },
+    pine:    { autumn: '#cdb277', winter: { flat: '#b7c4c2' } },
     field:   { autumn: '#d8b06a', winter: { flat: '#dfe5e1' } },
     bamboo:  { autumn: '#c9ad74', winter: { flat: '#cfd6d2' } },
     foliage: { autumn: '#d3a866', winter: { flat: '#cdd6d8' } },
@@ -5698,6 +5713,7 @@ window.__startSakuraGame = function () {
     wood:    { autumn: '#d9c0a0', winter: '#d2d4cf' },
     stone:   { autumn: '#d2c9b6', winter: '#dfe3e5' },
     snow:    { autumn: { flat: '#eef1f1' }, winter: { flat: '#ffffff' } },
+    zoneveg: { autumn: { flat: '#cc9f4e' }, winter: { flat: '#cfd8d8' } },
     batch:   { autumn: '#d9b477', winter: { flat: '#d6dbd6' } },
     event:   { autumn: '#d3a866', winter: { flat: '#d3d9d5' } },
     keep:    {}
@@ -5796,6 +5812,7 @@ window.__startSakuraGame = function () {
       var k = (typeof ud.kind === 'string' && ud.kind) || (typeof ud.type === 'string' && ud.type) || (typeof ud.key === 'string' && ud.key) || null;
       if (o.name === 'game-knolls' || (o.parent && o.parent.name === 'game-knolls')) k = 'knoll';
       if (o.name === 'ridge' || (o.parent && o.parent.name === 'ridge')) k = 'ridge';
+      if (o.name === 'village-crops' || (o.parent && o.parent.name === 'village-crops')) k = 'zoneveg';
       /* 这些具名合批网格没有 userData.kind，靠变量认 */
       if (o === pineMesh) k = 'pine';
       else if (o === grassMesh) k = 'grass';
@@ -12405,27 +12422,27 @@ window.__startSakuraGame = function () {
       });
     }
     // 石灯笼列
-    for (var k = 0; k < 14; k++) {
-      var ang = k / 14 * Math.PI * 2 + 0.12;
+    for (var k = 0; k < 8; k++) {
+      var ang = k / 8 * Math.PI * 2 + 0.12;
       var lx = cx + Math.cos(ang) * (R + 3.4), lz = cz + Math.sin(ang) * (R + 3.4);
       if (gmNearPlot(lx, lz, 5.2) || streamDist(lx, lz) < 4) continue;
       gmLanternParts(parts, glow, lx, lz, rr(0.92, 1.18), rr(0, 3));
     }
     // 竹垣
-    for (var f = 0; f < 8; f++) {
-      var fa = f / 8 * Math.PI * 2 + 0.36;
+    for (var f = 0; f < 3; f++) {
+      var fa = 1.05 + f * 2.05 + rr(-0.3, 0.3);
       var fx = cx + Math.cos(fa) * (R + 7), fz = cz + Math.sin(fa) * (R + 7);
-      if (gmNearPlot(fx, fz, 6.2) || streamDist(fx, fz) < 5) continue;
-      gmFenceParts(parts, fx, fz, -fa + Math.PI / 2, rr(3.0, 4.2));
+      if (gmNearPlot(fx, fz, 9.0) || streamDist(fx, fz) < 6) continue;
+      gmFenceParts(parts, fx, fz, -fa + Math.PI / 2, rr(2.1, 2.7));
     }
     // 苔石
-    for (var r = 0; r < 18; r++) {
+    for (var r = 0; r < 10; r++) {
       var ra = RNG() * Math.PI * 2, rr0 = 54 + RNG() * 24;
       var rx = cx + Math.cos(ra) * rr0, rz0 = cz + Math.sin(ra) * rr0;
       if (gmNearPlot(rx, rz0, 4.2) || streamDist(rx, rz0) < 3.5) continue;
       gmRockPart(parts, rx, rz0, rr(0.5, 1.25), rr(0.32, 0.8), rr(0.5, 1.2), ['#7f8479', '#898c80', '#747a71'][Math.floor(RNG() * 3)], RNG() > 0.45);
     }
-    for (var m = 0; m < 14; m++) {
+    for (var m = 0; m < 8; m++) {
       var ma = RNG() * Math.PI * 2, mr = 55 + RNG() * 20;
       var mx = cx + Math.cos(ma) * mr, mz = cz + Math.sin(ma) * mr;
       if (gmNearPlot(mx, mz, 4.0) || streamDist(mx, mz) < 3.2) continue;
@@ -12655,100 +12672,110 @@ window.__startSakuraGame = function () {
     return { parts: parts, glow: glow };
   }
 
+  /* 山麓：一条顺坡蛇形主道 + 两条支路；散布物件带间距避让，避免你叠我我叠你 */
   function gmFoothillZoneParts() {
-    var parts = [], glow = [];
-    // 山道连接
-    var path = [[64, 58], [82, 40], [88, 48], [96, 18], [104, -24], [82, -6]];
-    for (var i = 0; i < path.length - 1; i++) {
-      gmPathPart(parts, path[i][0], path[i][1], path[i + 1][0], path[i + 1][1], 16);
+    var parts = [], veg = [], glow = [];
+    var put = [];
+    /* 主道从山脚 [64,58] 一路向上到 [96,-24]：z 单向递减，x 缓慢摆，不再来回折 */
+    var spine = [[64, 58], [70, 50], [78, 44], [86, 38], [92, 30], [95, 22],
+                 [98, 14], [102, 6], [104, -2], [103, -10], [100, -18], [96, -24]];
+    var road = [];
+    for (var i = 0; i < spine.length - 1; i++) {
+      road.push([spine[i][0], spine[i][1], spine[i + 1][0], spine[i + 1][1]]);
     }
-    for (var k = 0; k < 9; k++) {
-      var lx = 66 + k * 6.2, lz = 30 + Math.sin(k * 1.2) * 12;
-      if (gmNearPlot(lx, lz, 5.2)) continue;
-      gmLanternParts(parts, glow, lx, lz, rr(0.9, 1.1), rr(0, 3));
+    function segDist(px, pz, ax, az, bx, bz) {
+      var vx = bx - ax, vz = bz - az, wx = px - ax, wz = pz - az;
+      var L = vx * vx + vz * vz;
+      var t = L > 0 ? (wx * vx + wz * vz) / L : 0;
+      t = Math.max(0, Math.min(1, t));
+      var dx = px - (ax + vx * t), dz = pz - (az + vz * t);
+      return Math.sqrt(dx * dx + dz * dz);
     }
-    for (var r = 0; r < 14; r++) {
-      var rx = 62 + RNG() * 56, rz = -38 + RNG() * 96;
-      if (gmNearPlot(rx, rz, 4.2)) continue;
-      gmRockPart(parts, rx, rz, rr(0.5, 1.3), rr(0.3, 0.8), rr(0.5, 1.2), ['#7e8278', '#898c81', '#737a70'][Math.floor(RNG() * 3)], RNG() > 0.5);
+    function nearRoad(x, z, pad) {
+      var d = 9999;
+      for (var k = 0; k < road.length; k++) d = Math.min(d, segDist(x, z, road[k][0], road[k][1], road[k][2], road[k][3]));
+      return d < pad;
     }
-    for (var m = 0; m < 10; m++) {
-      var mx = 64 + RNG() * 52, mz = -34 + RNG() * 90;
-      if (gmNearPlot(mx, mz, 3.8)) continue;
-      gmMossPart(parts, mx, mz, rr(0.7, 1.4));
+    /* 主道：由宽到窄，越上山越细 */
+    for (var sd = 0; sd < road.length; sd++) {
+      var rr0 = road[sd];
+      gmPathPart(parts, rr0[0], rr0[1], rr0[2], rr0[3], 15 - 5 * (sd / (road.length - 1)));
     }
-    [[70, 44], [96, 30]].forEach(function (g) {
-      if (gmNearPlot(g[0], g[1], 6.0)) return;
-      gmGravelParts(parts, g[0], g[1], 3.2);
+    /* 两条支路：各从主道单侧斜出去，互相不交叉 */
+    [[[86, 38], [70, 44]], [[98, 14], [110, 16], [112, 4]]].forEach(function (ln) {
+      for (var k = 0; k < ln.length - 1; k++) {
+        gmPathPart(parts, ln[k][0], ln[k][1], ln[k + 1][0], ln[k + 1][1], 9);
+        road.push([ln[k][0], ln[k][1], ln[k + 1][0], ln[k + 1][1]]);
+      }
     });
-    [[74, 46], [98, -16], [88, 54]].forEach(function (sp) {
-      if (gmNearPlot(sp[0], sp[1], 5.2)) return;
-      gmShrineParts(parts, sp[0], sp[1], rr(0.9, 1.2), rr(0, 3));
+    /* 散布统一走这里：地块/溪流/道路/已放物件全部避让 */
+    function scatter(n, x0, w, z0, h, gap, cb) {
+      for (var i = 0; i < n; i++) {
+        var x = x0 + RNG() * w, z = z0 + RNG() * h;
+        if (gmNearPlot(x, z, 3.4) || streamDist(x, z) < 4.2) continue;
+        if (nearRoad(x, z, gap * 0.7)) continue;
+        var ok = true;
+        for (var j = 0; j < put.length; j++) {
+          var a = put[j], dx = a[0] - x, dz = a[1] - z;
+          if (dx * dx + dz * dz < gap * gap) { ok = false; break; }
+        }
+        if (!ok) continue;
+        put.push([x, z]);
+        cb(x, z, i);
+      }
+    }
+    /* 路侧灯笼：每三段一盏，沿法线向坡上侧偏 2.6 */
+    for (var li = 2; li < spine.length - 1; li += 3) {
+      var ax = spine[li][0], az = spine[li][1];
+      var tx = spine[li + 1][0] - spine[li - 1][0], tz = spine[li + 1][1] - spine[li - 1][1];
+      var tl = Math.sqrt(tx * tx + tz * tz) || 1;
+      var lx = ax - tz / tl * 2.6, lz = az + tx / tl * 2.6;
+      if (gmNearPlot(lx, lz, 3.0)) continue;
+      gmLanternParts(parts, glow, lx, lz, rr(0.85, 1.0), rr(0, 3));
+      put.push([lx, lz]);
+    }
+    /* 硬景：岩石、苔前石、石祠、竹篱、茶畑田埂 */
+    scatter(6, 62, 44, -30, 84, 5.0, function (x, z) {
+      gmRockPart(parts, x, z, rr(0.5, 1.3), rr(0.3, 0.8), rr(0.5, 1.2),
+        ['#7e8278', '#898c81', '#737a70'][Math.floor(RNG() * 3)], RNG() > 0.5);
     });
-    [[70, 62], [110, 20], [92, 8]].forEach(function (fp) {
-      if (gmNearPlot(fp[0], fp[1], 6.0)) return;
-      gmFenceParts(parts, fp[0], fp[1], rr(-0.4, 0.4), rr(3.4, 4.6));
+    function freeAt(x, z, d) {
+      for (var i = 0; i < put.length; i++) {
+        var a = put[i], dx = a[0] - x, dz = a[1] - z;
+        if (dx * dx + dz * dz < d * d) return false;
+      }
+      return true;
+    }
+    [[70, 52], [104, 40]].forEach(function (g) {
+      if (gmNearPlot(g[0], g[1], 6.0) || nearRoad(g[0], g[1], 3) || !freeAt(g[0], g[1], 6.0)) return;
+      gmGravelParts(parts, g[0], g[1], 3.0); put.push(g);
     });
-    for (var p = 0; p < 7; p++) {
-      var pa = RNG() * Math.PI * 2, pr = 70 + RNG() * 40;
-      var ppx = Math.cos(pa) * pr, ppz = 12 + Math.sin(pa) * pr;
-      if (ppx < 56 || gmNearPlot(ppx, ppz, 5.8) || streamDist(ppx, ppz) < 5) continue;
-      gmPineParts(parts, ppx, ppz, rr(0.6, 1.0));
-    }
-    // 茶畑与石垣
-    gmTeaFieldParts(parts, 74, 52);
-    gmTeaFieldParts(parts, 66, -30);
-    gmTeaFieldParts(parts, 108, 44);
-    gmStoneWallParts(parts, 64, 60, 84, 60, 0.55);
-    gmStoneWallParts(parts, 56, -38, 78, -38, 0.5);
-    gmStoneWallParts(parts, 100, 54, 118, 54, 0.55);
-    gmStoneWallParts(parts, 112, -34, 112, 12, 0.5);
-    for (var sh2 = 0; sh2 < 18; sh2++) {
-      var sa2 = RNG() * Math.PI * 2, sr2 = 62 + RNG() * 48;
-      var sx2 = Math.cos(sa2) * sr2, sz2 = 12 + Math.sin(sa2) * sr2;
-      if (sx2 < 55 || gmNearPlot(sx2, sz2, 4.0)) continue;
-      gmShrubParts(parts, sx2, sz2, rr(0.7, 1.1), sh2 % 5 === 0);
-    }
-    for (var hd2 = 0; hd2 < 8; hd2++) {
-      var ha2 = hd2 / 8 * Math.PI * 2 + 0.45, hr2 = 78 + RNG() * 30;
-      var hx2 = Math.cos(ha2) * hr2, hz2 = 12 + Math.sin(ha2) * hr2;
-      if (hx2 < 56 || gmNearPlot(hx2, hz2, 5.2)) continue;
-      gmHedgeParts(parts, hx2, hz2, -ha2 + Math.PI / 2, rr(2.6, 4.2));
-    }
-    for (var p2f = 0; p2f < 12; p2f++) {
-      var pa3 = RNG() * Math.PI * 2, pr3 = 70 + RNG() * 40;
-      var qx3 = Math.cos(pa3) * pr3, qz3 = 12 + Math.sin(pa3) * pr3;
-      if (qx3 < 56 || gmNearPlot(qx3, qz3, 5.4) || streamDist(qx3, qz3) < 5) continue;
-      gmPineParts(parts, qx3, qz3, rr(0.5, 0.9));
-    }
-    // 山麓次级石径，把茶畑、石垣与地块串起来
-    [[[72, 30], [96, 30]], [[96, 30], [96, 18]], [[82, -6], [82, 30]],
-     [[64, 20], [82, 20]], [[82, 20], [104, -8]], [[104, -8], [96, 18]]].forEach(function (seg) {
-      gmPathPart(parts, seg[0][0], seg[0][1], seg[1][0], seg[1][1], 14);
+    [[74, 46], [92, -22]].forEach(function (sp) {
+      if (gmNearPlot(sp[0], sp[1], 5.2) || nearRoad(sp[0], sp[1], 3.4) || !freeAt(sp[0], sp[1], 6.2)) return;
+      gmShrineParts(parts, sp[0], sp[1], rr(0.9, 1.2), rr(0, 3)); put.push(sp);
     });
-    for (var lm = 0; lm < 6; lm++) {
-      var lp = [[76, 34], [90, 24], [84, 14], [70, 12], [98, 2], [88, 42]][lm];
-      if (gmNearPlot(lp[0], lp[1], 4.0)) continue;
-      gmLanternParts(parts, glow, lp[0], lp[1], rr(0.85, 1.0), rr(0, 3));
-    }
-    for (var gm2 = 0; gm2 < 30; gm2++) {
-      var mx3 = 62 + RNG() * 56, mz3 = -36 + RNG() * 100;
-      if (gmNearPlot(mx3, mz3, 3.2) || streamDist(mx3, mz3) < 3.6) continue;
-      gmMossPart(parts, mx3, mz3, rr(0.8, 1.8));
-    }
-    for (var sh3 = 0; sh3 < 14; sh3++) {
-      var sx3 = 64 + RNG() * 54, sz3 = -34 + RNG() * 96;
-      if (gmNearPlot(sx3, sz3, 3.8)) continue;
-      gmShrubParts(parts, sx3, sz3, rr(0.55, 0.95), sh3 % 4 === 0);
-    }
-    for (var gt3 = 0; gt3 < 110; gt3++) {
-      var gx3 = 62 + RNG() * 58, gz3 = -40 + RNG() * 100;
-      if (gmNearPlot(gx3, gz3, 3.0) || streamDist(gx3, gz3) < 4) continue;
-      gmGrassTuft(parts, gx3, gz3, RNG() * 0.8 + 0.6);
-    }
-    gmTeaFieldParts(parts, 96, -24);
-    gmStoneWallParts(parts, 68, 18, 96, 18, 0.5);
-    return { parts: parts, glow: glow };
+    [[68, 64]].forEach(function (fp) {
+      if (gmNearPlot(fp[0], fp[1], 6.0) || nearRoad(fp[0], fp[1], 3.6) || !freeAt(fp[0], fp[1], 6.4)) return;
+      gmFenceParts(parts, fp[0], fp[1], rr(-0.2, 0.2), rr(3.4, 4.4)); put.push(fp);
+    });
+    /* 石垣只做三处挡土，沿主道上缘与茶畑边，不再横七竖八 */
+    var walls = [[[104, 50], [116, 48], 0.5], [[112, -34], [112, 8], 0.5]];
+    walls.forEach(function (wl) {
+      if (gmNearPlot(wl[0][0], wl[0][1], 4.0) || !freeAt(wl[0][0], wl[0][1], 4.4)) return;
+      gmStoneWallParts(parts, wl[0][0], wl[0][1], wl[1][0], wl[1][1], wl[2]);
+      put.push([wl[0][0], wl[0][1]], [wl[1][0], wl[1][1]]);
+    });
+    /* 植被：茶畑、松、灌木、绿篱、草丛、苔 */
+    [[74, 52], [108, 44]].forEach(function (tf) {
+      if (gmNearPlot(tf[0], tf[1], 6.0) || !freeAt(tf[0], tf[1], 7.0)) return;
+      gmTeaFieldParts(veg, tf[0], tf[1]); put.push(tf);
+    });
+    scatter(4, 70, 40, -20, 70, 7.4, function (x, z) { gmPineParts(veg, x, z, rr(0.55, 0.95)); });
+    scatter(5, 64, 50, -30, 84, 4.6, function (x, z, i) { gmShrubParts(veg, x, z, rr(0.6, 1.0), i % 5 === 0); });
+    scatter(3, 96, 18, 0, 50, 4.6, function (x, z, i) { gmHedgeParts(veg, x, z, rr(-0.5, 0.5), rr(2.6, 4.0)); });
+    scatter(18, 62, 46, -30, 84, 2.6, function (x, z) { gmGrassTuft(veg, x, z, RNG() * 0.7 + 0.55); });
+    scatter(5, 64, 46, -28, 82, 4.0, function (x, z) { gmMossPart(veg, x, z, rr(0.7, 1.4)); });
+    return { parts: parts, veg: veg, glow: glow };
   }
 
   function gmBuildOuterGardens() {
@@ -12761,7 +12788,17 @@ window.__startSakuraGame = function () {
       var mesh = new THREE.Mesh(partsToGeometry(data.parts), stdMat);
       mesh.castShadow = true; mesh.receiveShadow = true;
       mesh.userData.noPick = true;
+      /* 外圈园林是合批大网格，没有 kind 就不会进季节注册表（冬天下雪它还是绿的） */
+      mesh.userData.kind = key === 'pine' ? 'pine' : (key === 'foothill' ? 'stone' : 'foliage');
       group.add(mesh);
+      if (data.veg && data.veg.length) {
+        /* 植被单独一张网：秋季整片枯黄、冬季覆灰白，压在硬景那张上不会把路染黄 */
+        var vmesh = new THREE.Mesh(partsToGeometry(data.veg), stdMat);
+        vmesh.castShadow = true; vmesh.receiveShadow = true;
+        vmesh.userData.noPick = true;
+        vmesh.userData.kind = 'zoneveg';
+        group.add(vmesh);
+      }
       if (data.glow.length) {
         var gm2 = new THREE.Mesh(partsToGeometry(data.glow), new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 }));
         gm2.userData.noPick = true;
@@ -12945,11 +12982,8 @@ window.__startSakuraGame = function () {
     var rockMat = new THREE.MeshStandardMaterial({ color: '#83877a', roughness: 0.98, metalness: 0, flatShading: true });
     var group = new THREE.Group();
     group.name = 'game-knolls';
-    var knolls = [
-      [-72, 66, 13, 2.9], [45, 38, 8, 2.1], [-170, 66, 12, 2.8], [75, 60, 11, 2.6],
-      [92, -45, 12, 2.8], [-40, -62, 12, 2.6], [138, 18, 14, 3.2],
-      [-18, 74, 7, 2.2], [48, 32, 7, 1.8], [-2, -45, 8, 2.2]
-    ];
+    /* 用户要求删掉这组草丘：它们又绿又和竹垣、地块、树木互相插穿，留着纯属添乱 */
+    var knolls = [];
     for (var i = 0; i < knolls.length; i++) {
       var k = knolls[i];
       var mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 7), grassMat);
@@ -17168,6 +17202,59 @@ window.__startSakuraGame = function () {
     window.__gmHour = function (h) {
       if (typeof h === 'number' && isFinite(h)) { GM.hour = ((h % 24) + 24) % 24; hour = GM.hour; }
       return GM.hour;
+    };
+    /* 诊断用：直接给誉望并立刻结算区域解锁 */
+    window.__gmRenown = function (n) {
+      if (typeof n === 'number' && isFinite(n)) {
+        GM.renown = n;
+        try { gmCheckZones(); } catch (e) {}
+        gmHud(performance.now());
+      }
+      return GM.renown;
+    };
+    /* 诊断用：查各区域合批网格的季节角色与当前颜色 */
+    window.__zoneInfo = function () {
+      var out = [];
+      Object.keys(gmZoneGroups || {}).forEach(function (k) {
+        var g = gmZoneGroups[k], c = g && g.children && g.children[0];
+        out.push({ key: k, vis: g ? g.visible : null,
+          kind: c && c.userData ? (c.userData.kind || null) : null,
+          col: c && c.material && c.material.color ? '#' + c.material.color.getHexString() : null,
+          parts: g ? g.children.length : 0,
+          verts: c && c.geometry && c.geometry.attributes && c.geometry.attributes.position ? c.geometry.attributes.position.count : 0,
+          kids: g ? g.children.map(function (o) {
+            return (o.userData && o.userData.kind ? o.userData.kind : 'glow') + ':' +
+              (o.material && o.material.color ? '#' + o.material.color.getHexString() : '-') + '/' +
+              (o.geometry && o.geometry.attributes && o.geometry.attributes.position ? o.geometry.attributes.position.count : 0);
+          }) : [] });
+      });
+      return out;
+    };
+    /* 诊断用：列出所有偏绿的网格（材质色×顶点色均值），定位“秋天还是绿的台地” */
+    window.__greens = function (th) {
+      th = th || 1.05;
+      var out = [];
+      scene.traverse(function (o) {
+        if (!o.isMesh) return;
+        var mat = o.material;
+        if (!mat || Array.isArray(mat) || !mat.color) return;
+        var vc = (mat.vertexColors !== false && o.geometry && o.geometry.attributes && o.geometry.attributes.color) || null;
+        var r = mat.color.r * 255, g = mat.color.g * 255, b = mat.color.b * 255;
+        if (vc) {
+          var n = Math.min(vc.count, 60), ar = 0, ag = 0, ab = 0;
+          for (var i = 0; i < n; i++) { ar += vc.getX(i); ag += vc.getY(i); ab += vc.getZ(i); }
+          ar /= n; ag /= n; ab /= n; r *= ar; g *= ag; b *= ab;
+        }
+        if (!(g > r * th && g > b * th)) return;
+        var p = new THREE.Vector3(); o.getWorldPosition(p);
+        out.push({ n: o.name || (o.parent && o.parent.name) || '-',
+          kind: (o.userData && (o.userData.kind || o.userData.type)) || '',
+          c: [Math.round(r), Math.round(g), Math.round(b)],
+          v: o.geometry.attributes.position.count,
+          x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z),
+          mt: (mat.type || '') });
+      });
+      return out;
     };
     if (GM.loaded) {
       GM.doy = ((59 + Math.floor(GM.day - 1)) % 365) + 1;
