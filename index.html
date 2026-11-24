@@ -8348,11 +8348,22 @@ window.__startSakuraGame = function () {
   function gmApplyQuality() {
     var dpr = window.devicePixelRatio || 1;
     var t = gmTier();
+    /* 安全模式分级：失败 2 次只降一档（阴影保留、像素比不低于 1.5），
+       失败 3 次以上才回到"像素比 1 + 关阴影"的极端兜底。
+       之前一刀切到像素比 1 会让玩家觉得"点了极致还是流畅画质" */
+    var safe = !!window.__safeMode;
+    var strict = safe && (window.__bootFails || 0) >= 3;
+    if (safe) {
+      var i0 = GM_TIER_ORDER.indexOf(GAME_SETTINGS.quality);
+      var k2 = GM_TIER_ORDER[Math.min(GM_TIER_ORDER.length - 1, (i0 < 0 ? 2 : i0) + 1)];
+      t = GM_TIERS[k2] || GM_TIERS.mid;
+    }
     var pr = t.pr(dpr);
-    if (window.__safeMode) pr = Math.min(pr, 1);
+    if (safe && !strict) pr = Math.min(pr, 1.5);
+    if (strict) pr = 1;
     renderer.setPixelRatio(pr);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows && !window.__safeMode;
+    renderer.shadowMap.enabled = !!GAME_SETTINGS.shadows && !strict;
     renderer.shadowMap.type = t.soft ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
     if (sunLight.shadow.mapSize.x !== t.shadow) {
       sunLight.shadow.mapSize.set(t.shadow, t.shadow);
@@ -11634,12 +11645,26 @@ window.__startSakuraGame = function () {
       gmEl[id] = document.getElementById(id);
     });
   }
-  function gmToast(msg) {
+  /* 提示条支持自定义时长 + 排队：解锁多个区域时一条一条弹，5 秒读得完 */
+  function gmToast(msg, ms) {
     if (!gmEl.gToast) return;
-    gmEl.gToast.textContent = msg;
+    if (!GM.toastQ) GM.toastQ = [];
+    GM.toastQ.push({ m: msg, t: ms || 2600 });
+    if (GM.toastQ.length > 4) GM.toastQ.splice(0, GM.toastQ.length - 4);
+    gmToastPump();
+  }
+  function gmToastPump() {
+    if (!gmEl.gToast || GM.toastBusy || !GM.toastQ || !GM.toastQ.length) return;
+    GM.toastBusy = true;
+    var it = GM.toastQ.shift();
+    gmEl.gToast.textContent = it.m;
     gmEl.gToast.classList.add('on');
     clearTimeout(GM.toastT);
-    GM.toastT = setTimeout(function () { gmEl.gToast.classList.remove('on'); }, 2600);
+    GM.toastT = setTimeout(function () {
+      gmEl.gToast.classList.remove('on');
+      GM.toastBusy = false;
+      setTimeout(gmToastPump, 320);
+    }, it.t);
   }
   function gmHud(now) {
     if (!gmEl.gMoney) return;
@@ -13034,7 +13059,10 @@ window.__startSakuraGame = function () {
       }
     });
     if (opened.length && !silent) {
-      gmToast('新域开放 · ' + opened.map(function (d) { return d.name; }).join(' · ') + ' · 可建景观');
+      opened.forEach(function (d) {
+        var djp = (d.jp && d.jp !== d.name) ? '（' + d.jp + '）' : '';
+        gmToast('新域开放 · ' + d.name + djp + ' · 可建景观', 5000);
+      });
       sfx('chime');
     }
     if (opened.length && GM.buildMode) gmSetBuildMode(true);
@@ -13065,7 +13093,11 @@ window.__startSakuraGame = function () {
     for (var i = 0; i < btns.length; i++) {
       btns[i].addEventListener('click', function () {
         var def = gmZoneDef(this.getAttribute('data-z'));
-        if (def) window.__focusCamera(def.x, def.z, def.r, def.phi || 1.2, def.theta);
+        if (def) {
+          window.__focusCamera(def.x, def.z, def.r, def.phi || 1.2, def.theta);
+          var zjp = (def.jp && def.jp !== def.name) ? '（' + def.jp + '）' : '';
+          gmToast('巡园 · ' + def.name + zjp + ' · ' + def.desc, 5000);
+        }
         gmCloseModal();
       });
     }
