@@ -6,10 +6,10 @@
 <script>
 /* 版本自检：旧链接 / 被缓存的老页面启动时，把自身构建号与 assets/version.js
    里的远端构建号对比，不一致就跳到当前版本的 URL（?v=远端号）。
-   3e14846 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
+   f84319f 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
 (function () {
   try {
-    var BUILD = '3e14846';
+    var BUILD = 'f84319f';
     if (!BUILD || BUILD.indexOf('__') === 0) return;
     var REMOTE = (typeof window.__SAKURA_BUILD === 'string') ? window.__SAKURA_BUILD : '';
     if (!REMOTE || REMOTE === BUILD) {
@@ -1394,7 +1394,7 @@ window.__startSakuraGame = function () {
   var FOG_COLOR = new THREE.Color('#ece3d8');
   scene.fog = new THREE.Fog(FOG_COLOR, 105, 420);
 
-  var camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 900);
+  var camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 900);
 
   var sunDir = new THREE.Vector3(-0.52, 0.62, 0.36).normalize();
 
@@ -3798,25 +3798,26 @@ window.__startSakuraGame = function () {
   (function buildKaresansui() {
     var cx = 24.0, cz = 28.0, R = 4.9;
     var cvs = document.createElement('canvas');
-    cvs.width = cvs.height = 512;
+    cvs.width = cvs.height = 1024;
     var ctx = cvs.getContext('2d');
     ctx.fillStyle = '#cfc2a6';
-    ctx.fillRect(0, 0, 512, 512);
-    for (var sp = 0; sp < 5200; sp++) {
-      var aa = Math.random() * Math.PI * 2, rr2 = Math.sqrt(Math.random()) * 252;
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(120,112,96,0.10)' : 'rgba(255,250,238,0.12)';
-      ctx.fillRect(256 + Math.cos(aa) * rr2, 256 + Math.sin(aa) * rr2, 1.6, 1.6);
+    ctx.fillRect(0, 0, 1024, 1024);
+    for (var sp = 0; sp < 9000; sp++) {
+      var aa = Math.random() * Math.PI * 2, rr2 = Math.sqrt(Math.random()) * 505;
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(120,112,96,0.09)' : 'rgba(255,250,238,0.10)';
+      ctx.fillRect(512 + Math.cos(aa) * rr2, 512 + Math.sin(aa) * rr2, 3, 3);
     }
-    ctx.strokeStyle = 'rgba(140,130,108,0.34)';
-    ctx.lineWidth = 2.4;
-    for (var rad = 16; rad < 250; rad += 9) {
+    /* 砂纹在远处会摩尔纹闪：纹理提到 1024、线宽随分辨率同比放大、对比度压低，让 mipmap 平均后趋于均匀 */
+    ctx.strokeStyle = 'rgba(138,128,106,0.24)';
+    ctx.lineWidth = 4.6;
+    for (var rad = 32; rad < 505; rad += 18) {
       ctx.beginPath();
-      ctx.arc(256, 256, rad, 0, Math.PI * 2);
+      ctx.arc(512, 512, rad, 0, Math.PI * 2);
       ctx.stroke();
     }
     var tex = new THREE.CanvasTexture(cvs);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    tex.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
     tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
 
     var baseY = terrainH(cx, cz);
@@ -3829,32 +3830,41 @@ window.__startSakuraGame = function () {
     }
     var padTop = padBase + 0.18;
     karesanPadMat = new THREE.MeshStandardMaterial({ color: '#c2b596', roughness: 1 });
+    /* 台座改成无盖圆柱：顶面交给白砂盘。两块面上下叠着只差几厘米，镜头拉远后深度缓冲分不开就一直闪 */
     var pad = new THREE.Mesh(
-      new THREE.CylinderGeometry(R + 0.22, R + 0.45, 1.6, 36),
+      new THREE.CylinderGeometry(R + 0.22, R + 0.45, 1.6, 36, 1, true),
       karesanPadMat
     );
     pad.position.set(cx, padTop - 0.8, cz);
     pad.receiveShadow = true;
     scene.add(pad);
 
-    var discGeo = new THREE.CircleGeometry(R, 52);
+    /* 白砂盘抬到 padTop+0.12，下面补一圈薄石裙封住高差，与台座再没有共面的面 */
+    var discTop = padTop + 0.12;
+    var rimMat = new THREE.MeshStandardMaterial({ color: '#b1a689', roughness: 1 });
+    var rim = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.24, R + 0.245, 0.15, 44, 1, true), rimMat);
+    rim.position.set(cx, padTop + 0.048, cz);
+    rim.receiveShadow = true;
+    scene.add(rim);
+
+    var discGeo = new THREE.CircleGeometry(R + 0.24, 52);
     discGeo.rotateX(-Math.PI / 2);
-    var disc = new THREE.Mesh(discGeo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0,
-      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
-    disc.position.set(cx, padTop + 0.055, cz);
+    var disc = new THREE.Mesh(discGeo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0 }));
+    disc.position.set(cx, discTop, cz);
     disc.rotation.y = 0.3;
     disc.receiveShadow = true;
     scene.add(disc);
     karesanDisc = disc;
 
     // 冬季覆雪层
-    var sdGeo = new THREE.CircleGeometry(R, 52);
+    var sdGeo = new THREE.CircleGeometry(R + 0.20, 52);
     sdGeo.rotateX(-Math.PI / 2);
     var sdMat = new THREE.MeshStandardMaterial({
-      color: '#f3f8fa', roughness: 1, transparent: true, opacity: 0
+      color: '#f3f8fa', roughness: 1, transparent: true, opacity: 0,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4
     });
     var sdMesh = new THREE.Mesh(sdGeo, sdMat);
-    sdMesh.position.set(cx, padTop + 0.078, cz);
+    sdMesh.position.set(cx, discTop + 0.03, cz);
     sdMesh.rotation.y = 0.3;
     sdMesh.receiveShadow = true;
     sdMesh.visible = false;
@@ -3866,7 +3876,7 @@ window.__startSakuraGame = function () {
     function rstone(x, z, sx, sy, sz, hex) {
       rgParts.push({
         geo: new THREE.DodecahedronGeometry(1, 0),
-        matrix: M4(new THREE.Vector3(x, padTop + 0.02 + sy * 0.42, z),
+        matrix: M4(new THREE.Vector3(x, discTop + 0.02 + sy * 0.42, z),
           new THREE.Euler(0, rr(0, 6.28), 0), new THREE.Vector3(sx, sy, sz)),
         color: new THREE.Color(hex),
         tint: 0.05
@@ -3890,7 +3900,7 @@ window.__startSakuraGame = function () {
     [[cx - 1.2, cz + 0.1, 1.1], [cx + 1.1, cz + 1.1, 0.7]].forEach(function (mp) {
       mossParts2.push({
         geo: new THREE.IcosahedronGeometry(1, 0),
-        matrix: M4(new THREE.Vector3(mp[0], padTop + 0.02, mp[1]), new THREE.Euler(0, rr(0, 6), 0),
+        matrix: M4(new THREE.Vector3(mp[0], discTop + 0.02, mp[1]), new THREE.Euler(0, rr(0, 6), 0),
           new THREE.Vector3(mp[2], 0.08, mp[2] * 0.75)),
         color: new THREE.Color('#4f7241')
       });
