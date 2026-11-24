@@ -148,6 +148,13 @@ def main() -> int:
     html = harden_bgm(html)
     (ROOT / "index.html").write_text(html, encoding="utf-8")
     print(f"index.html 已写入，{len(html)} 字节")
+    # 同步时一并产出：版本自检用的构建号 + .nojekyll（否则 Pages 走 Jekyll 且 version.js 404）
+    build = re.search(r"var BUILD = '([0-9a-zA-Z]{4,})'", html)
+    (ROOT / "assets").mkdir(exist_ok=True)
+    (ROOT / "assets" / "version.js").write_text(
+        'window.__SAKURA_BUILD="%s";\n' % (build.group(1) if build else ""), encoding="utf-8")
+    (ROOT / ".nojekyll").write_text("", encoding="utf-8")
+    print("[ver] build", build.group(1) if build else "?")
     return 0
 
 
