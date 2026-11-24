@@ -1,1 +1,1 @@
-window.__SAKURA_BUILD="05d8a33";
+window.__SAKURA_BUILD="f56046b";

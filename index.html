@@ -6,10 +6,10 @@
 <script>
 /* 版本自检：旧链接 / 被缓存的老页面启动时，把自身构建号与 assets/version.js
    里的远端构建号对比，不一致就跳到当前版本的 URL（?v=远端号）。
-   05d8a33 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
+   f56046b 由 tools/lite.py 打包时替换；仓库里留占位符则本段不生效。 */
 (function () {
   try {
-    var BUILD = '05d8a33';
+    var BUILD = 'f56046b';
     if (!BUILD || BUILD.indexOf('__') === 0) return;
     var REMOTE = (typeof window.__SAKURA_BUILD === 'string') ? window.__SAKURA_BUILD : '';
     if (!REMOTE || REMOTE === BUILD) {
@@ -493,6 +493,23 @@
   .gsheet.pv .gs-grid{ display:none; }
   .gs-back{ padding:7px 10px; border:1px solid rgba(247,239,228,.28); background:none; color:rgba(247,239,228,.82); font:10px/1 inherit; letter-spacing:.08em; cursor:pointer; }
   .gs-back[hidden]{ display:none; }
+  .gs-brush{ padding:7px 12px; border:1px solid rgba(169,211,154,.5); background:rgba(120,170,110,.2);
+    color:#d8efcb; font:10px/1 inherit; letter-spacing:.08em; cursor:pointer; }
+  .gs-brush[hidden]{ display:none; }
+
+  /* 竹垣连线模式的常驻提示条，点它退出 */
+  .fence-hint{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 118px);
+    display:none; align-items:center; gap:9px; padding:7px 12px; border-radius:999px; z-index:36;
+    border:1px solid rgba(232,192,138,.55); background:rgba(38,30,25,.88); color:#f6e5d5;
+    font-family:inherit; font-size:10px; letter-spacing:.1em; backdrop-filter:blur(9px); cursor:pointer;
+    box-shadow:0 6px 22px rgba(16,12,9,.4);
+  }
+  .fence-hint.on{ display:flex; }
+  .fence-hint b{ color:#e8c08a; letter-spacing:.16em; }
+  .fence-hint span{ opacity:.62; }
+  .fence-hint i{ font-style:normal; padding:2px 8px; border:1px solid rgba(255,248,238,.42); border-radius:999px; }
 
   .gmask[hidden]{ display:none !important; }
   .gmask{ position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
@@ -1262,7 +1279,7 @@
   <div class="gsheet" id="gSheet" hidden>
     <div class="gs-head"><span id="gSheetTitle">空地</span><button id="gSheetClose" type="button">关闭</button></div>
     <div class="gs-grid" id="gSheetGrid"></div>
-    <div class="gs-act"><span class="gs-pick">尚未选择设施</span><button class="gs-back" type="button" hidden>重选</button><button class="gs-go" type="button" disabled>建造</button></div>
+    <div class="gs-act"><span class="gs-pick">尚未选择设施</span><button class="gs-back" type="button" hidden>重选</button><button class="gs-brush" type="button" hidden>连线铺竹垣</button><button class="gs-go" type="button" disabled>建造</button></div>
   </div>
   <div class="gtoast" id="gToast"></div>
 </div>
@@ -7523,6 +7540,7 @@ window.__startSakuraGame = function () {
     if (prev > 0 && now > 0) orbit.tRadius = clamp(orbit.tRadius * (prev / now), 42, 230);
   }
   function onTouchStart(e) {
+    if (window.__fenceBrushActive) return;
     if (!e.touches || !e.touches.length) return;
     lastTouchAt = performance.now();
     sceneStopSpin();
@@ -7552,6 +7570,7 @@ window.__startSakuraGame = function () {
     idleTime = 0;
   }
   function onTouchMove(e) {
+    if (window.__fenceBrushActive) return;
     lastTouchAt = performance.now();
     if (!e.touches || !e.touches.length || !dragging) return;
     if (e.touches.length >= 2) {
@@ -10829,7 +10848,7 @@ window.__startSakuraGame = function () {
     money: 520, research: 0, renown: 12,
     visitors: 0, weekVisitors: 0, spent: 0, weekLog: null,
     moonIllum: 0, moonAge: 0, moonName: '新月',
-    plots: [], built: [], construction: [], visList: [],
+    plots: [], built: [], construction: [], visList: [], fenceSegs: [],
     unlocked: {}, buildMode: false, selected: -1,
     zones: { core: true }, codexPaid: 0,
     stats: { builtTotal: 0, visitorsTotal: 0, incomeTotal: 0, upgrades: 0, codexTotal: 0 },
@@ -11973,6 +11992,7 @@ window.__startSakuraGame = function () {
       if (seasonKey === 'winter') v *= (GM.unlocked.snow ? 1.25 : 1);
       a += v;
     }
+    a += Math.min(72, (GM.fenceSegs ? GM.fenceSegs.length : 0) * 2);
     a += gmComboInfo().appeal;
     if (GM.staff.gardener) a *= 1.12;
     if (seasonKey === 'spring') a *= 1.12;
@@ -12139,6 +12159,7 @@ window.__startSakuraGame = function () {
     }
   }
   function gmSetBuildMode(on) {
+    if (on) gmFenceExit();
     GM.buildMode = !!on;
     for (var i = 0; i < GM.plots.length; i++) {
       var p = GM.plots[i];
@@ -14579,6 +14600,284 @@ window.__startSakuraGame = function () {
     }
   }
 
+  /* ============================================================
+     竹垣连线铺设（城墙式刷串）：按住拖一条即成排，轻点已建段可拆
+     ============================================================ */
+  var GMF = { on: false, drag: false, moved: false, sx: 0, sz: 0, downT: 0, group: null, ghost: null, plan: [], lastCalc: 0, ghostMat: null };
+  var GMF_STEP = 2.6, GMF_LEN = 2.64, GMF_COST = 50, GMF_REFUND = 25, GMF_MAX = 200;
+
+  /* 已知的几处大体量静态景观，竹垣不要穿过去 */
+  var GMF_BLOCKS = [[24, 28, 6.8], [34, 30, 5.2], [40, 16, 4.8], [-44, 40, 4.8], [0, 74, 5.0]];
+  function gmFenceSegOK(x, z, a) {
+    if (Math.abs(x) > 190 || Math.abs(z) > 190) return false;
+    if (terrainH(x, z) < WATER_Y + 0.35) return false;
+    if (streamDist(x, z) < 2.8) return false;
+    if (gmNearPlot(x, z, 1.9)) return false;
+    for (var bq = 0; bq < GMF_BLOCKS.length; bq++) {
+      if (Math.hypot(x - GMF_BLOCKS[bq][0], z - GMF_BLOCKS[bq][1]) < GMF_BLOCKS[bq][2]) return false;
+    }
+    var ax = Math.cos(a), az = -Math.sin(a);
+    var h1 = terrainH(x - ax * GMF_LEN / 2, z - az * GMF_LEN / 2);
+    var h2 = terrainH(x + ax * GMF_LEN / 2, z + az * GMF_LEN / 2);
+    if (Math.abs(h2 - h1) > 1.0) return false;
+    for (var i = 0; i < GM.fenceSegs.length; i++) {
+      var s = GM.fenceSegs[i];
+      if (Math.hypot(x - s.x, z - s.z) < 1.2) return false;
+    }
+    for (var p = 0; p < GM.plots.length; p++) {
+      var pp = GM.plots[p];
+      if (pp.built && Math.hypot(x - pp.x, z - pp.z) < 4.0) return false;
+    }
+    return true;
+  }
+  /* 单段：两柱四档，整段按两端地形的最高点落地，坡上也不会一头埋进土里 */
+  function gmFenceSegBuild(parts, seg) {
+    var L = GMF_LEN;
+    var ax = Math.cos(seg.a), az = -Math.sin(seg.a);
+    var y1 = terrainH(seg.x - ax * L / 2, seg.z - az * L / 2);
+    var y2 = terrainH(seg.x + ax * L / 2, seg.z + az * L / 2);
+    var yc = terrainH(seg.x, seg.z);
+    var y = Math.max(y1, y2, yc) + 0.03;
+    var base = M4(new THREE.Vector3(seg.x, y, seg.z), new THREE.Euler(0, seg.a, 0), 1);
+    function P(geo, px, py, pz, c, rz) {
+      parts.push({
+        geo: geo,
+        matrix: base.clone().multiply(M4(new THREE.Vector3(px, py, pz), new THREE.Euler(0, 0, rz || 0), 1)),
+        color: new THREE.Color(c), tint: 0.03
+      });
+    }
+    P(new THREE.CylinderGeometry(0.07, 0.09, 1.14, 6), -L / 2, 0.57, 0, '#6f5636');
+    P(new THREE.CylinderGeometry(0.07, 0.09, 1.14, 6), L / 2, 0.57, 0, '#6f5636');
+    [0.28, 0.52, 0.76, 0.98].forEach(function (yy) {
+      P(new THREE.CylinderGeometry(0.045, 0.05, L, 6), 0, yy, 0, yy > 0.9 ? '#8a7444' : '#9b8655', Math.PI / 2);
+    });
+  }
+  function gmFenceMeshFromSegs(segs) {
+    if (!segs.length) return null;
+    var parts = [];
+    for (var i = 0; i < segs.length; i++) gmFenceSegBuild(parts, segs[i]);
+    var m = new THREE.Mesh(partsToGeometry(parts), stdMat);
+    m.castShadow = true; m.receiveShadow = true;
+    m.userData.noPick = true;
+    return m;
+  }
+  function gmFenceGhostClear() {
+    if (!GMF.ghost) return;
+    while (GMF.ghost.children.length) {
+      var c = GMF.ghost.children[0];
+      GMF.ghost.remove(c);
+      if (c.geometry) c.geometry.dispose();
+    }
+  }
+  function gmFenceGhostShow(plan) {
+    if (!GMF.ghost) { GMF.ghost = new THREE.Group(); GMF.ghost.userData.noPick = true; scene.add(GMF.ghost); }
+    gmFenceGhostClear();
+    if (!GMF.ghostMat) GMF.ghostMat = new THREE.MeshBasicMaterial({ color: 0x9ad48f, transparent: true, opacity: 0.42, depthWrite: false });
+    for (var i = 0; i < plan.length; i++) {
+      var parts = [];
+      gmFenceSegBuild(parts, plan[i]);
+      var m = new THREE.Mesh(partsToGeometry(parts), GMF.ghostMat);
+      m.userData.noPick = true;
+      GMF.ghost.add(m);
+    }
+  }
+  function gmFenceSync() {
+    if (!GMF.group) { GMF.group = new THREE.Group(); GMF.group.userData.noPick = true; scene.add(GMF.group); }
+    while (GMF.group.children.length) {
+      var c = GMF.group.children[0];
+      GMF.group.remove(c);
+      if (c.geometry) c.geometry.dispose();
+    }
+    var m = gmFenceMeshFromSegs(GM.fenceSegs);
+    if (m) GMF.group.add(m);
+  }
+  function gmFencePlanFromDrag(sx, sz, cx, cz) {
+    var dx = cx - sx, dz = cz - sz, len = Math.hypot(dx, dz);
+    if (len < 0.5) return [];
+    var a = Math.atan2(-dz, dx), ux = dx / len, uz = dz / len;
+    var n = Math.max(1, Math.min(20, Math.round(len / GMF_STEP)));
+    var plan = [];
+    for (var i = 0; i < n; i++) {
+      var t = GMF_STEP * (i + 0.5);
+      var x = sx + ux * t, z = sz + uz * t;
+      if (!gmFenceSegOK(x, z, a)) break;   /* 遇到障碍就停：一排能铺多长铺多长，不留断口 */
+      plan.push({ x: x, z: z, a: a });
+    }
+    return plan;
+  }
+  function gmFenceCommit(list) {
+    var n = 0;
+    for (var i = 0; i < list.length; i++) {
+      if (GM.money < GMF_COST) break;
+      if (GM.fenceSegs.length >= GMF_MAX) { gmToast('竹垣最多 ' + GMF_MAX + ' 段'); break; }
+      GM.money -= GMF_COST;
+      GM.fenceSegs.push({ x: list[i].x, z: list[i].z, a: list[i].a });
+      n++;
+    }
+    if (n) { sfx('wood'); gmHud(performance.now()); gmSave(); }
+    return n;
+  }
+  function gmFenceNearest(x, z, r) {
+    var best = -1, bd = r || 2.2;
+    for (var i = 0; i < GM.fenceSegs.length; i++) {
+      var d = Math.hypot(x - GM.fenceSegs[i].x, z - GM.fenceSegs[i].z);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  function gmFenceDefaultAngle(x, z) {
+    var near = gmFenceNearest(x, z, 4.2);
+    if (near >= 0) return GM.fenceSegs[near].a;
+    var vx = orbit.target.x - camera.position.x, vz = orbit.target.z - camera.position.z;
+    var vl = Math.hypot(vx, vz) || 1;
+    var px = -vz / vl, pz = vx / vl;
+    return Math.atan2(-pz, px);
+  }
+  function gmPickGround(clientX, clientY) {
+    var rect = renderer.domElement.getBoundingClientRect();
+    ndc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    var o = raycaster.ray.origin, dir = raycaster.ray.direction;
+    var t = 1;
+    for (var i = 0; i < 600; i++) {
+      var px = o.x + dir.x * t, pz = o.z + dir.z * t, py = o.y + dir.y * t;
+      if (py <= terrainH(px, pz)) {
+        var lo = Math.max(0, t - 1), hi = t;
+        for (var k = 0; k < 12; k++) {
+          var mid = (lo + hi) / 2;
+          var mx = o.x + dir.x * mid, mz = o.z + dir.z * mid, my = o.y + dir.y * mid;
+          if (my <= terrainH(mx, mz)) hi = mid; else lo = mid;
+        }
+        var fx = o.x + dir.x * hi, fz = o.z + dir.z * hi;
+        return { x: fx, z: fz, y: terrainH(fx, fz) };
+      }
+      t += 1;
+      if (t > 700) break;
+    }
+    return null;
+  }
+  function gmFenceHintShow(on) {
+    var el = document.getElementById('fenceHint');
+    if (!el) {
+      el = document.createElement('button');
+      el.id = 'fenceHint'; el.type = 'button'; el.className = 'fence-hint';
+      el.innerHTML = '<b>竹垣连线</b><span>拖一条成排 · 点段即拆</span><i>退出</i>';
+      document.body.appendChild(el);
+      el.onclick = function () { gmFenceExit(); };
+    }
+    el.classList.toggle('on', !!on);
+  }
+  function gmFenceEnter() {
+    GMF.on = true; GMF.drag = false; GMF.plan = [];
+    window.__fenceBrushActive = true;
+    if (!gmEl.gSheet.hidden) gmEl.gSheet.hidden = true;
+    gmSetBuildMode(false);
+    gmPreviewClear();
+    try { gmSheetPreview(false); } catch (e) {}
+    gmFenceHintShow(true);
+    gmToast('竹垣连线 · 按住拖一条即成排 · 每段 50 銭 · 轻点已建段可拆', 5200);
+  }
+  function gmFenceExit() {
+    if (!GMF.on) return;
+    GMF.on = false; GMF.drag = false; GMF.plan = [];
+    window.__fenceBrushActive = false;
+    gmFenceGhostClear();
+    gmFenceHintShow(false);
+    gmHud(performance.now());
+  }
+  /* 起手点吸附到最近竹垣的端头，接着已有的篱继续拖，才不会有接缝 */
+  function gmFenceSnapStart(x, z) {
+    var bd = 3.2, be = null;
+    for (var i = 0; i < GM.fenceSegs.length; i++) {
+      var s = GM.fenceSegs[i];
+      var ax = Math.cos(s.a), az = -Math.sin(s.a);
+      for (var k = -1; k <= 1; k += 2) {
+        var ex = s.x + ax * GMF_LEN / 2 * k, ez = s.z + az * GMF_LEN / 2 * k;
+        var d = Math.hypot(x - ex, z - ez);
+        if (d < bd) { bd = d; be = { x: ex, z: ez }; }
+      }
+    }
+    return be;
+  }
+  function gmFenceDown(e) {
+    if (!GMF.on) return false;
+    if (e.target && e.target.tagName !== 'CANVAS') return false;
+    if (!gmEl.gSheet.hidden) return false;
+    var g = gmPickGround(e.clientX, e.clientY);
+    if (!g) return false;
+    var sn = gmFenceSnapStart(g.x, g.z);
+    if (sn) { g.x = sn.x; g.z = sn.z; }
+    GMF.drag = true; GMF.moved = false; GMF.sx = g.x; GMF.sz = g.z; GMF.downT = performance.now();
+    return true;
+  }
+  function gmFenceMove(e) {
+    if (!GMF.on || !GMF.drag) return false;
+    var now = performance.now();
+    if (now - GMF.lastCalc < 90) return true;
+    GMF.lastCalc = now;
+    var g = gmPickGround(e.clientX, e.clientY);
+    if (!g) return true;
+    if (Math.hypot(g.x - GMF.sx, g.z - GMF.sz) > 0.9) GMF.moved = true;
+    if (!GMF.moved) return true;
+    GMF.plan = gmFencePlanFromDrag(GMF.sx, GMF.sz, g.x, g.z);
+    gmFenceGhostShow(GMF.plan);
+    return true;
+  }
+  function gmFenceUp(e) {
+    if (!GMF.on || !GMF.drag) return false;
+    GMF.drag = false;
+    if (GMF.moved) {
+      var n = gmFenceCommit(GMF.plan);
+      GMF.plan = [];
+      gmFenceGhostClear();
+      gmFenceSync();
+      if (n) gmToast('铺了 ' + n + ' 段竹垣 · 銭 -' + (n * GMF_COST) + ' · 共 ' + GM.fenceSegs.length + ' 段', 3600);
+      else gmToast('这条线上没有能落脚的位置 · 换个方向', 3000);
+      return true;
+    }
+    var g = gmPickGround(e.clientX, e.clientY);
+    if (!g) return true;
+    var idx = gmFenceNearest(g.x, g.z, 2.2);
+    if (idx >= 0) {
+      GM.fenceSegs.splice(idx, 1);
+      GM.money += GMF_REFUND;
+      gmFenceSync(); sfx('soft'); gmHud(performance.now()); gmSave();
+      gmToast('拆一段 · 退 ' + GMF_REFUND + ' 銭 · 余 ' + GM.fenceSegs.length + ' 段', 3000);
+      return true;
+    }
+    var a = gmFenceDefaultAngle(g.x, g.z);
+    if (!gmFenceSegOK(g.x, g.z, a)) { gmToast('这里贴着地块、溪流或别的景物，放不下', 2600); return true; }
+    if (GM.money < GMF_COST) { gmToast('銭不够 · 还差 ' + Math.ceil(GMF_COST - GM.money), 2600); return true; }
+    GM.money -= GMF_COST;
+    GM.fenceSegs.push({ x: g.x, z: g.z, a: a });
+    gmFenceSync(); sfx('wood'); gmHud(performance.now()); gmSave();
+    gmToast('加一段 · 余 ' + GM.fenceSegs.length + ' 段 · 銭 -' + GMF_COST, 2600);
+    return true;
+  }
+  window.addEventListener('pointerdown', function (e) {
+    if (!gmFenceDown(e)) return;
+    e.stopPropagation(); if (e.cancelable) e.preventDefault();
+  }, true);
+  window.addEventListener('pointermove', function (e) {
+    if (!gmFenceMove(e)) return;
+    e.stopPropagation();
+  }, true);
+  window.addEventListener('pointerup', function (e) {
+    if (!gmFenceUp(e)) return;
+    e.stopPropagation(); if (e.cancelable) e.preventDefault();
+  }, true);
+  window.addEventListener('pointercancel', function () {
+    if (!GMF.on || !GMF.drag) return;
+    GMF.drag = false; GMF.plan = []; gmFenceGhostClear();
+  }, true);
+  window.__fenceEnter = gmFenceEnter;
+  window.__gmSheet = gmOpenSheet;
+  window.__fenceExit = gmFenceExit;
+  window.__fenceState = function () {
+    return { on: GMF.on, segs: GM.fenceSegs.length, money: GM.money, plan: GMF.plan.length };
+  };
+
   /* ---------- 建造预览（半透明摆位） ---------- */
   var gmPreview = null;
   function gmPreviewClear() {
@@ -14754,7 +15053,9 @@ window.__startSakuraGame = function () {
     var cards = gmEl.gSheetGrid.querySelectorAll('.gs-card');
     var pickEl = gmEl.gSheet.querySelector('.gs-pick');
     var goEl = gmEl.gSheet.querySelector('.gs-go');
+    var brushEl = gmEl.gSheet.querySelector('.gs-brush');
     function syncPick() {
+      if (brushEl) brushEl.hidden = !(pickedKey === 'fence');
       if (!pickedKey || !GM_ITEMS[pickedKey]) {
         pickEl.textContent = '尚未选择设施';
         goEl.disabled = true;
@@ -14762,7 +15063,8 @@ window.__startSakuraGame = function () {
       }
       var pit = GM_ITEMS[pickedKey];
       pickEl.textContent = '已选 ' + pit.name + ' · 銭 ' + pit.cost + ' · 景 +' + pit.appeal +
-        (pit.income ? ' · 收 +' + pit.income : '') + ' · ' + pit.weeks + ' 周';
+        (pit.income ? ' · 收 +' + pit.income : '') + ' · ' + pit.weeks + ' 周' +
+        (pickedKey === 'fence' ? ' · 可连线成排' : '');
       goEl.disabled = false;
     }
     for (var i = 0; i < cards.length; i++) {
@@ -14794,6 +15096,10 @@ window.__startSakuraGame = function () {
         gmSheetPreview(false);
         gmSetBuildMode(false);
       }
+    };
+    if (brushEl) brushEl.onclick = function () {
+      if (pickedKey !== 'fence') return;
+      gmFenceEnter();
     };
     syncPick();
   }
@@ -16972,6 +17278,7 @@ window.__startSakuraGame = function () {
         codex: Object.keys(discovered).filter(function (k) { return discovered[k]; }),
         items: GM.items, itemBuffs: GM.itemBuffs,
         built: GM.built.map(function (b) { return [b.plot, b.key, b.level || 1]; }),
+        fenceSegs: (GM.fenceSegs || []).map(function (s) { return [+s.x.toFixed(2), +s.z.toFixed(2), +s.a.toFixed(3)]; }),
         construction: GM.construction.map(function (c) { return [c.plot, c.key, c.ready, c.start]; }),
         wxKey: (WX && WX.ready) ? WX.key : 'clear', wxNext: (WX && WX.ready) ? WX.nextAt : 0,
         mods: GM.mods
@@ -17014,6 +17321,8 @@ window.__startSakuraGame = function () {
       if (p) { if (p.built && p.built.group) scene.remove(p.built.group); p.built = null; p.reserved = false; if (p.base) p.base.visible = false; }
     }
     GM.built.length = 0;
+    GM.fenceSegs.length = 0;
+    if (typeof gmFenceSync === 'function') gmFenceSync();
     for (var c = 0; c < GM.construction.length; c++) {
       var cc = GM.construction[c], pc = GM.plots[cc.plot];
       if (cc.group) scene.remove(cc.group);
@@ -17077,6 +17386,14 @@ window.__startSakuraGame = function () {
       GM.wxKey = d.wxKey || null;
       GM.wxNext = d.wxNext || 0;
       GM.mods = d.mods || {};
+      GM.fenceSegs = [];
+      if (d.fenceSegs && d.fenceSegs.length) {
+        for (var fs = 0; fs < d.fenceSegs.length && fs < 400; fs++) {
+          var f0 = d.fenceSegs[fs];
+          if (f0 && isFinite(f0[0]) && isFinite(f0[1])) GM.fenceSegs.push({ x: +f0[0], z: +f0[1], a: +(f0[2] || 0) });
+        }
+      }
+      gmFenceSync();
       GM.loaded = true;
       GM.week = Math.min(52, Math.floor((GM.day - 1) / 7) + 1);
       for (var i = 0; i < (d.built || []).length; i++) {
@@ -17150,6 +17467,7 @@ window.__startSakuraGame = function () {
   }, true);
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
+      if (typeof GMF !== 'undefined' && GMF.on) { gmFenceExit(); return; }
       if (gmEl.gMask && !gmEl.gMask.hidden) { gmCloseModal(); return; }
       if (GM.buildMode) gmSetBuildMode(false);
     }
